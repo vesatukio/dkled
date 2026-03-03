@@ -167,15 +167,36 @@ button{cursor:pointer;}
 Checkout WA
 </button>
 </div>
+<div id="adminPanel" style="display:none;padding:15px;background:white;">
+<h3>Admin Panel</h3>
 
+<input id="namaBaru" placeholder="Nama Produk"><br><br>
+<input id="hargaBaru" type="number" placeholder="Harga"><br><br>
+
+<select id="kategoriBaru">
+<option value="Tuser">Tuser</option>
+<option value="FPL RX">FPL RX</option>
+<option value="MSL">MSL</option>
+<option value="Eko">Eko</option>
+<option value="LED Jadi">LED Jadi</option>
+<option value="CasingLED">CasingLED</option>
+</select><br><br>
+
+<input type="file" id="gambarBaru"><br><br>
+
+<button onclick="simpanProduk()">Simpan Produk</button>
+<hr>
+<div id="listAdmin"></div>
+</div>
+  
 <div class="bottomnav">
 <div onclick="home()">🏠<br>Home</div>
 <div class="carticon" onclick="toggleCart()">
 🛒<br>Keranjang
 <span id="badge"></span>
 </div>
+<div onclick="loginAdmin()">👤<br>Admin</div>
 </div>
-
 <script>
 
 let kategoriAktif="Semua";
@@ -299,6 +320,69 @@ document.getElementById("jadwal").innerText=
 });
 
 tampilProduk();
+
+  let adminLogin=false;
+
+function home(){
+document.getElementById("cartpopup").classList.remove("active");
+document.getElementById("adminPanel").style.display="none";
+}
+
+function loginAdmin(){
+let pass=prompt("Masukkan Password Admin:");
+if(pass==="1234"){
+adminLogin=true;
+document.getElementById("adminPanel").style.display="block";
+tampilkanAdmin();
+}else{
+alert("Password salah!");
+}
+}
+
+function simpanProduk(){
+let nama=document.getElementById("namaBaru").value;
+let harga=parseInt(document.getElementById("hargaBaru").value);
+let kategori=document.getElementById("kategoriBaru").value;
+let file=document.getElementById("gambarBaru").files[0];
+
+if(!nama || !harga || !file){
+alert("Lengkapi data!");
+return;
+}
+
+let reader=new FileReader();
+reader.onload=function(e){
+produk.push({
+nama:nama,
+harga:harga,
+kategori:kategori,
+gambar:e.target.result
+});
+tampilkanAdmin();
+tampilProduk();
+};
+reader.readAsDataURL(file);
+}
+
+function tampilkanAdmin(){
+let html="";
+produk.forEach((p,i)=>{
+html+=`
+<div style="margin-bottom:8px;">
+${p.nama} - Rp ${p.harga}
+<button onclick="hapusProduk(${i})">Hapus</button>
+</div>`;
+});
+document.getElementById("listAdmin").innerHTML=html;
+}
+
+function hapusProduk(i){
+if(confirm("Hapus produk ini?")){
+produk.splice(i,1);
+tampilkanAdmin();
+tampilProduk();
+}
+}
 </script>
 
 </body>
