@@ -4,38 +4,156 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DutaKita LED</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff5722">
-
 <style>
 body{margin:0;font-family:Arial;background:#f5f5f5;}
-.header{background:#ff5722;color:white;padding:12px;}
+
+.header{
+background:#ff5722;
+color:white;
+padding:10px;
+display:flex;
+flex-wrap:wrap;
+justify-content:space-between;
+align-items:center;
+font-size:14px;
+}
+
+.logo{font-weight:bold;font-size:16px;}
+
 .search{padding:10px;background:white;}
 .search input{width:100%;padding:10px;border-radius:20px;border:1px solid #ddd;}
-.container{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
-.card{background:white;border-radius:12px;padding:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.card img{width:100%;height:110px;object-fit:cover;border-radius:10px;}
+
+.kategori{
+display:flex;
+overflow-x:auto;
+background:white;
+padding:8px;
+gap:8px;
+}
+.kategori button{
+background:#eee;
+border:none;
+padding:6px 12px;
+border-radius:20px;
+white-space:nowrap;
+}
+.kategori button.active{
+background:#ff5722;
+color:white;
+}
+
+.container{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+padding:10px;
+}
+
+.card{
+background:white;
+border-radius:12px;
+padding:8px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.card img{
+width:100%;
+height:110px;
+object-fit:cover;
+border-radius:10px;
+}
+
 .harga{color:#ff5722;font-weight:bold;}
-.qtybox{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
-.qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;}
-.cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;transition:0.3s;max-height:70%;overflow:auto;}
+
+.qtybox{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin-top:5px;
+}
+
+.qtybox button{
+background:#ff5722;
+color:white;
+border:none;
+width:38px;
+height:38px;
+font-size:20px;
+border-radius:10px;
+}
+
+.cartpopup{
+position:fixed;
+bottom:-100%;
+left:0;
+right:0;
+background:white;
+border-radius:20px 20px 0 0;
+padding:15px;
+transition:0.3s;
+max-height:70%;
+overflow:auto;
+}
+
 .cartpopup.active{bottom:0;}
-.bottomnav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #ddd;}
-.adminpanel{display:none;padding:15px;background:white;}
+
+.bottomnav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:white;
+display:flex;
+justify-content:space-around;
+padding:8px;
+border-top:1px solid #ddd;
+}
+
+.carticon{
+position:relative;
+}
+
+.badge{
+position:absolute;
+top:-5px;
+right:-10px;
+background:red;
+color:white;
+font-size:12px;
+padding:2px 6px;
+border-radius:50%;
+animation:pop 0.3s ease;
+}
+
+@keyframes pop{
+0%{transform:scale(0);}
+100%{transform:scale(1);}
+}
+
 button{cursor:pointer;}
-.adminbtn{background:red;color:white;border:none;padding:5px 8px;border-radius:6px;font-size:12px;margin-top:5px;}
 </style>
 </head>
 <body>
 
 <div class="header">
-<b>DutaKita LED</b><br>
-<span id="tanggal"></span> | <span id="jam"></span><br>
-<span id="puasa"></span>
+<div class="logo">DutaKita LED</div>
+<div id="tanggal"></div>
+<div id="jam"></div>
+<div id="jadwal"></div>
 </div>
 
 <div class="search">
 <input type="text" id="cari" placeholder="Cari produk..." onkeyup="tampilProduk()">
+</div>
+
+<div class="kategori">
+<button onclick="filterKategori('Semua')" class="active">Semua</button>
+<button onclick="filterKategori('Tuser')">Tuser</button>
+<button onclick="filterKategori('FPL RX')">FPL RX</button>
+<button onclick="filterKategori('MSL')">MSL</button>
+<button onclick="filterKategori('Eko')">Eko</button>
+<button onclick="filterKategori('LED Jadi')">LED Jadi</button>
+<button onclick="filterKategori('CasingLED')">CasingLED</button>
 </div>
 
 <div class="container" id="produkList"></div>
@@ -45,42 +163,49 @@ button{cursor:pointer;}
 <div id="isiCart"></div>
 <hr>
 <b>Total: Rp <span id="total">0</span></b><br><br>
-<button onclick="checkoutWA()" style="width:100%;padding:12px;background:#ff5722;color:white;border:none;border-radius:10px;">Checkout WA</button>
-</div>
-
-<div class="adminpanel" id="adminpanel">
-<h3>Tambah Produk</h3>
-<input id="nama" placeholder="Nama Produk"><br><br>
-<input id="harga" placeholder="Harga"><br><br>
-<input type="file" id="gambarFile" accept="image/*"><br><br>
-<button onclick="tambahProduk()">Simpan</button>
+<button onclick="checkoutWA()" style="width:100%;padding:12px;background:#ff5722;color:white;border:none;border-radius:10px;">
+Checkout WA
+</button>
 </div>
 
 <div class="bottomnav">
 <div onclick="home()">🏠<br>Home</div>
-<div onclick="toggleCart()">🛒<br>Keranjang</div>
-<div onclick="loginAdmin()">👤<br>Akun</div>
+<div class="carticon" onclick="toggleCart()">
+🛒<br>Keranjang
+<span id="badge"></span>
+</div>
 </div>
 
 <script>
 
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js');
-}
+let kategoriAktif="Semua";
 
-let produk = JSON.parse(localStorage.getItem("produk")) || [
-{nama:"Lampu LED 10W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Lampu"},
-{nama:"Driver LED 12W",harga:10000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Driver"}
+let produk=[
+{nama:"Tuser 12W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Tuser"},
+{nama:"FPL RX 18W",harga:15000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"FPL RX"},
+{nama:"MSL 10W",harga:10000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"MSL"},
+{nama:"Eko 5W",harga:8000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Eko"},
+{nama:"LED Jadi 20W",harga:25000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"LED Jadi"},
+{nama:"CasingLED Bulat",harga:7000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"CasingLED"}
 ];
 
 let keranjang=[];
-let admin=false;
+
+function filterKategori(kat){
+kategoriAktif=kat;
+document.querySelectorAll(".kategori button").forEach(b=>b.classList.remove("active"));
+event.target.classList.add("active");
+tampilProduk();
+}
 
 function tampilProduk(){
 let keyword=document.getElementById("cari").value?.toLowerCase()||"";
 let html="";
+
 produk.forEach((p,i)=>{
-if(p.nama.toLowerCase().includes(keyword)){
+if((kategoriAktif=="Semua"||p.kategori==kategoriAktif)
+&& p.nama.toLowerCase().includes(keyword)){
+
 html+=`
 <div class="card">
 <img src="${p.gambar}">
@@ -88,106 +213,64 @@ html+=`
 <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 <div class="qtybox">
 <button onclick="kurang(${i})">-</button>
-<span id="qty${i}">0</span>
+<span id="qty${i}">${keranjang[i]||0}</span>
 <button onclick="tambah(${i})">+</button>
 </div>
-${admin?`<button class="adminbtn" onclick="editProduk(${i})">Edit</button>
-<button class="adminbtn" onclick="hapusProduk(${i})">Hapus</button>`:""}
 </div>`;
 }
 });
+
 document.getElementById("produkList").innerHTML=html;
 }
 
 function tambah(i){
 keranjang[i]=(keranjang[i]||0)+1;
-document.getElementById("qty"+i).innerText=keranjang[i];
 updateCart();
+tampilProduk();
 }
 
 function kurang(i){
 if(keranjang[i]>0){
 keranjang[i]--;
-document.getElementById("qty"+i).innerText=keranjang[i];
 updateCart();
+tampilProduk();
 }
 }
 
 function updateCart(){
 let html="";
 let total=0;
-let kategoriData={};
+let totalItem=0;
 
 produk.forEach((p,i)=>{
 if(keranjang[i]>0){
-
 let subtotal=p.harga*keranjang[i];
-if(keranjang[i]>=10){ subtotal*=0.9; }
-
 total+=subtotal;
-
-let kat = p.kategori || "Lainnya";
-
-if(!kategoriData[kat]){
-kategoriData[kat]={jumlah:0,total:0};
-}
-
-kategoriData[kat].jumlah+=keranjang[i];
-kategoriData[kat].total+=subtotal;
+totalItem+=keranjang[i];
+html+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}<br>`;
 }
 });
 
-// tampilkan per kategori
-for(let k in kategoriData){
-html+=`<b>${k}</b><br>`;
-html+=`Jumlah Item: ${kategoriData[k].jumlah}<br>`;
-html+=`Total: Rp ${Math.floor(kategoriData[k].total).toLocaleString()}<br><br>`;
-}
+document.getElementById("isiCart").innerHTML=html||"Keranjang kosong";
+document.getElementById("total").innerText=total.toLocaleString();
 
-document.getElementById("isiCart").innerHTML=html;
-document.getElementById("total").innerText=Math.floor(total).toLocaleString();
-}
-});
-document.getElementById("isiCart").innerHTML=html;
-document.getElementById("total").innerText=Math.floor(total).toLocaleString();
+let badge=document.getElementById("badge");
+badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
 }
 
 function checkoutWA(){
 let pesan="🧾 Order DutaKita LED%0A%0A";
 let total=0;
-let kategoriData={};
 
 produk.forEach((p,i)=>{
 if(keranjang[i]>0){
-
 let subtotal=p.harga*keranjang[i];
-if(keranjang[i]>=10){ subtotal*=0.9; }
-
 total+=subtotal;
-
-let kat = p.kategori || "Lainnya";
-
-if(!kategoriData[kat]){
-kategoriData[kat]={jumlah:0,total:0};
-}
-
-kategoriData[kat].jumlah+=keranjang[i];
-kategoriData[kat].total+=subtotal;
+pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}%0A`;
 }
 });
 
-for(let k in kategoriData){
-pesan+=`📦 ${k}%0A`;
-pesan+=`Jumlah Item: ${kategoriData[k].jumlah}%0A`;
-pesan+=`Total: Rp ${Math.floor(kategoriData[k].total)}%0A%0A`;
-}
-
-pesan+=`💰 TOTAL SEMUA: Rp ${Math.floor(total)}`;
-
-window.open("https://wa.me/6288224166270?text="+pesan);
-}
-});
-pesan+=`Total: Rp ${Math.floor(total)}`;
+pesan+=`%0A💰 TOTAL: Rp ${total}`;
 window.open("https://wa.me/6288224166270?text="+pesan);
 }
 
@@ -195,48 +278,8 @@ function toggleCart(){
 document.getElementById("cartpopup").classList.toggle("active");
 }
 
-function loginAdmin(){
-let pass=prompt("Password Admin:");
-if(pass=="1234"){
-admin=true;
-document.getElementById("adminpanel").style.display="block";
-tampilProduk();
-}
-}
-
-function tambahProduk(){
-let nama=document.getElementById("nama").value;
-let harga=parseInt(document.getElementById("harga").value);
-let file=document.getElementById("gambarFile").files[0];
-if(!file){alert("Pilih gambar dulu");return;}
-let reader=new FileReader();
-reader.onload=function(e){
-produk.push({nama,harga,gambar:e.target.result});
-localStorage.setItem("produk",JSON.stringify(produk));
-tampilProduk();
-};
-reader.readAsDataURL(file);
-}
-
-function editProduk(i){
-let nama=prompt("Edit Nama",produk[i].nama);
-let harga=prompt("Edit Harga",produk[i].harga);
-produk[i].nama=nama;
-produk[i].harga=parseInt(harga);
-localStorage.setItem("produk",JSON.stringify(produk));
-tampilProduk();
-}
-
-function hapusProduk(i){
-if(confirm("Hapus produk?")){
-produk.splice(i,1);
-localStorage.setItem("produk",JSON.stringify(produk));
-tampilProduk();
-}
-}
-
 function home(){
-document.getElementById("adminpanel").style.display="none";
+document.getElementById("cartpopup").classList.remove("active");
 }
 
 function updateJam(){
@@ -250,7 +293,7 @@ updateJam();
 fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
 .then(res=>res.json())
 .then(data=>{
-document.getElementById("puasa").innerText=
+document.getElementById("jadwal").innerText=
 "Imsak "+data.data.timings.Imsak+
 " | Maghrib "+data.data.timings.Maghrib;
 });
