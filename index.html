@@ -20,7 +20,19 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
 .harga{color:#ff5722;font-weight:bold;}
 .qtybox{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
 .qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;cursor:pointer;}
-.cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;transition:0.3s;max-height:70%;overflow:auto;}
+..cartpopup{
+  position:fixed;
+  bottom:-100%;
+  left:0;
+  right:0;
+  background:white;
+  border-radius:20px 20px 0 0;
+  padding:15px;
+  transition:0.3s;
+  max-height:70%;
+  overflow:auto;
+  padding-bottom:80px; /* <-- tambahan agar tombol WA & Reset tidak tertutup bottom nav */
+}
 .cartpopup.active{bottom:0;}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #ddd;}
 .carticon{position:relative;}
@@ -70,6 +82,18 @@ button{cursor:pointer;}
   <div style="font-weight:bold;font-size:18px;">
     Total: Rp <span id="total">0</span>
   </div>
+
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="checkoutWA()" 
+            style="background:#25D366;color:white;border:none;padding:12px 18px;border-radius:10px;font-weight:bold;font-size:14px;">
+      Kirim WA
+    </button>
+    <button onclick="resetCart()" 
+            style="background:#e53935;color:white;border:none;width:42px;height:42px;border-radius:10px;font-size:18px;">
+      🗑
+    </button>
+  </div>
+</div>
 
   <div style="display:flex;align-items:center;gap:8px;">
     <button onclick="checkoutWA()" 
