@@ -170,11 +170,28 @@ function updateCart(){
 }
 function resetCart(){keranjang=[];updateCart();tampilProduk();}
 function checkoutWA(){
-  let pesan="🧾 Order DutaKita LED\n\n",total=0;
-  produk.forEach((p,i)=>{if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}\n`;}})
-  if(total===0){alert("Keranjang masih kosong!");return;}
-  pesan+=`\n💰 TOTAL: Rp ${total.toLocaleString()}`;
-  window.open("https://wa.me/6288224166270?text="+encodeURIComponent(pesan),"_blank");
+  if(keranjang.reduce((a,b)=>a+b,0) === 0){ 
+    alert("Keranjang masih kosong!"); 
+    return; 
+  }
+
+  // minta nomor WA
+  let nomorWA = prompt("Masukkan nomor WA tujuan (contoh: 628xxxx):", "6288224166270");
+  if(!nomorWA) return;
+
+  let pesan="🧾 Order DutaKita LED\n\n", total=0;
+
+  produk.forEach((p,i)=>{
+    if(keranjang[i]>0){
+      let subtotal = p.harga*keranjang[i];
+      total += subtotal;
+      // Format: namabarang (harga) x qty : subtotal
+      pesan += `${p.nama} (${p.harga.toLocaleString()}) x ${keranjang[i]} : Rp ${subtotal.toLocaleString()}\n`;
+    }
+  });
+
+  pesan += `\n💰 TOTAL: Rp ${total.toLocaleString()}`;
+  window.open("https://wa.me/"+nomorWA+"?text="+encodeURIComponent(pesan), "_blank");
 }
 function toggleCart(){document.getElementById("cartpopup").classList.toggle("active");}
 function animasiWA(totalItem){let btn=document.querySelector(".wa-btn");if(totalItem>0){btn.classList.add("wa-aktif");}else{btn.classList.remove("wa-aktif");}}
