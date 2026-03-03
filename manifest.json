@@ -1,15 +1,15 @@
 {
-"name":"DutaKita LED",
-"short_name":"Duta LED",
-"display":"standalone",
-"start_url":"./",
-"background_color":"#ffffff",
-"theme_color":"#ff5722",
-"icons":[
-{
-"src":"https://i.imgur.com/8Km9tLL.jpg",
-"sizes":"192x192",
-"type":"image/png"
-}
-]
+  "name": "DutaKita LED",
+  "short_name": "Duta LED",
+  "display": "standalone",
+  "start_url": "./",
+  "background_color": "#ffffff",
+  "theme_color": "#ff5722",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/8Km9tLL.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
 }
