@@ -5,7 +5,6 @@
 <title>DutaKita LED</title>
 
 <style>
-/* ===== CSS UTAMA ===== */
 body{margin:0;font-family:Arial;background:#f5f5f5;}
 .header{background:#ff5722;color:white;padding:10px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:14px;}
 .logo{font-weight:bold;font-size:16px;}
@@ -20,7 +19,8 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
 .harga{color:#ff5722;font-weight:bold;}
 .qtybox{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
 .qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;cursor:pointer;}
-..cartpopup{
+
+.cartpopup{
   position:fixed;
   bottom:-100%;
   left:0;
@@ -31,15 +31,15 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
   transition:0.3s;
   max-height:70%;
   overflow:auto;
-  padding-bottom:100px; /* <-- tambahan agar tombol WA & Reset tidak tertutup bottom nav */
+  padding-bottom:100px;
 }
 .cartpopup.active{bottom:0;}
+
 .bottomnav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #ddd;}
 .carticon{position:relative;}
 .badge{position:absolute;top:-5px;right:-10px;background:red;color:white;font-size:12px;padding:2px 6px;border-radius:50%;animation:pop 0.3s ease;}
 @keyframes pop{0%{transform:scale(0);}100%{transform:scale(1);}}
 
-/* ===== ANIMASI WA ===== */
 .wa-aktif{animation:denyut 1s infinite;}
 @keyframes denyut{0%{transform:scale(1);}50%{transform:scale(1.07);}100%{transform:scale(1);}}
 
@@ -61,13 +61,13 @@ button{cursor:pointer;}
 </div>
 
 <div class="kategori">
-<button onclick="filterKategori('Semua')" class="active">Semua</button>
-<button onclick="filterKategori('Tuser')">Tuser</button>
-<button onclick="filterKategori('FPL RX')">FPL RX</button>
-<button onclick="filterKategori('MSL')">MSL</button>
-<button onclick="filterKategori('Eko')">Eko</button>
-<button onclick="filterKategori('LED Jadi')">LED Jadi</button>
-<button onclick="filterKategori('CasingLED')">CasingLED</button>
+<button onclick="filterKategori('Semua', this)" class="active">Semua</button>
+<button onclick="filterKategori('Tuser', this)">Tuser</button>
+<button onclick="filterKategori('FPL RX', this)">FPL RX</button>
+<button onclick="filterKategori('MSL', this)">MSL</button>
+<button onclick="filterKategori('Eko', this)">Eko</button>
+<button onclick="filterKategori('LED Jadi', this)">LED Jadi</button>
+<button onclick="filterKategori('CasingLED', this)">CasingLED</button>
 </div>
 
 <div class="container" id="produkList"></div>
@@ -77,7 +77,6 @@ button{cursor:pointer;}
 <div id="isiCart"></div>
 <hr>
 
-<!-- Total + Tombol WA + Reset -->
 <div style="display:flex;align-items:center;gap:15px;justify-content:space-between;">
   <div style="font-weight:bold;font-size:18px;">
     Total: Rp <span id="total">0</span>
@@ -85,36 +84,17 @@ button{cursor:pointer;}
 
   <div style="display:flex;align-items:center;gap:8px;">
     <button onclick="checkoutWA()" 
-            style="background:#25D366;color:white;border:none;padding:12px 18px;border-radius:10px;font-weight:bold;font-size:14px;">
+      style="background:#25D366;color:white;border:none;padding:12px 18px;border-radius:10px;font-weight:bold;font-size:14px;">
       Kirim WA
     </button>
     <button onclick="resetCart()" 
-            style="background:#e53935;color:white;border:none;width:42px;height:42px;border-radius:10px;font-size:18px;">
+      style="background:#e53935;color:white;border:none;width:42px;height:42px;border-radius:10px;font-size:18px;">
       🗑
     </button>
   </div>
 </div>
-
-  
-<div id="adminPanel" style="display:none;padding:15px;background:white;">
-<h3>Admin Panel</h3>
-<input id="namaBaru" placeholder="Nama Produk"><br><br>
-<input id="hargaBaru" type="number" placeholder="Harga"><br><br>
-<select id="kategoriBaru">
-<option value="Tuser">Tuser</option>
-<option value="FPL RX">FPL RX</option>
-<option value="MSL">MSL</option>
-<option value="Eko">Eko</option>
-<option value="LED Jadi">LED Jadi</option>
-<option value="CasingLED">CasingLED</option>
-</select><br><br>
-<input type="file" id="gambarBaru"><br><br>
-<button onclick="simpanProduk()">Simpan Produk</button>
-<hr>
-<div id="listAdmin"></div>
 </div>
 
-<!-- Bottom Nav -->
 <div class="bottomnav">
 <div onclick="home()">🏠<br>Home</div>
 <div class="carticon" onclick="toggleCart()">🛒<br>Keranjang<span id="badge"></span></div>
@@ -122,7 +102,6 @@ button{cursor:pointer;}
 </div>
 
 <script>
-// ===== DATA & KERANJANG =====
 let kategoriAktif="Semua";
 let produk=[
 {nama:"Tuser 12W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Tuser"},
@@ -132,15 +111,13 @@ let produk=[
 {nama:"LED Jadi 20W",harga:25000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"LED Jadi"},
 {nama:"CasingLED Bulat",harga:7000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"CasingLED"}
 ];
-let keranjang=[];
-let simpan = localStorage.getItem("keranjang");
-if(simpan){keranjang = JSON.parse(simpan);}
 
-// ===== PRODUK =====
-function filterKategori(kat){
+let keranjang = JSON.parse(localStorage.getItem("keranjang")) || [];
+
+function filterKategori(kat, el){
 kategoriAktif=kat;
 document.querySelectorAll(".kategori button").forEach(b=>b.classList.remove("active"));
-event.target.classList.add("active");
+el.classList.add("active");
 tampilProduk();
 }
 
@@ -149,13 +126,14 @@ let keyword=document.getElementById("cari").value?.toLowerCase()||"";
 let html="";
 produk.forEach((p,i)=>{
 if((kategoriAktif=="Semua"||p.kategori==kategoriAktif)&&p.nama.toLowerCase().includes(keyword)){
-html+=`<div class="card">
+html+=`
+<div class="card">
 <img src="${p.gambar}">
 <b>${p.nama}</b>
 <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 <div class="qtybox">
 <button onclick="kurang(${i})">-</button>
-<span id="qty${i}">${keranjang[i]||0}</span>
+<span>${keranjang[i]||0}</span>
 <button onclick="tambah(${i})">+</button>
 </div>
 </div>`;
@@ -164,66 +142,68 @@ html+=`<div class="card">
 document.getElementById("produkList").innerHTML=html;
 }
 
-// ===== TAMBAH / KURANG =====
 function tambah(i){
 keranjang[i]=(keranjang[i]||0)+1;
 updateCart();
 tampilProduk();
-let card=document.querySelectorAll(".card")[i];
-if(card){card.style.transform="scale(1.05)"; setTimeout(()=>{card.style.transform="scale(1)";},150);}
-}
-function kurang(i){
-if(keranjang[i]>0){keranjang[i]--; updateCart(); tampilProduk();}
 }
 
-// ===== UPDATE CART =====
+function kurang(i){
+if(keranjang[i]>0){keranjang[i]--;updateCart();tampilProduk();}
+}
+
 function updateCart(){
 let html="", total=0, totalItem=0;
-produk.forEach((p,i)=>{if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;totalItem+=keranjang[i];html+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}<br>`;}});
+produk.forEach((p,i)=>{
+if(keranjang[i]>0){
+let subtotal=p.harga*keranjang[i];
+total+=subtotal;
+totalItem+=keranjang[i];
+html+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}<br>`;
+}});
 document.getElementById("isiCart").innerHTML=html||"Keranjang kosong";
 document.getElementById("total").innerText=total.toLocaleString();
-let badge=document.getElementById("badge");
-badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
+document.getElementById("badge").innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
 localStorage.setItem("keranjang",JSON.stringify(keranjang));
 animasiWA(totalItem);
 }
 
-// ===== CHECKOUT WA =====
 function checkoutWA(){
-let pesan="🧾 Order DutaKita LED\n\n"; let total=0;
-produk.forEach((p,i)=>{if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}\n`;}})
-if(total===0){alert("Keranjang masih kosong!"); return;}
+let pesan="🧾 Order DutaKita LED\n\n"; 
+let total=0;
+produk.forEach((p,i)=>{
+if(keranjang[i]>0){
+let subtotal=p.harga*keranjang[i];
+total+=subtotal;
+pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}\n`;
+}});
+if(total===0){alert("Keranjang masih kosong!");return;}
 pesan+=`\n💰 TOTAL: Rp ${total}`;
-let url="https://wa.me/6288224166270?text="+encodeURIComponent(pesan);
-window.open(url,"_blank");
+window.open("https://wa.me/6288224166270?text="+encodeURIComponent(pesan),"_blank");
 }
 
-function toggleCart(){document.getElementById("cartpopup").classList.toggle("active");}
+function resetCart(){
+keranjang=[];
+updateCart();
+tampilProduk();
+}
 
-// ===== JAM & TANGGAL =====
-function updateJam(){let now=new Date();document.getElementById("jam").innerText=now.toLocaleTimeString();document.getElementById("tanggal").innerText=now.toLocaleDateString();}
-setInterval(updateJam,1000);updateJam();
+function toggleCart(){
+document.getElementById("cartpopup").classList.toggle("active");
+}
 
-// ===== JADWAL SHOLAT =====
-fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
-.then(res=>res.json())
-.then(data=>{document.getElementById("jadwal").innerText="Imsak "+data.data.timings.Imsak+" | Maghrib "+data.data.timings.Maghrib;});
+function animasiWA(totalItem){
+let btn=document.querySelector("[onclick='checkoutWA()']");
+if(totalItem>0){btn.classList.add("wa-aktif");}
+else{btn.classList.remove("wa-aktif");}
+}
+
+function home(){
+document.getElementById("cartpopup").classList.remove("active");
+}
 
 tampilProduk();
-
-// ===== ADMIN =====
-let adminLogin=false;
-function home(){document.getElementById("cartpopup").classList.remove("active");document.getElementById("adminPanel").style.display="none";}
-function loginAdmin(){let pass=prompt("Masukkan Password Admin:");if(pass==="1234"){adminLogin=true;document.getElementById("adminPanel").style.display="block";tampilkanAdmin();}else{alert("Password salah!");}}
-function simpanProduk(){let nama=document.getElementById("namaBaru").value;let harga=parseInt(document.getElementById("hargaBaru").value);let kategori=document.getElementById("kategoriBaru").value;let file=document.getElementById("gambarBaru").files[0];if(!nama||!harga||!file){alert("Lengkapi data!");return;}let reader=new FileReader();reader.onload=function(e){produk.push({nama:nama,harga:harga,kategori:kategori,gambar:e.target.result});tampilkanAdmin();tampilProduk();};reader.readAsDataURL(file);}
-function tampilkanAdmin(){let html="";produk.forEach((p,i)=>{html+=`<div style="margin-bottom:8px;">${p.nama} - Rp ${p.harga}<button onclick="hapusProduk(${i})">Hapus</button></div>`;});document.getElementById("listAdmin").innerHTML=html;}
-function hapusProduk(i){if(confirm("Hapus produk ini?")){produk.splice(i,1);tampilkanAdmin();tampilProduk();}}
-
-// ===== RESET CART =====
-function resetCart(){keranjang=[];updateCart();tampilProduk();}
-
-// ===== ANIMASI WA =====
-function animasiWA(totalItem){let btn=document.querySelector("[onclick='checkoutWA()']");if(totalItem>0){btn.classList.add("wa-aktif");}else{btn.classList.remove("wa-aktif");}}
+updateCart();
 </script>
 
 </body>
