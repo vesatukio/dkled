@@ -164,32 +164,21 @@ button{cursor:pointer;}
 <div id="isiCart"></div>
 <hr>
 
+<div style="display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap;">
 <b>Total: Rp <span id="total">0</span></b>
 
-<hr>
-
-<h4>Data Pembeli</h4>
-
-<input type="text" id="namaPembeli" placeholder="Nama Lengkap" style="width:100%;padding:8px;margin-bottom:8px;border-radius:8px;border:1px solid #ddd;">
-
-<input type="text" id="hpPembeli" placeholder="No HP" style="width:100%;padding:8px;margin-bottom:8px;border-radius:8px;border:1px solid #ddd;">
-
-<textarea id="alamatPembeli" placeholder="Alamat Lengkap" 
-style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;"></textarea>
-
-<br><br>
-
+<div style="display:flex;gap:5px;">
 <button onclick="checkoutWA()" 
-style="width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:10px;">
-Kirim Pesanan via WhatsApp
+style="padding:8px 12px;background:#25D366;color:white;border:none;border-radius:8px;">
+WA
 </button>
-
-<br><br>
 
 <button onclick="resetCart()" 
-style="width:100%;padding:10px;background:#999;color:white;border:none;border-radius:10px;">
-Reset Keranjang
+style="padding:8px 12px;background:#999;color:white;border:none;border-radius:8px;">
+Reset
 </button>
+</div>
+</div>
 
 </div>
 <div id="adminPanel" style="display:none;padding:15px;background:white;">
@@ -215,13 +204,14 @@ Reset Keranjang
 </div>
   
 <div class="bottomnav">
- <div onclick="loginAdmin()">👤<br>Admin</div>
+<div onclick="home()">🏠<br>Home</div>
+
 <div class="carticon" onclick="toggleCart()">
 🛒<br>Keranjang
 <span id="badge"></span>
 </div>
-<div onclick="checkoutWA()">📲<br>Checkout</div>
-<div onclick="loginAdmin()">👤<br>Admin</div>
+
+<div onclick="loginAdmin()">👤<br>Akun</div>
 </div>
 <script>
 
@@ -411,6 +401,11 @@ produk.splice(i,1);
 tampilkanAdmin();
 tampilProduk();
 }
+}
+  function resetCart(){
+keranjang=[];
+updateCart();
+tampilProduk();
 }
 </script>
 
