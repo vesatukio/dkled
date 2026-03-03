@@ -7,20 +7,6 @@
 <meta name="theme-color" content="#ff5722">
 
 <style>
-  .cartpopup{
-  position:fixed;
-  bottom:-100%;
-  left:0;
-  right:0;
-  background:white;
-  border-radius:20px 20px 0 0;
-  padding:15px;
-  padding-bottom:100px; /* tambahan supaya tombol tidak tertutup bottom nav */
-  transition:0.3s;
-  max-height:70%;
-  overflow:auto;
-  z-index:999;
-}
 body{margin:0;font-family:Arial;background:#f5f5f5;}
 .header{background:#ff5722;color:white;padding:10px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:14px;}
 .logo{font-weight:bold;font-size:16px;}
@@ -35,7 +21,7 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
 .harga{color:#ff5722;font-weight:bold;}
 .qtybox{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
 .qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;cursor:pointer;}
-.cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;transition:0.3s;max-height:70%;overflow:auto;z-index:999;}
+.cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;padding-bottom:100px;transition:0.3s;max-height:70%;overflow:auto;z-index:999;}
 .cartpopup.active{bottom:0;}
 .cart-footer{position:sticky;bottom:0;background:white;padding:8px 0;display:flex;justify-content:space-between;gap:5px;border-top:1px solid #ddd;z-index:1001;}
 .wa-btn{background:#25D366;color:white;border:none;padding:8px 12px;border-radius:8px;}
@@ -75,47 +61,25 @@ button{cursor:pointer;}
 
 <div class="container" id="produkList"></div>
 
+<!-- CART POPUP -->
 <div class="cartpopup" id="cartpopup">
-  <div id="adminPanel" style="display:none;padding:15px;background:white;">
-  <h3>Admin Panel</h3>
-  <button onclick="logoutAdmin()" style="margin-bottom:10px;background:#e53935;color:white;padding:5px 10px;border:none;border-radius:5px;cursor:pointer;">Logout Admin</button>
-  <br>
-    // Fungsi logout admin
-function logoutAdmin() {
-  if (confirm("Yakin ingin logout admin?")) {
-    adminLogin = false; // ubah status admin
-    document.getElementById("adminPanel").style.display = "none"; // sembunyikan panel admin
-    tampilProduk(); // refresh tampilan produk, hilangkan tombol edit/hapus
-  }
-}
-  <input id="namaBaru" placeholder="Nama Produk"><br><br>
-  <input id="hargaBaru" type="number" placeholder="Harga"><br><br>
-  <select id="kategoriBaru">
-    <option value="Tuser">Tuser</option>
-    <option value="FPL RX">FPL RX</option>
-    <option value="MSL">MSL</option>
-    <option value="Eko">Eko</option>
-    <option value="LED Jadi">LED Jadi</option>
-    <option value="CasingLED">CasingLED</option>
-  </select><br><br>
-  <input type="file" id="gambarBaru" data-index=""><br><br>
-  <button onclick="simpanProduk()">Simpan Produk</button>
-  <hr>
-  <div id="listAdmin"></div>
-</div>
   <h3>Keranjang</h3>
   <div id="isiCart" style="margin-bottom:60px;"></div>
+
   <div class="cart-footer">
     <b>Total: Rp <span id="total">0</span></b>
-    <div style="display:flex;gap:5px;">
+    <div style="display:flex;gap:8px;">
       <button onclick="checkoutWA()" class="wa-btn">WA</button>
       <button onclick="resetCart()" class="reset-btn">Reset</button>
     </div>
   </div>
 </div>
 
+<!-- ADMIN PANEL -->
 <div id="adminPanel" style="display:none;padding:15px;background:white;">
   <h3>Admin Panel</h3>
+  <button onclick="logoutAdmin()" style="margin-bottom:10px;background:#e53935;color:white;padding:5px 10px;border:none;border-radius:5px;cursor:pointer;">Logout Admin</button>
+  <br>
   <input id="namaBaru" placeholder="Nama Produk"><br><br>
   <input id="hargaBaru" type="number" placeholder="Harga"><br><br>
   <select id="kategoriBaru">
@@ -131,26 +95,8 @@ function logoutAdmin() {
   <hr>
   <div id="listAdmin"></div>
 </div>
-<div class="cartpopup" id="cartpopup">
-  <h3>Keranjang</h3>
-  <div id="isiCart"></div>
-  <hr>
 
-  <!-- ===== Total + WA + Reset ===== -->
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">
-    <b style="font-size:16px;">Total: Rp <span id="total">0</span></b>
-    <div style="display:flex;gap:8px;">
-      <button onclick="checkoutWA()" 
-              style="padding:10px 16px;background:#25D366;color:white;border:none;border-radius:8px;">
-        WA
-      </button>
-      <button onclick="resetCart()" 
-              style="padding:10px 16px;background:#e53935;color:white;border:none;border-radius:8px;">
-        Reset
-      </button>
-    </div>
-  </div>
-</div>
+<!-- BOTTOM NAV -->
 <div class="bottomnav">
   <div onclick="home()">🏠<br>Home</div>
   <div class="carticon" onclick="toggleCart()">🛒<br>Keranjang<span id="badge"></span></div>
@@ -158,7 +104,7 @@ function logoutAdmin() {
 </div>
 
 <script>
-// ===== DATA PRODUK =====
+// ===== DATA & KERANJANG =====
 let produk = JSON.parse(localStorage.getItem("produk")) || [
   {nama:"Tuser 12W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Tuser"},
   {nama:"FPL RX 18W",harga:15000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"FPL RX"},
@@ -168,6 +114,15 @@ let produk = JSON.parse(localStorage.getItem("produk")) || [
   {nama:"CasingLED Bulat",harga:7000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"CasingLED"}
 ];
 let keranjang = JSON.parse(localStorage.getItem("keranjang")) || [];
+let adminLogin=false;
+
+// ===== JAM & TANGGAL =====
+function updateJam(){let now=new Date();document.getElementById("jam").innerText=now.toLocaleTimeString();document.getElementById("tanggal").innerText=now.toLocaleDateString();}
+setInterval(updateJam,1000);updateJam();
+
+// ===== JADWAL SHOLAT =====
+fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
+.then(res=>res.json()).then(data=>{document.getElementById("jadwal").innerText="Imsak "+data.data.timings.Imsak+" | Maghrib "+data.data.timings.Maghrib;});
 
 // ===== FILTER & TAMPIL PRODUK =====
 let kategoriAktif="Semua";
@@ -209,8 +164,7 @@ function updateCart(){
   });
   document.getElementById("isiCart").innerHTML=html||"Keranjang kosong";
   document.getElementById("total").innerText=total.toLocaleString();
-  let badge=document.getElementById("badge");
-  badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
+  document.getElementById("badge").innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
   animasiWA(totalItem);
   localStorage.setItem("keranjang",JSON.stringify(keranjang));
 }
@@ -225,21 +179,14 @@ function checkoutWA(){
 function toggleCart(){document.getElementById("cartpopup").classList.toggle("active");}
 function animasiWA(totalItem){let btn=document.querySelector(".wa-btn");if(totalItem>0){btn.classList.add("wa-aktif");}else{btn.classList.remove("wa-aktif");}}
 
-// ===== JAM & TANGGAL =====
-function updateJam(){let now=new Date();document.getElementById("jam").innerText=now.toLocaleTimeString();document.getElementById("tanggal").innerText=now.toLocaleDateString();}
-setInterval(updateJam,1000);updateJam();
-
-// ===== JADWAL SHOLAT =====
-fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
-.then(res=>res.json()).then(data=>{document.getElementById("jadwal").innerText="Imsak "+data.data.timings.Imsak+" | Maghrib "+data.data.timings.Maghrib;});
-
 // ===== ADMIN =====
-let adminLogin=false;
-function home(){document.getElementById("cartpopup").classList.remove("active");document.getElementById("adminPanel").style.display="none";}
 function loginAdmin(){
   let pass=prompt("Masukkan Password Admin:");
   if(pass==="1234"){ adminLogin=true; document.getElementById("adminPanel").style.display="block"; tampilkanAdmin(); tampilProduk(); }
   else alert("Password salah!");
+}
+function logoutAdmin(){
+  if(confirm("Yakin ingin logout admin?")){ adminLogin=false; document.getElementById("adminPanel").style.display="none"; tampilProduk(); }
 }
 function tampilkanAdmin(){
   let html=""; produk.forEach((p,i)=>{html+=`<div style="margin-bottom:8px;">${p.nama} - Rp ${p.harga}<button class="admin-btn" onclick="hapusProduk(${i})">Hapus</button></div>`;});
@@ -253,7 +200,7 @@ function simpanProduk(){
   let index=document.getElementById("gambarBaru").dataset.index;
   if(!nama || !harga || (!file && index==="")){alert("Lengkapi data!"); return;}
   let proses = (gambarData)=>{
-    if(index!==""){ produk[index] = {nama,harga,kategori,gambar:gambarData}; } 
+    if(index!==""){ produk[index]={nama,harga,kategori,gambar:gambarData}; } 
     else { produk.push({nama,harga,kategori,gambar:gambarData}); }
     localStorage.setItem("produk",JSON.stringify(produk));
     tampilkanAdmin(); tampilProduk();
