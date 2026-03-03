@@ -169,17 +169,28 @@ animasiWA(totalItem);
 }
 
 function checkoutWA(){
-let pesan="🧾 Order DutaKita LED\n\n"; 
-let total=0;
-produk.forEach((p,i)=>{
-if(keranjang[i]>0){
-let subtotal=p.harga*keranjang[i];
-total+=subtotal;
-pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}\n`;
-}});
-if(total===0){alert("Keranjang masih kosong!");return;}
-pesan+=`\n💰 TOTAL: Rp ${total}`;
-window.open("https://wa.me/6288224166270?text="+encodeURIComponent(pesan),"_blank");
+  let pesan="🧾 Order DutaKita LED\n\n"; 
+  let total=0;
+
+  produk.forEach((p,i)=>{
+    if(keranjang[i]>0){
+      let subtotal = p.harga * keranjang[i];
+      total += subtotal;
+      // Format subtotal pakai titik ribuan
+      pesan += `${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
+    }
+  });
+
+  if(total===0){
+    alert("Keranjang masih kosong!");
+    return;
+  }
+
+  // Format total pakai titik ribuan
+  pesan += `\n💰 TOTAL: Rp ${total.toLocaleString('id-ID')}`;
+
+  let url="https://wa.me/6288224166270?text="+encodeURIComponent(pesan);
+  window.open(url,"_blank");
 }
 
 function resetCart(){
