@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DutaKita LED</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff5722">
+
+<style>
+body{margin:0;font-family:Arial;background:#f5f5f5;}
+.header{background:#ff5722;color:white;padding:12px;}
+.search{padding:10px;background:white;}
+.search input{width:100%;padding:10px;border-radius:20px;border:1px solid #ddd;}
+.container{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
+.card{background:white;border-radius:12px;padding:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.card img{width:100%;height:110px;object-fit:cover;border-radius:10px;}
+.harga{color:#ff5722;font-weight:bold;}
+.qtybox{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
+.qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;}
+.cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;transition:0.3s;max-height:70%;overflow:auto;}
+.cartpopup.active{bottom:0;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #ddd;}
+.adminpanel{display:none;padding:15px;background:white;}
+button{cursor:pointer;}
+.adminbtn{background:red;color:white;border:none;padding:5px 8px;border-radius:6px;font-size:12px;margin-top:5px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+<b>DutaKita LED</b><br>
+<span id="tanggal"></span> | <span id="jam"></span><br>
+<span id="puasa"></span>
+</div>
+
+<div class="search">
+<input type="text" id="cari" placeholder="Cari produk..." onkeyup="tampilProduk()">
+</div>
+
+<div class="container" id="produkList"></div>
+
+<div class="cartpopup" id="cartpopup">
+<h3>Keranjang</h3>
+<div id="isiCart"></div>
+<hr>
+<b>Total: Rp <span id="total">0</span></b><br><br>
+<button onclick="checkoutWA()" style="width:100%;padding:12px;background:#ff5722;color:white;border:none;border-radius:10px;">Checkout WA</button>
+</div>
+
+<div class="adminpanel" id="adminpanel">
+<h3>Tambah Produk</h3>
+<input id="nama" placeholder="Nama Produk"><br><br>
+<input id="harga" placeholder="Harga"><br><br>
+<input type="file" id="gambarFile" accept="image/*"><br><br>
+<button onclick="tambahProduk()">Simpan</button>
+</div>
+
+<div class="bottomnav">
+<div onclick="home()">🏠<br>Home</div>
+<div onclick="toggleCart()">🛒<br>Keranjang</div>
+<div onclick="loginAdmin()">👤<br>Akun</div>
+</div>
+
+<script>
+
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js');
+}
+
+let produk = JSON.parse(localStorage.getItem("produk")) || [
+{nama:"Lampu LED 10W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg"},
+{nama:"Driver LED 12W",harga:10000,gambar:"https://i.imgur.com/8Km9tLL.jpg"}
+];
+
+let keranjang=[];
+let admin=false;
+
+function tampilProduk(){
+let keyword=document.getElementById("cari").value?.toLowerCase()||"";
+let html="";
+produk.forEach((p,i)=>{
+if(p.nama.toLowerCase().includes(keyword)){
+html+=`
+<div class="card">
+<img src="${p.gambar}">
+<b>${p.nama}</b>
+<div class="harga">Rp ${p.harga.toLocaleString()}</div>
+<div class="qtybox">
+<button onclick="kurang(${i})">-</button>
+<span id="qty${i}">0</span>
+<button onclick="tambah(${i})">+</button>
+</div>
+${admin?`<button class="adminbtn" onclick="editProduk(${i})">Edit</button>
+<button class="adminbtn" onclick="hapusProduk(${i})">Hapus</button>`:""}
+</div>`;
+}
+});
+document.getElementById("produkList").innerHTML=html;
+}
+
+function tambah(i){
+keranjang[i]=(keranjang[i]||0)+1;
+document.getElementById("qty"+i).innerText=keranjang[i];
+updateCart();
+}
+
+function kurang(i){
+if(keranjang[i]>0){
+keranjang[i]--;
+document.getElementById("qty"+i).innerText=keranjang[i];
+updateCart();
+}
+}
+
+function updateCart(){
+let html="";
+let total=0;
+produk.forEach((p,i)=>{
+if(keranjang[i]>0){
+let subtotal=p.harga*keranjang[i];
+if(keranjang[i]>=10){ subtotal*=0.9; }
+total+=subtotal;
+html+=`${p.nama} x${keranjang[i]} = Rp ${Math.floor(subtotal).toLocaleString()}<br>`;
+}
+});
+document.getElementById("isiCart").innerHTML=html;
+document.getElementById("total").innerText=Math.floor(total).toLocaleString();
+}
+
+function checkoutWA(){
+let pesan="Order DutaKita LED%0A";
+let total=0;
+produk.forEach((p,i)=>{
+if(keranjang[i]>0){
+let subtotal=p.harga*keranjang[i];
+if(keranjang[i]>=10){ subtotal*=0.9; }
+pesan+=`- ${p.nama} x${keranjang[i]}%0A`;
+total+=subtotal;
+}
+});
+pesan+=`Total: Rp ${Math.floor(total)}`;
+window.open("https://wa.me/6288224166270?text="+pesan);
+}
+
+function toggleCart(){
+document.getElementById("cartpopup").classList.toggle("active");
+}
+
+function loginAdmin(){
+let pass=prompt("Password Admin:");
+if(pass=="1234"){
+admin=true;
+document.getElementById("adminpanel").style.display="block";
+tampilProduk();
+}
+}
+
+function tambahProduk(){
+let nama=document.getElementById("nama").value;
+let harga=parseInt(document.getElementById("harga").value);
+let file=document.getElementById("gambarFile").files[0];
+if(!file){alert("Pilih gambar dulu");return;}
+let reader=new FileReader();
+reader.onload=function(e){
+produk.push({nama,harga,gambar:e.target.result});
+localStorage.setItem("produk",JSON.stringify(produk));
+tampilProduk();
+};
+reader.readAsDataURL(file);
+}
+
+function editProduk(i){
+let nama=prompt("Edit Nama",produk[i].nama);
+let harga=prompt("Edit Harga",produk[i].harga);
+produk[i].nama=nama;
+produk[i].harga=parseInt(harga);
+localStorage.setItem("produk",JSON.stringify(produk));
+tampilProduk();
+}
+
+function hapusProduk(i){
+if(confirm("Hapus produk?")){
+produk.splice(i,1);
+localStorage.setItem("produk",JSON.stringify(produk));
+tampilProduk();
+}
+}
+
+function home(){
+document.getElementById("adminpanel").style.display="none";
+}
+
+function updateJam(){
+let now=new Date();
+document.getElementById("jam").innerText=now.toLocaleTimeString();
+document.getElementById("tanggal").innerText=now.toLocaleDateString();
+}
+setInterval(updateJam,1000);
+updateJam();
+
+fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("puasa").innerText=
+"Imsak "+data.data.timings.Imsak+
+" | Maghrib "+data.data.timings.Maghrib;
+});
+
+tampilProduk();
+</script>
+
+</body>
+</html>
