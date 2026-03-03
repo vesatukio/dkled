@@ -69,8 +69,8 @@ navigator.serviceWorker.register('sw.js');
 }
 
 let produk = JSON.parse(localStorage.getItem("produk")) || [
-{nama:"Lampu LED 10W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg"},
-{nama:"Driver LED 12W",harga:10000,gambar:"https://i.imgur.com/8Km9tLL.jpg"}
+{nama:"Lampu LED 10W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Lampu"},
+{nama:"Driver LED 12W",harga:10000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Driver"}
 ];
 
 let keranjang=[];
@@ -116,12 +116,36 @@ updateCart();
 function updateCart(){
 let html="";
 let total=0;
+let kategoriData={};
+
 produk.forEach((p,i)=>{
 if(keranjang[i]>0){
+
 let subtotal=p.harga*keranjang[i];
 if(keranjang[i]>=10){ subtotal*=0.9; }
+
 total+=subtotal;
-html+=`${p.nama} x${keranjang[i]} = Rp ${Math.floor(subtotal).toLocaleString()}<br>`;
+
+let kat = p.kategori || "Lainnya";
+
+if(!kategoriData[kat]){
+kategoriData[kat]={jumlah:0,total:0};
+}
+
+kategoriData[kat].jumlah+=keranjang[i];
+kategoriData[kat].total+=subtotal;
+}
+});
+
+// tampilkan per kategori
+for(let k in kategoriData){
+html+=`<b>${k}</b><br>`;
+html+=`Jumlah Item: ${kategoriData[k].jumlah}<br>`;
+html+=`Total: Rp ${Math.floor(kategoriData[k].total).toLocaleString()}<br><br>`;
+}
+
+document.getElementById("isiCart").innerHTML=html;
+document.getElementById("total").innerText=Math.floor(total).toLocaleString();
 }
 });
 document.getElementById("isiCart").innerHTML=html;
@@ -129,14 +153,38 @@ document.getElementById("total").innerText=Math.floor(total).toLocaleString();
 }
 
 function checkoutWA(){
-let pesan="Order DutaKita LED%0A";
+let pesan="🧾 Order DutaKita LED%0A%0A";
 let total=0;
+let kategoriData={};
+
 produk.forEach((p,i)=>{
 if(keranjang[i]>0){
+
 let subtotal=p.harga*keranjang[i];
 if(keranjang[i]>=10){ subtotal*=0.9; }
-pesan+=`- ${p.nama} x${keranjang[i]}%0A`;
+
 total+=subtotal;
+
+let kat = p.kategori || "Lainnya";
+
+if(!kategoriData[kat]){
+kategoriData[kat]={jumlah:0,total:0};
+}
+
+kategoriData[kat].jumlah+=keranjang[i];
+kategoriData[kat].total+=subtotal;
+}
+});
+
+for(let k in kategoriData){
+pesan+=`📦 ${k}%0A`;
+pesan+=`Jumlah Item: ${kategoriData[k].jumlah}%0A`;
+pesan+=`Total: Rp ${Math.floor(kategoriData[k].total)}%0A%0A`;
+}
+
+pesan+=`💰 TOTAL SEMUA: Rp ${Math.floor(total)}`;
+
+window.open("https://wa.me/6288224166270?text="+pesan);
 }
 });
 pesan+=`Total: Rp ${Math.floor(total)}`;
