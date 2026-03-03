@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DutaKita LED</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff5722">
+
 <style>
 body{margin:0;font-family:Arial;background:#f5f5f5;}
 .header{background:#ff5722;color:white;padding:10px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:14px;}
@@ -22,6 +23,9 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
 .qtybox button{background:#ff5722;color:white;border:none;width:38px;height:38px;font-size:20px;border-radius:10px;cursor:pointer;}
 .cartpopup{position:fixed;bottom:-100%;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:15px;transition:0.3s;max-height:70%;overflow:auto;z-index:999;}
 .cartpopup.active{bottom:0;}
+.cart-footer{position:sticky;bottom:0;background:white;padding:8px 0;display:flex;justify-content:space-between;gap:5px;border-top:1px solid #ddd;z-index:1001;}
+.wa-btn{background:#25D366;color:white;border:none;padding:8px 12px;border-radius:8px;}
+.reset-btn{background:#e53935;color:white;border:none;padding:8px 12px;border-radius:8px;}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #ddd;z-index:1000;}
 .carticon{position:relative;}
 .badge{position:absolute;top:-5px;right:-10px;background:red;color:white;font-size:12px;padding:2px 6px;border-radius:50%;animation:pop 0.3s ease;}
@@ -29,72 +33,72 @@ body{margin:0;font-family:Arial;background:#f5f5f5;}
 button{cursor:pointer;}
 .wa-aktif{animation:denyut 1s infinite;}
 @keyframes denyut{0%{transform:scale(1);}50%{transform:scale(1.07);}100%{transform:scale(1);}}
+.admin-btn{margin-left:5px;background:#ff9800;color:white;padding:2px 6px;border:none;border-radius:5px;cursor:pointer;}
 </style>
 </head>
 <body>
 
 <div class="header">
-<div class="logo">DutaKita LED</div>
-<div id="tanggal"></div>
-<div id="jam"></div>
-<div id="jadwal"></div>
+  <div class="logo">DutaKita LED</div>
+  <div id="tanggal"></div>
+  <div id="jam"></div>
+  <div id="jadwal"></div>
 </div>
 
 <div class="search">
-<input type="text" id="cari" placeholder="Cari produk..." onkeyup="tampilProduk()">
+  <input type="text" id="cari" placeholder="Cari produk..." onkeyup="tampilProduk()">
 </div>
 
 <div class="kategori">
-<button onclick="filterKategori('Semua')" class="active">Semua</button>
-<button onclick="filterKategori('Tuser')">Tuser</button>
-<button onclick="filterKategori('FPL RX')">FPL RX</button>
-<button onclick="filterKategori('MSL')">MSL</button>
-<button onclick="filterKategori('Eko')">Eko</button>
-<button onclick="filterKategori('LED Jadi')">LED Jadi</button>
-<button onclick="filterKategori('CasingLED')">CasingLED</button>
+  <button onclick="filterKategori('Semua')" class="active">Semua</button>
+  <button onclick="filterKategori('Tuser')">Tuser</button>
+  <button onclick="filterKategori('FPL RX')">FPL RX</button>
+  <button onclick="filterKategori('MSL')">MSL</button>
+  <button onclick="filterKategori('Eko')">Eko</button>
+  <button onclick="filterKategori('LED Jadi')">LED Jadi</button>
+  <button onclick="filterKategori('CasingLED')">CasingLED</button>
 </div>
 
 <div class="container" id="produkList"></div>
 
 <div class="cartpopup" id="cartpopup">
-<h3>Keranjang</h3>
-<div id="isiCart"></div>
-<hr>
-<div style="display:flex;justify-content:space-between;align-items:center;gap:5px;flex-wrap:wrap;">
-<b>Total: Rp <span id="total">0</span></b>
-<div style="display:flex;gap:5px;">
-<button onclick="checkoutWA()" style="padding:8px 12px;background:#25D366;color:white;border:none;border-radius:8px;">WA</button>
-<button onclick="resetCart()" style="padding:8px 12px;background:#e53935;color:white;border:none;border-radius:8px;">Reset</button>
-</div>
-</div>
+  <h3>Keranjang</h3>
+  <div id="isiCart" style="margin-bottom:60px;"></div>
+  <div class="cart-footer">
+    <b>Total: Rp <span id="total">0</span></b>
+    <div style="display:flex;gap:5px;">
+      <button onclick="checkoutWA()" class="wa-btn">WA</button>
+      <button onclick="resetCart()" class="reset-btn">Reset</button>
+    </div>
+  </div>
 </div>
 
 <div id="adminPanel" style="display:none;padding:15px;background:white;">
-<h3>Admin Panel</h3>
-<input id="namaBaru" placeholder="Nama Produk"><br><br>
-<input id="hargaBaru" type="number" placeholder="Harga"><br><br>
-<select id="kategoriBaru">
-<option value="Tuser">Tuser</option>
-<option value="FPL RX">FPL RX</option>
-<option value="MSL">MSL</option>
-<option value="Eko">Eko</option>
-<option value="LED Jadi">LED Jadi</option>
-<option value="CasingLED">CasingLED</option>
-</select><br><br>
-<input type="file" id="gambarBaru"><br><br>
-<button onclick="simpanProduk()">Simpan / Update Produk</button>
-<hr>
-<div id="listAdmin"></div>
+  <h3>Admin Panel</h3>
+  <input id="namaBaru" placeholder="Nama Produk"><br><br>
+  <input id="hargaBaru" type="number" placeholder="Harga"><br><br>
+  <select id="kategoriBaru">
+    <option value="Tuser">Tuser</option>
+    <option value="FPL RX">FPL RX</option>
+    <option value="MSL">MSL</option>
+    <option value="Eko">Eko</option>
+    <option value="LED Jadi">LED Jadi</option>
+    <option value="CasingLED">CasingLED</option>
+  </select><br><br>
+  <input type="file" id="gambarBaru" data-index=""><br><br>
+  <button onclick="simpanProduk()">Simpan Produk</button>
+  <hr>
+  <div id="listAdmin"></div>
 </div>
 
 <div class="bottomnav">
-<div onclick="home()">🏠<br>Home</div>
-<div class="carticon" onclick="toggleCart()">🛒<br>Keranjang<span id="badge"></span></div>
-<div onclick="loginAdmin()">👤<br>Akun</div>
+  <div onclick="home()">🏠<br>Home</div>
+  <div class="carticon" onclick="toggleCart()">🛒<br>Keranjang<span id="badge"></span></div>
+  <div onclick="loginAdmin()">👤<br>Akun</div>
 </div>
 
 <script>
-// --- DATA PRODUK DARI LOCALSTORAGE ---
+// ===== DATA PRODUK =====
 let produk = JSON.parse(localStorage.getItem("produk")) || [
   {nama:"Tuser 12W",harga:12000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"Tuser"},
   {nama:"FPL RX 18W",harga:15000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"FPL RX"},
@@ -103,148 +107,115 @@ let produk = JSON.parse(localStorage.getItem("produk")) || [
   {nama:"LED Jadi 20W",harga:25000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"LED Jadi"},
   {nama:"CasingLED Bulat",harga:7000,gambar:"https://i.imgur.com/8Km9tLL.jpg",kategori:"CasingLED"}
 ];
-
 let keranjang = JSON.parse(localStorage.getItem("keranjang")) || [];
+
+// ===== FILTER & TAMPIL PRODUK =====
 let kategoriAktif="Semua";
-let adminLogin=false;
-
-// --- FILTER PRODUK ---
 function filterKategori(kat){
-kategoriAktif=kat;
-document.querySelectorAll(".kategori button").forEach(b=>b.classList.remove("active"));
-event.target.classList.add("active");
-tampilProduk();
+  kategoriAktif=kat;
+  document.querySelectorAll(".kategori button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+  tampilProduk();
 }
 
-// --- TAMPIL PRODUK ---
 function tampilProduk(){
-let keyword=document.getElementById("cari").value?.toLowerCase()||"";
-let html="";
-produk.forEach((p,i)=>{
-if((kategoriAktif=="Semua"||p.kategori==kategoriAktif)&&p.nama.toLowerCase().includes(keyword)){
-html+=`<div class="card">
-<img src="${p.gambar}">
-<b>${p.nama}</b>
-<div class="harga">Rp ${p.harga.toLocaleString()}</div>
-<div class="qtybox">
-<button onclick="kurang(${i})">-</button>
-<span id="qty${i}">${keranjang[i]||0}</span>
-<button onclick="tambah(${i})">+</button>
-<button onclick="editProduk(${i})" style="padding:4px 6px;background:#ff9800;color:white;border:none;border-radius:6px;">Edit</button>
-</div></div>`;
-}
-});
-document.getElementById("produkList").innerHTML=html;
+  let keyword=document.getElementById("cari").value?.toLowerCase()||"";
+  let html="";
+  produk.forEach((p,i)=>{
+    if((kategoriAktif=="Semua"||p.kategori==kategoriAktif)&&p.nama.toLowerCase().includes(keyword)){
+      html+=`<div class="card">
+        <img src="${p.gambar}">
+        <b>${p.nama}</b>
+        <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+        <div class="qtybox">
+          <button onclick="kurang(${i})">-</button>
+          <span id="qty${i}">${keranjang[i]||0}</span>
+          <button onclick="tambah(${i})">+</button>
+        </div>
+        ${adminLogin?`<div style="margin-top:5px;"><button class="admin-btn" onclick="editProduk(${i})">Edit</button></div>`:""}
+      </div>`;
+    }
+  });
+  document.getElementById("produkList").innerHTML=html;
 }
 
-// --- KERANJANG ---
+// ===== KERANJANG =====
 function tambah(i){keranjang[i]=(keranjang[i]||0)+1;updateCart();tampilProduk();}
 function kurang(i){if(keranjang[i]>0){keranjang[i]--;updateCart();tampilProduk();}}
 function updateCart(){
-let html="",total=0,totalItem=0;
-produk.forEach((p,i)=>{
-if(keranjang[i]>0){
-let subtotal=p.harga*keranjang[i];
-total+=subtotal;
-totalItem+=keranjang[i];
-html+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}<br>`;
-}});
-document.getElementById("isiCart").innerHTML=html||"Keranjang kosong";
-document.getElementById("total").innerText=total.toLocaleString();
-document.getElementById("badge").innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
-localStorage.setItem("keranjang", JSON.stringify(keranjang));
-animasiWA(totalItem);
+  let html="",total=0,totalItem=0;
+  produk.forEach((p,i)=>{
+    if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;totalItem+=keranjang[i];html+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}<br>`;}
+  });
+  document.getElementById("isiCart").innerHTML=html||"Keranjang kosong";
+  document.getElementById("total").innerText=total.toLocaleString();
+  let badge=document.getElementById("badge");
+  badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
+  animasiWA(totalItem);
+  localStorage.setItem("keranjang",JSON.stringify(keranjang));
 }
 function resetCart(){keranjang=[];updateCart();tampilProduk();}
 function checkoutWA(){
-let pesan="🧾 Order DutaKita LED\n\n",total=0;
-produk.forEach((p,i)=>{if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}\n`;}})
-if(total===0){alert("Keranjang masih kosong!");return;}
-pesan+=`\n💰 TOTAL: Rp ${total.toLocaleString()}`;
-window.open("https://wa.me/6288224166270?text="+encodeURIComponent(pesan),"_blank");
+  let pesan="🧾 Order DutaKita LED\n\n",total=0;
+  produk.forEach((p,i)=>{if(keranjang[i]>0){let subtotal=p.harga*keranjang[i];total+=subtotal;pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal.toLocaleString()}\n`;}})
+  if(total===0){alert("Keranjang masih kosong!");return;}
+  pesan+=`\n💰 TOTAL: Rp ${total.toLocaleString()}`;
+  window.open("https://wa.me/6288224166270?text="+encodeURIComponent(pesan),"_blank");
 }
 function toggleCart(){document.getElementById("cartpopup").classList.toggle("active");}
+function animasiWA(totalItem){let btn=document.querySelector(".wa-btn");if(totalItem>0){btn.classList.add("wa-aktif");}else{btn.classList.remove("wa-aktif");}}
 
-// --- JAM & TANGGAL ---
+// ===== JAM & TANGGAL =====
 function updateJam(){let now=new Date();document.getElementById("jam").innerText=now.toLocaleTimeString();document.getElementById("tanggal").innerText=now.toLocaleDateString();}
 setInterval(updateJam,1000);updateJam();
 
-// --- JADWAL SHOLAT ---
+// ===== JADWAL SHOLAT =====
 fetch("https://api.aladhan.com/v1/timingsByCity?city=Batang&country=Indonesia&method=11")
-.then(res=>res.json())
-.then(data=>{document.getElementById("jadwal").innerText="Imsak "+data.data.timings.Imsak+" | Maghrib "+data.data.timings.Maghrib;});
+.then(res=>res.json()).then(data=>{document.getElementById("jadwal").innerText="Imsak "+data.data.timings.Imsak+" | Maghrib "+data.data.timings.Maghrib;});
 
-// --- ADMIN PANEL ---
-function loginAdmin(){
-let pass=prompt("Masukkan Password Admin:");
-if(pass==="1234"){adminLogin=true;document.getElementById("adminPanel").style.display="block";tampilkanAdmin();}
-else{alert("Password salah!");}}
+// ===== ADMIN =====
+let adminLogin=false;
 function home(){document.getElementById("cartpopup").classList.remove("active");document.getElementById("adminPanel").style.display="none";}
-
-// --- SIMPAN PRODUK ---
-function simpanProduk(){
-let nama=document.getElementById("namaBaru").value;
-let harga=parseInt(document.getElementById("hargaBaru").value);
-let kategori=document.getElementById("kategoriBaru").value;
-let file=document.getElementById("gambarBaru").files[0];
-let index=document.getElementById("gambarBaru").dataset.index;
-
-if(!nama || !harga){alert("Lengkapi nama dan harga!");return;}
-
-function simpanKeLocal(){localStorage.setItem("produk", JSON.stringify(produk));tampilkanAdmin();tampilProduk();}
-
-if(index!==undefined){ // EDIT
-if(file){
-let reader=new FileReader();
-reader.onload=function(e){produk[index].gambar=e.target.result;produk[index].nama=nama;produk[index].harga=harga;produk[index].kategori=kategori;delete document.getElementById("gambarBaru").dataset.index;simpanKeLocal();}
-reader.readAsDataURL(file);
-}else{
-produk[index].nama=nama;produk[index].harga=harga;produk[index].kategori=kategori;delete document.getElementById("gambarBaru").dataset.index;simpanKeLocal();}
-}else{ // TAMBAH BARU
-if(!file){alert("Pilih gambar untuk produk baru!");return;}
-let reader=new FileReader();
-reader.onload=function(e){produk.push({nama:nama,harga:harga,kategori:kategori,gambar:e.target.result});simpanKeLocal();}
-reader.readAsDataURL(file);
+function loginAdmin(){
+  let pass=prompt("Masukkan Password Admin:");
+  if(pass==="1234"){ adminLogin=true; document.getElementById("adminPanel").style.display="block"; tampilkanAdmin(); tampilProduk(); }
+  else alert("Password salah!");
 }
-
-document.getElementById("namaBaru").value="";
-document.getElementById("hargaBaru").value="";
-document.getElementById("kategoriBaru").value="Tuser";
-document.getElementById("gambarBaru").value="";
-}
-
-// --- TAMPIL ADMIN ---
 function tampilkanAdmin(){
-let html="";
-produk.forEach((p,i)=>{
-html+=`<div style="margin-bottom:8px;">
-<b>${p.nama}</b> - Rp ${p.harga.toLocaleString()} [${p.kategori}]
-<button onclick="editProduk(${i})">Edit</button>
-<button onclick="hapusProduk(${i})" style="background:#e53935;color:white;border:none;padding:2px 6px;border-radius:4px;">Hapus</button>
-</div>`;
-});
-document.getElementById("listAdmin").innerHTML=html;
+  let html=""; produk.forEach((p,i)=>{html+=`<div style="margin-bottom:8px;">${p.nama} - Rp ${p.harga}<button class="admin-btn" onclick="hapusProduk(${i})">Hapus</button></div>`;});
+  document.getElementById("listAdmin").innerHTML=html;
 }
-
-// --- EDIT PRODUK ---
+function simpanProduk(){
+  let nama=document.getElementById("namaBaru").value;
+  let harga=parseInt(document.getElementById("hargaBaru").value);
+  let kategori=document.getElementById("kategoriBaru").value;
+  let file=document.getElementById("gambarBaru").files[0];
+  let index=document.getElementById("gambarBaru").dataset.index;
+  if(!nama || !harga || (!file && index==="")){alert("Lengkapi data!"); return;}
+  let proses = (gambarData)=>{
+    if(index!==""){ produk[index] = {nama,harga,kategori,gambar:gambarData}; } 
+    else { produk.push({nama,harga,kategori,gambar:gambarData}); }
+    localStorage.setItem("produk",JSON.stringify(produk));
+    tampilkanAdmin(); tampilProduk();
+    document.getElementById("gambarBaru").dataset.index="";
+  }
+  if(file){ let reader=new FileReader(); reader.onload=e=>proses(e.target.result); reader.readAsDataURL(file);}
+  else{ proses(produk[index].gambar); }
+}
+function hapusProduk(i){if(confirm("Hapus produk ini?")){produk.splice(i,1);localStorage.setItem("produk",JSON.stringify(produk));tampilkanAdmin();tampilProduk();}}
 function editProduk(i){
-document.getElementById("namaBaru").value=produk[i].nama;
-document.getElementById("hargaBaru").value=produk[i].harga;
-document.getElementById("kategoriBaru").value=produk[i].kategori;
-document.getElementById("gambarBaru").dataset.index=i;
-document.getElementById("adminPanel").style.display="block";
+  document.getElementById("namaBaru").value=produk[i].nama;
+  document.getElementById("hargaBaru").value=produk[i].harga;
+  document.getElementById("kategoriBaru").value=produk[i].kategori;
+  document.getElementById("gambarBaru").dataset.index=i;
+  alert("Pilih gambar baru jika ingin mengganti, kemudian klik Simpan Produk");
 }
 
-// --- HAPUS PRODUK ---
-function hapusProduk(i){if(confirm("Hapus produk ini?")){produk.splice(i,1);localStorage.setItem("produk", JSON.stringify(produk));tampilkanAdmin();tampilProduk();}}
-
-// --- ANIMASI WA ---
-function animasiWA(totalItem){let btn=document.querySelector("[onclick='checkoutWA()']");if(totalItem>0){btn.classList.add("wa-aktif");}else{btn.classList.remove("wa-aktif");}}
-
-// --- SERVICE WORKER ---
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>console.log("SW registered")).catch(err=>console.log("SW failed",err));}
+// ===== SERVICE WORKER PWA =====
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>console.log("Service Worker registered")).catch(err=>console.log("Service Worker failed",err));}
 
 tampilProduk();
 </script>
+
 </body>
 </html>
