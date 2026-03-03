@@ -62,6 +62,33 @@ button{cursor:pointer;}
 <div class="container" id="produkList"></div>
 
 <div class="cartpopup" id="cartpopup">
+  <div id="adminPanel" style="display:none;padding:15px;background:white;">
+  <h3>Admin Panel</h3>
+  <button onclick="logoutAdmin()" style="margin-bottom:10px;background:#e53935;color:white;padding:5px 10px;border:none;border-radius:5px;cursor:pointer;">Logout Admin</button>
+  <br>
+    // Fungsi logout admin
+function logoutAdmin() {
+  if (confirm("Yakin ingin logout admin?")) {
+    adminLogin = false; // ubah status admin
+    document.getElementById("adminPanel").style.display = "none"; // sembunyikan panel admin
+    tampilProduk(); // refresh tampilan produk, hilangkan tombol edit/hapus
+  }
+}
+  <input id="namaBaru" placeholder="Nama Produk"><br><br>
+  <input id="hargaBaru" type="number" placeholder="Harga"><br><br>
+  <select id="kategoriBaru">
+    <option value="Tuser">Tuser</option>
+    <option value="FPL RX">FPL RX</option>
+    <option value="MSL">MSL</option>
+    <option value="Eko">Eko</option>
+    <option value="LED Jadi">LED Jadi</option>
+    <option value="CasingLED">CasingLED</option>
+  </select><br><br>
+  <input type="file" id="gambarBaru" data-index=""><br><br>
+  <button onclick="simpanProduk()">Simpan Produk</button>
+  <hr>
+  <div id="listAdmin"></div>
+</div>
   <h3>Keranjang</h3>
   <div id="isiCart" style="margin-bottom:60px;"></div>
   <div class="cart-footer">
