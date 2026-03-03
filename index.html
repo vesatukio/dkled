@@ -195,6 +195,7 @@ Checkout WA
 🛒<br>Keranjang
 <span id="badge"></span>
 </div>
+<div onclick="checkoutWA()">📲<br>Checkout</div>
 <div onclick="loginAdmin()">👤<br>Admin</div>
 </div>
 <script>
@@ -280,27 +281,30 @@ badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
 }
 
 function checkoutWA(){
-let pesan="🧾 Order DutaKita LED%0A%0A";
+let pesan="🧾 Order DutaKita LED\n\n";
 let total=0;
 
 produk.forEach((p,i)=>{
 if(keranjang[i]>0){
 let subtotal=p.harga*keranjang[i];
 total+=subtotal;
-pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}%0A`;
+pesan+=`${p.nama} x${keranjang[i]} = Rp ${subtotal}\n`;
 }
 });
 
-pesan+=`%0A💰 TOTAL: Rp ${total}`;
-window.open("https://wa.me/6288224166270?text="+pesan);
+if(total===0){
+alert("Keranjang masih kosong!");
+return;
+}
+
+pesan+=`\n💰 TOTAL: Rp ${total}`;
+
+let url="https://wa.me/6288224166270?text="+encodeURIComponent(pesan);
+window.open(url,"_blank");
 }
 
 function toggleCart(){
 document.getElementById("cartpopup").classList.toggle("active");
-}
-
-function home(){
-document.getElementById("cartpopup").classList.remove("active");
 }
 
 function updateJam(){
