@@ -5,6 +5,23 @@
 <title>DutaKita LED</title>
 
 <style>
+  <style>
+/* CSS yang sudah ada */
+body{margin:0;font-family:Arial;background:#f5f5f5;}
+.header{background:#ff5722;color:white;padding:10px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:14px;}
+...
+
+/* ===== ANIMASI TOMBOL WA ===== */
+.wa-aktif{
+  animation:denyut 1s infinite;
+}
+
+@keyframes denyut{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.07);}
+  100%{transform:scale(1);}
+}
+</style>
 body{margin:0;font-family:Arial;background:#f5f5f5;}
 
 .header{
@@ -227,7 +244,10 @@ let produk=[
 ];
 
 let keranjang=[];
-
+let simpan = localStorage.getItem("keranjang");
+if(simpan){
+keranjang = JSON.parse(simpan);
+}
 function filterKategori(kat){
 kategoriAktif=kat;
 document.querySelectorAll(".kategori button").forEach(b=>b.classList.remove("active"));
@@ -264,6 +284,12 @@ function tambah(i){
 keranjang[i]=(keranjang[i]||0)+1;
 updateCart();
 tampilProduk();
+
+let card=document.querySelectorAll(".card")[i];
+if(card){
+card.style.transform="scale(1.05)";
+setTimeout(()=>{card.style.transform="scale(1)";},150);
+}
 }
 
 function kurang(i){
@@ -293,6 +319,10 @@ document.getElementById("total").innerText=total.toLocaleString();
 
 let badge=document.getElementById("badge");
 badge.innerHTML=totalItem>0?`<span class="badge">${totalItem}</span>`:"";
+
+localStorage.setItem("keranjang",JSON.stringify(keranjang));
+
+animasiWA(totalItem);
 }
 
 function checkoutWA(){
@@ -406,6 +436,14 @@ tampilProduk();
 keranjang=[];
 updateCart();
 tampilProduk();
+}
+  function animasiWA(totalItem){
+let btn=document.querySelector("[onclick='checkoutWA()']");
+if(totalItem>0){
+btn.classList.add("wa-aktif");
+}else{
+btn.classList.remove("wa-aktif");
+}
 }
 </script>
 
