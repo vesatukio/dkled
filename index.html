@@ -160,12 +160,37 @@ button{cursor:pointer;}
 
 <div class="cartpopup" id="cartpopup">
 <h3>Keranjang</h3>
+
 <div id="isiCart"></div>
 <hr>
-<b>Total: Rp <span id="total">0</span></b><br><br>
-<button onclick="checkoutWA()" style="width:100%;padding:12px;background:#ff5722;color:white;border:none;border-radius:10px;">
-Checkout WA
+
+<b>Total: Rp <span id="total">0</span></b>
+
+<hr>
+
+<h4>Data Pembeli</h4>
+
+<input type="text" id="namaPembeli" placeholder="Nama Lengkap" style="width:100%;padding:8px;margin-bottom:8px;border-radius:8px;border:1px solid #ddd;">
+
+<input type="text" id="hpPembeli" placeholder="No HP" style="width:100%;padding:8px;margin-bottom:8px;border-radius:8px;border:1px solid #ddd;">
+
+<textarea id="alamatPembeli" placeholder="Alamat Lengkap" 
+style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;"></textarea>
+
+<br><br>
+
+<button onclick="checkoutWA()" 
+style="width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:10px;">
+Kirim Pesanan via WhatsApp
 </button>
+
+<br><br>
+
+<button onclick="resetCart()" 
+style="width:100%;padding:10px;background:#999;color:white;border:none;border-radius:10px;">
+Reset Keranjang
+</button>
+
 </div>
 <div id="adminPanel" style="display:none;padding:15px;background:white;">
 <h3>Admin Panel</h3>
