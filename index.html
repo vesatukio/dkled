@@ -1,377 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DK Lampu</title>
-
-<style>
-
-body{
-margin:0;
-font-family:Arial;
-background:#f5f5f5;
-padding-bottom:120px;
-}
-
-.header{
-background:#ff6a00;
-color:white;
-padding:14px;
-font-size:18px;
-text-align:center;
-font-weight:bold;
-}
-
-.search{
-padding:10px;
-background:white;
-}
-
-.search input{
-width:100%;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-font-size:16px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-padding:10px;
-}
-
-.card{
-background:white;
-border-radius:10px;
-padding:10px;
-}
-
-.nama{
-font-size:14px;
-margin-bottom:5px;
-}
-
-.harga{
-color:#ff6a00;
-font-weight:bold;
-margin-bottom:8px;
-}
-
-.qty{
-display:flex;
-align-items:center;
-gap:5px;
-}
-
-.qty button{
-width:30px;
-height:30px;
-border:none;
-background:#ff6a00;
-color:white;
-font-size:18px;
-border-radius:6px;
-}
-
-.qty input{
-width:40px;
-text-align:center;
-}
-
-/* FLOAT ORDER */
-
-.orderBox{
-position:fixed;
-right:15px;
-bottom:90px;
-background:white;
-padding:10px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.2);
-}
-
-.orderBtn{
-background:#25D366;
-color:white;
-padding:10px 15px;
-border-radius:20px;
-margin-top:5px;
-text-align:center;
-}
-
-/* MENU BAWAH */
-
-.bottom{
-position:fixed;
-bottom:0;
-width:100%;
-background:white;
-display:flex;
-border-top:1px solid #ddd;
-}
-
-.bottom button{
-flex:1;
-padding:14px;
-border:none;
-background:white;
-font-size:16px;
-}
-
-.badge{
-background:red;
-color:white;
-border-radius:50%;
-padding:2px 7px;
-font-size:12px;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK Lampu - Katalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-
-<body>
-
-<div class="header">
-DK Lampu
-</div>
-
-<div class="search">
-<input type="text" id="cari" placeholder="Cari produk..." onkeyup="cariProduk()">
-</div>
-
-<div class="grid" id="produk"></div>
-
-<div class="orderBox">
-<div>Total : Rp <span id="total">0</span></div>
-<div class="orderBtn" onclick="kirimWA()">Order WA</div>
-</div>
-
-<div class="bottom">
-<button onclick="resetCart()">Reset</button>
-<button onclick="lihatKeranjang()">Keranjang <span id="jumlahCart" class="badge">0</span></button>
-<button onclick="menuAkun()">Akun</button>
-</div>
-
-<script>
-
-let kategori = JSON.parse(localStorage.getItem("kategori")) || ["Lampu","Driver"]
-
-let produk = JSON.parse(localStorage.getItem("produk")) || [
-{nama:"Lampu LED 5W",harga:5000,kategori:"Lampu"},
-{nama:"Lampu LED 10W",harga:7000,kategori:"Lampu"},
-{nama:"Lampu LED 15W",harga:9000,kategori:"Lampu"},
-{nama:"Driver LED 18W",harga:6000,kategori:"Driver"}
-]
-
-let cart = JSON.parse(localStorage.getItem("cart")) || {}
-
-function tampilProduk(){
-
-let html=""
-
-produk.forEach((p,i)=>{
-
-let qty = cart[i] || 0
-
-html+=`
-
-<div class="card">
-
-<div class="nama">${p.nama}</div>
-<div>${p.kategori}</div>
-
-<div class="harga">Rp ${p.harga}</div>
-
-<div class="qty">
-
-<button onclick="kurang(${i})">-</button>
-
-<input type="number" value="${qty}" onchange="manual(${i},this.value)">
-
-<button onclick="tambah(${i})">+</button>
-
-</div>
-
-</div>
-
-`
-
-})
-
-document.getElementById("produk").innerHTML=html
-
-hitungTotal()
-
-}
-
-function tambah(i){
-
-cart[i]=(cart[i]||0)+1
-simpan()
-
-}
-
-function kurang(i){
-
-if(cart[i]){
-cart[i]--
-if(cart[i]<=0) delete cart[i]
-}
-
-simpan()
-
-}
-
-function manual(i,val){
-
-if(val<=0){
-delete cart[i]
-}else{
-cart[i]=Number(val)
-}
-
-simpan()
-
-}
-
-function simpan(){
-
-localStorage.setItem("cart",JSON.stringify(cart))
-localStorage.setItem("produk",JSON.stringify(produk))
-localStorage.setItem("kategori",JSON.stringify(kategori))
-
-tampilProduk()
-
-}
-
-function hitungTotal(){
-
-let total=0
-let jumlah=0
-
-for(let i in cart){
-
-total+=produk[i].harga*cart[i]
-jumlah+=cart[i]
-
-}
-
-document.getElementById("total").innerText=total
-document.getElementById("jumlahCart").innerText=jumlah
-
-}
-
-/* PENCARIAN */
-
-function cariProduk(){
-
-let k=document.getElementById("cari").value.toLowerCase()
-
-document.querySelectorAll(".card").forEach(card=>{
-
-card.style.display=
-card.innerText.toLowerCase().includes(k)?"block":"none"
-
-})
-
-}
-
-/* WHATSAPP */
-
-function kirimWA(){
-
-let text="Order DK Lampu:%0A"
-
-for(let i in cart){
-
-text+=produk[i].nama+" x"+cart[i]+"%0A"
-
-}
-
-text+="Total: Rp "+document.getElementById("total").innerText
-
-window.open("https://wa.me/6288224166270?text="+text)
-
-}
-
-/* RESET */
-
-function resetCart(){
-
-cart={}
-simpan()
-
-}
-
-/* KERANJANG */
-
-function lihatKeranjang(){
-
-let text="Keranjang:%0A"
-
-for(let i in cart){
-
-text+=produk[i].nama+" x"+cart[i]+"\n"
-
-}
-
-alert(text)
-
-}
-
-/* MENU AKUN */
-
-function menuAkun(){
-
-let pilih = prompt(
-
-"1 Tambah Produk\n2 Hapus Produk\n3 Tambah Kategori\n4 Hapus Kategori"
-
-)
-
-if(pilih==1){
-
-let nama=prompt("Nama produk")
-let harga=prompt("Harga")
-let kat=prompt("Kategori")
-
-produk.push({nama:nama,harga:Number(harga),kategori:kat})
-
-}
-
-if(pilih==2){
-
-let no=prompt("Nomor produk (1-"+produk.length+")")
-
-produk.splice(no-1,1)
-
-}
-
-if(pilih==3){
-
-let k=prompt("Nama kategori")
-
-kategori.push(k)
-
-}
-
-if(pilih==4){
-
-let no=prompt("Nomor kategori")
-
-kategori.splice(no-1,1)
-
-}
-
-simpan()
-
-}
-
-tampilProduk()
-
-</script>
-
+<body class="bg-gray-100 pb-24">
+
+    <div class="bg-orange-600 p-4 sticky top-0 z-50 shadow-md">
+        <h1 class="text-center text-white font-bold text-xl uppercase">DK Lampu</h1>
+    </div>
+
+    <div class="flex gap-2 overflow-x-auto p-4 bg-white shadow-sm no-scrollbar">
+        <button onclick="tampilkanProduk('Semua')" class="px-5 py-2 bg-orange-500 text-white rounded-full text-xs font-bold shadow-md">Semua</button>
+        <button onclick="tampilkanProduk('Tuser')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">Tuser</button>
+        <button onclick="tampilkanProduk('Eko')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">Eko</button>
+        <button onclick="tampilkanProduk('MSL')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">MSL</button>
+    </div>
+
+    <div id="produk-list" class="grid grid-cols-2 gap-4 p-4">
+        </div>
+
+    <div id="modal-admin" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+            <h2 class="text-lg font-bold mb-4 border-b pb-2">Tambah Stok Lampu</h2>
+            <input type="text" id="nama" placeholder="Nama Lampu (ex: Tuser 9w)" class="w-full border p-3 mb-3 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+            <select id="kategori" class="w-full border p-3 mb-3 rounded-lg">
+                <option value="Tuser">Tuser</option>
+                <option value="Eko">Eko</option>
+                <option value="MSL">MSL</option>
+                <option value="Casing">Casing LED</option>
+            </select>
+            <input type="number" id="harga" placeholder="Harga (Contoh: 4000)" class="w-full border p-3 mb-4 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+            <div class="flex gap-2">
+                <button onclick="simpanKeFirebase()" class="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold">SIMPAN</button>
+                <button onclick="toggleAdmin()" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold">BATAL</button>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="toggleAdmin()" class="fixed bottom-20 right-4 bg-blue-600 text-white p-4 rounded-full shadow-2xl font-bold text-xs z-50">ADD</button>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around shadow-lg">
+        <div class="text-orange-600 text-center"><p class="text-[10px] font-bold">KATALOG</p></div>
+        <div class="text-gray-400 text-center"><p class="text-[10px] font-bold text-gray-300">PESANAN</p></div>
+        <div class="text-gray-400 text-center"><p class="text-[10px] font-bold text-gray-300">AKUN</p></div>
+    </nav>
+
+    <script>
+        // CONFIG MILIK KAMU (Sudah saya sesuaikan)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+            authDomain: "katalog-lampu.firebaseapp.com",
+            projectId: "katalog-lampu",
+            storageBucket: "katalog-lampu.firebasestorage.app",
+            messagingSenderId: "229844385794",
+            appId: "1:229844385794:web:117057f8bd66879b45a71b",
+            // Tambahkan Database URL kamu di bawah ini jika error, 
+            // tapi biasanya projectId sudah cukup.
+            databaseURL: "https://katalog-lampu-default-rtdb.firebaseio.com" 
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 1. Fungsi Tampilkan Data
+        function tampilkanProduk(filter = 'Semua') {
+            db.ref('produk').on('value', (snapshot) => {
+                const list = document.getElementById('produk-list');
+                list.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const data = child.val();
+                    if (filter === 'Semua' || data.kategori === filter) {
+                        list.innerHTML += `
+                            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 relative">
+                                <button onclick="hapus('${child.key}')" class="absolute top-1 right-1 bg-red-100 text-red-600 text-[8px] px-1 rounded">Hapus</button>
+                                <h4 class="font-bold text-gray-800 text-sm truncate">${data.nama}</h4>
+                                <p class="text-[10px] text-gray-400">${data.kategori}</p>
+                                <p class="text-orange-600 font-bold text-sm my-2">Rp ${Number(data.harga).toLocaleString('id-ID')}</p>
+                                <div class="flex items-center gap-1">
+                                    <button class="bg-orange-500 text-white w-7 h-7 rounded font-bold">-</button>
+                                    <input type="text" value="0" readonly class="w-full text-center text-xs border rounded h-7">
+                                    <button class="bg-orange-500 text-white w-7 h-7 rounded font-bold">+</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+        // 2. Fungsi Tombol Admin
+        function toggleAdmin() {
+            document.getElementById('modal-admin').classList.toggle('hidden');
+        }
+
+        function simpanKeFirebase() {
+            const nama = document.getElementById('nama').value;
+            const kategori = document.getElementById('kategori').value;
+            const harga = document.getElementById('harga').value;
+
+            if(nama && harga) {
+                db.ref('produk').push({ nama, kategori, harga }, () => {
+                    alert("Berhasil disimpan!");
+                    document.getElementById('nama').value = "";
+                    document.getElementById('harga').value = "";
+                    toggleAdmin();
+                });
+            }
+        }
+
+        function hapus(id) {
+            if(confirm("Hapus barang ini dari katalog?")) db.ref('produk/' + id).remove();
+        }
+
+        // Jalankan pas pertama buka
+        tampilkanProduk('Semua');
+    </script>
 </body>
 </html>
