@@ -129,20 +129,32 @@ function ubahStok(id,val){
 }
 
 function tambahKategori(){
-  const nama=document.getElementById("kategoriBaru").value;
+  const nama = document.getElementById("kategoriBaru").value.trim();
   if(!nama){ alert("Isi nama kategori"); return; }
-  db.ref("kategori").push({nama});
-  document.getElementById("kategoriBaru").value="";
-  tampilKategori();
+  
+  // Cek apakah kategori sudah ada
+  db.ref("kategori").orderByChild("nama").equalTo(nama).once("value").then(snap=>{
+    if(snap.exists()){ alert("Kategori sudah ada!"); return; }
+    
+    db.ref("kategori").push({nama}).then(()=>{
+      document.getElementById("kategoriBaru").value="";
+      tampilKategori();
+    });
+  });
 }
 
 function hapusKategori(id){
-  if(confirm("Hapus kategori ini? Produk terkait kategori ini akan dikosongkan")) {
+  if(confirm("Hapus kategori ini? Produk terkait kategori ini akan dikosongkan")){
     db.ref("kategori/"+id).once("value").then(snap=>{
       const namaKategori = snap.val().nama;
       db.ref("kategori/"+id).remove().then(()=>{
+        // Kosongkan kategori pada produk yang memakai kategori ini
         db.ref("produk").once("value").then(produkSnap=>{
-          produkSnap.forEach(child=>{ if(child.val().kategori===namaKategori) db.ref("produk/"+child.key).update({kategori:""}); });
+          produkSnap.forEach(child=>{
+            if(child.val().kategori === namaKategori){
+              db.ref("produk/"+child.key).update({kategori:""});
+            }
+          });
           tampilKategori();
           tampilProdukPerKategori("");
         });
@@ -153,18 +165,19 @@ function hapusKategori(id){
 
 function tampilKategori(){
   db.ref("kategori").once("value").then(snap=>{
-    let html="<button onclick=\"tampilProdukPerKategori(''); kategoriAktif=''; highlightKategori()\">Semua</button>",option="<option>--Pilih--</option>";
+    let html="<button onclick=\"tampilProdukPerKategori(''); kategoriAktif=''; highlightKategori()\">Semua</button>", option="<option>--Pilih--</option>";
     snap.forEach(child=>{
-      const k=child.val();
-      html+=`<button onclick="tampilProdukPerKategori('${k.nama}'); kategoriAktif='${k.nama}'; highlightKategori()">${k.nama}</button>`;
-      option+=`<option>${k.nama}</option>`;
+      const k = child.val();
+      // Tombol kategori dengan hapus
+      html += `<button onclick="tampilProdukPerKategori('${k.nama}'); kategoriAktif='${k.nama}'; highlightKategori()">${k.nama}</button>
+               <button style="background:red;color:white;margin:3px;" onclick="hapusKategori('${child.key}')">x</button>`;
+      option += `<option>${k.nama}</option>`;
     });
-    document.getElementById("listKategori").innerHTML=html;
-    document.getElementById("kategori").innerHTML=option;
+    document.getElementById("listKategori").innerHTML = html;
+    document.getElementById("kategori").innerHTML = option;
     highlightKategori();
   });
 }
-
 function highlightKategori(){
   document.querySelectorAll("#listKategori button").forEach(btn=>{
     btn.classList.remove("active");
