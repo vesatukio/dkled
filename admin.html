@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -9,17 +9,20 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 <style>
-body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;padding:15px;}
+body{font-family:'Poppins',sans-serif;margin:0;padding:15px;background:#f5f5f5;}
+h2,h3{margin:10px 0;}
 .box{background:white;padding:15px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
 input,select,button{width:100%;padding:8px;margin:5px 0;border:1px solid #ddd;border-radius:6px;font-size:14px;}
 button{border:none;background:#ff6a00;color:white;cursor:pointer;}
 button:hover{opacity:0.9;}
-.produk{background:white;padding:10px;border-radius:8px;margin:5px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
-.produk img{width:100%;height:100px;object-fit:cover;border-radius:6px;}
 .produk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.produk{background:white;padding:10px;border-radius:8px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.produk img{width:100%;height:100px;object-fit:cover;border-radius:6px;}
 .label{position:absolute;background:red;color:white;padding:4px;border-radius:4px;font-size:12px;top:5px;left:5px;}
 #listKategori button.active{background:#ff6a00;color:white;}
 #listKategori button{background:#ddd;color:black;margin:3px;}
+.stok-controls{display:flex;align-items:center;gap:5px;margin:5px 0;}
+.stok-controls button{width:25px;padding:0;}
 </style>
 </head>
 <body>
@@ -118,11 +121,13 @@ function hapusProduk(id){
   if(confirm("Hapus produk?")) db.ref("produk/"+id).remove().then(()=>tampilProdukPerKategori(kategoriAktif));
 }
 
+// Stok + / -
 function ubahStok(id,val){
-  db.ref("produk/"+id).update({stok:Number(val)}).then(()=>tampilProdukPerKategori(kategoriAktif));
+  const stok = Number(val);
+  if(stok<0){ alert("Stok minimal 0"); return; }
+  db.ref("produk/"+id).update({stok}).then(()=>tampilProdukPerKategori(kategoriAktif));
 }
 
-// Kategori
 function tambahKategori(){
   const nama=document.getElementById("kategoriBaru").value;
   if(!nama){ alert("Isi nama kategori"); return; }
@@ -133,12 +138,16 @@ function tambahKategori(){
 
 function hapusKategori(id){
   if(confirm("Hapus kategori ini? Produk terkait kategori ini akan dikosongkan")) {
-    db.ref("kategori/"+id).remove();
-    db.ref("produk").once("value").then(snap=>{
-      snap.forEach(child=>{ if(child.val().kategori===kategoriAktif) db.ref("produk/"+child.key).update({kategori:""}); });
+    db.ref("kategori/"+id).once("value").then(snap=>{
+      const namaKategori = snap.val().nama;
+      db.ref("kategori/"+id).remove().then(()=>{
+        db.ref("produk").once("value").then(produkSnap=>{
+          produkSnap.forEach(child=>{ if(child.val().kategori===namaKategori) db.ref("produk/"+child.key).update({kategori:""}); });
+          tampilKategori();
+          tampilProdukPerKategori("");
+        });
+      });
     });
-    tampilKategori();
-    tampilProdukPerKategori("");
   }
 }
 
@@ -163,7 +172,6 @@ function highlightKategori(){
   });
 }
 
-// Tampil Produk
 function tampilProdukPerKategori(kat=""){
   kategoriAktif=kat;
   db.ref("produk").once("value").then(snap=>{
@@ -171,19 +179,22 @@ function tampilProdukPerKategori(kat=""){
     snap.forEach(child=>{
       const p=child.val(),id=child.key;
       if(kat && p.kategori!=kat) return;
-
       const harga=Number(p.harga)-Number(p.diskon_nominal||0)-Number(p.harga*(p.diskon_persen||0)/100);
       let label="";
       if(p.stok<=0) label="HABIS";
       else if(p.diskon_nominal) label="Diskon Rp."+p.diskon_nominal;
       else if(p.diskon_persen) label="Disc "+p.diskon_persen+"%";
 
-      html+=`<div class="produk" style="${p.stok<=0?'opacity:0.5;pointer-events:none;':''}">
+      html+=`<div class="produk">
         ${label?`<div class="label">${label}</div>`:""}
         <b>${p.nama}</b><br>
         Harga: ${harga}<br>
         Kategori: ${p.kategori}<br>
-        Stok: <input type="number" value="${p.stok||0}" min="0" onchange="ubahStok('${id}',this.value)"><br>
+        <div class="stok-controls">
+          <button onclick="ubahStok('${id}',${(p.stok||0)-1})">-</button>
+          <input type="number" value="${p.stok||0}" min="0" style="width:50px;" onchange="ubahStok('${id}',this.value)">
+          <button onclick="ubahStok('${id}',${(p.stok||0)+1})">+</button>
+        </div>
         <img src="${p.gambar||'https://via.placeholder.com/150'}"><br>
         <button onclick="editProduk('${id}')">Edit</button>
         <button onclick="hapusProduk('${id}')">Hapus</button>
