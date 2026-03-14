@@ -2,9 +2,10 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DK Lampu</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -12,51 +13,76 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
-
 body{
-font-family:Arial;
+font-family:Inter,system-ui;
 background:#f5f5f5;
+font-size:14px;
 }
 
 .harga{
 color:#ee4d2d;
-font-weight:bold;
+font-weight:700;
 font-size:16px;
 }
 
-.nama{
-font-size:14px;
-font-weight:bold;
+.coret{
+text-decoration:line-through;
+font-size:12px;
+color:#999;
 }
 
-</style>
+.kartu{
+background:white;
+padding:10px;
+border-radius:8px;
+box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
 
+#orderBox{
+position:fixed;
+bottom:60px;
+left:0;
+right:0;
+background:white;
+padding:10px;
+border-top:1px solid #ddd;
+z-index:99;
+}
+</style>
 </head>
 
 <body>
 
-<div class="bg-orange-500 text-white text-center p-3 font-bold">
+<div class="bg-orange-500 text-white text-center p-3 font-bold text-lg">
 DK Lampu
 </div>
 
-<input id="search" placeholder="Cari produk"
+<input id="search" placeholder="Cari produk..."
 class="w-full p-2 border">
+
+<div class="flex gap-2 p-2 overflow-x-auto">
+
+<button onclick="setKategori('Semua')" class="bg-orange-500 text-white px-3 py-1 rounded">Semua</button>
+<button onclick="setKategori('Tuser')" class="bg-gray-200 px-3 py-1 rounded">Tuser</button>
+<button onclick="setKategori('Eko')" class="bg-gray-200 px-3 py-1 rounded">Eko</button>
+<button onclick="setKategori('MSL')" class="bg-gray-200 px-3 py-1 rounded">MSL</button>
+
+</div>
 
 <div id="produk-list" class="grid grid-cols-2 gap-3 p-3"></div>
 
 
-<div id="orderBox" class="fixed bottom-12 left-0 right-0 bg-white p-3 border">
+<div id="orderBox">
 
-<div class="flex justify-between">
+<div class="flex justify-between font-bold">
 
-<div>Total :</div>
-
+<div>Total</div>
 <div id="total">Rp 0</div>
 
 </div>
 
 <button onclick="orderWA()"
-class="w-full bg-orange-500 text-white p-2 mt-2">
+class="w-full bg-orange-500 text-white p-2 mt-2 rounded">
 
 Pesan WhatsApp
 
@@ -78,66 +104,71 @@ Pesan WhatsApp
 
 <script>
 
-const firebaseConfig = {
-
-apiKey: "AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
-
-authDomain: "katalog-lampu.firebaseapp.com",
-
-databaseURL: "https://katalog-lampu-default-rtdb.firebaseio.com",
-
-projectId: "katalog-lampu"
-
+const firebaseConfig={
+apiKey:"AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+authDomain:"katalog-lampu.firebaseapp.com",
+databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
+projectId:"katalog-lampu"
 }
 
 firebase.initializeApp(firebaseConfig)
+const db=firebase.database()
 
-const db = firebase.database()
+let cart=JSON.parse(localStorage.getItem("cart"))||{}
+let kategori="Semua"
+let admin=false
 
-let cart = JSON.parse(localStorage.getItem("cart")) || {}
+
+function setKategori(k){
+
+kategori=k
+tampilkanProduk()
+
+}
 
 function tampilkanProduk(){
 
 db.ref("produk").on("value",snap=>{
 
-let list = document.getElementById("produk-list")
-
+let list=document.getElementById("produk-list")
 list.innerHTML=""
 
 snap.forEach(child=>{
 
-let p = child.val()
+let p=child.val()
+let id=child.key
 
-let id = child.key
+if(kategori!="Semua" && p.kategori!=kategori) return
 
-let harga = p.harga - (p.diskon || 0)
+let diskon=p.diskon||0
+let harga=p.harga-diskon
+
+let qty=cart[id]?cart[id].qty:0
 
 list.innerHTML+=`
 
-<div class="bg-white p-2">
+<div class="kartu">
 
-<div class="nama">${p.nama}</div>
+<div class="font-semibold">${p.nama}</div>
 
-<div class="text-gray-400 text-xs">${p.kategori}</div>
+<div class="text-xs text-gray-400">${p.kategori}</div>
 
-<div class="text-gray-400 line-through text-xs">
-Rp ${p.harga}
-</div>
+<div class="coret">Rp ${p.harga}</div>
 
-<div class="harga">
-Rp ${harga}
-</div>
+<div class="harga">Rp ${harga}</div>
 
 <div class="flex mt-2">
 
-<button onclick="kurang('${id}',${harga})">-</button>
+<button onclick="kurang('${id}',${harga})" class="px-2">-</button>
 
-<input id="q_${id}" value="0"
+<input id="q_${id}" value="${qty}"
 class="w-full text-center border">
 
-<button onclick="tambah('${id}',${harga})">+</button>
+<button onclick="tambah('${id}',${harga})" class="px-2">+</button>
 
 </div>
+
+${admin?`<button onclick="editProduk('${id}')" class="text-blue-500 text-xs mt-2">Edit</button>`:""}
 
 </div>
 
@@ -149,27 +180,42 @@ class="w-full text-center border">
 
 }
 
-function tambah(id,h){
 
-if(!cart[id]) cart[id]={qty:0,harga:h}
+
+function tambah(id,harga){
+
+if(!cart[id]) cart[id]={qty:0,harga:harga}
 
 cart[id].qty++
+
+document.getElementById("q_"+id).value=cart[id].qty
 
 updateCart()
 
 }
 
-function kurang(id,h){
+function kurang(id,harga){
 
 if(!cart[id]) return
 
 cart[id].qty--
 
-if(cart[id].qty<=0) delete cart[id]
+if(cart[id].qty<=0){
+
+delete cart[id]
+document.getElementById("q_"+id).value=0
+
+}else{
+
+document.getElementById("q_"+id).value=cart[id].qty
+
+}
 
 updateCart()
 
 }
+
+
 
 function updateCart(){
 
@@ -183,45 +229,91 @@ total+=cart[i].qty*cart[i].harga
 
 }
 
-document.getElementById("total").innerText="Rp "+total
+document.getElementById("total").innerText="Rp "+total.toLocaleString()
 
 }
+
+
 
 function resetCart(){
 
 cart={}
-
 updateCart()
 
 }
+
+
 
 function orderWA(){
 
 let pesan="Order DK Lampu%0A%0A"
 
+let total=0
+
 for(let i in cart){
 
-pesan+=cart[i].qty+" pcs%0A"
+let qty=cart[i].qty
+let harga=cart[i].harga
+
+pesan+=qty+" pcs - Rp "+harga+"%0A"
+
+total+=qty*harga
 
 }
+
+pesan+="%0ATotal : Rp "+total
 
 window.open("https://wa.me/6288224166270?text="+pesan)
 
 }
 
+
+
 function loginAdmin(){
 
-let pass=prompt("Password admin")
+let pass=prompt("Masukkan password admin")
 
-if(pass=="dklampu"){
+if(pass==="dklampu"){
 
 alert("Login berhasil")
+admin=true
+tampilkanProduk()
+
+}else{
+
+alert("Password salah")
 
 }
 
 }
+
+
+
+function editProduk(id){
+
+db.ref("produk/"+id).once("value").then(snap=>{
+
+let p=snap.val()
+
+let nama=prompt("Nama",p.nama)
+let harga=prompt("Harga",p.harga)
+let diskon=prompt("Diskon",p.diskon||0)
+
+db.ref("produk/"+id).update({
+
+nama:nama,
+harga:Number(harga),
+diskon:Number(diskon)
+
+})
+
+})
+
+}
+
 
 tampilkanProduk()
+updateCart()
 
 </script>
 
