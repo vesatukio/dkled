@@ -203,21 +203,23 @@ let id=child.key
 
 if(kat && p.kategori!=kat) return
 
-let harga=p.harga
+let harga=Number(p.harga)||0
 
 if(p.diskon_nominal)
-harga=harga-p.diskon_nominal
+harga = harga - Number(p.diskon_nominal)
 
 if(p.diskon_persen)
-harga=harga-(p.harga*p.diskon_persen/100)
+harga = harga - (Number(p.harga) * Number(p.diskon_persen) / 100)
 
 let teksDiskon=""
 
-if(p.diskon_nominal)
-teksDiskon="-Rp"+p.diskon_nominal
+if(p.diskon_nominal && p.diskon_nominal>0){
+teksDiskon="-Rp"+Number(p.diskon_nominal)
+}
 
-if(p.diskon_persen)
-teksDiskon="-"+p.diskon_persen+"%"
+if(p.diskon_persen && p.diskon_persen>0){
+teksDiskon="-"+Number(p.diskon_persen)+"%"
+}
 
 html+=`
 
@@ -285,13 +287,13 @@ let id=child.key
 
 let q=cart[id]||0
 
-let harga=p.harga
+let harga=Number(p.harga)||0
 
 if(p.diskon_nominal)
-harga-=p.diskon_nominal
+harga-=Number(p.diskon_nominal)
 
 if(p.diskon_persen)
-harga-=p.harga*p.diskon_persen/100
+harga-=Number(p.harga)*Number(p.diskon_persen)/100
 
 total+=harga*q
 
@@ -374,7 +376,23 @@ document.getElementById("kategori").innerHTML=html
 
 loadKategori()
 tampilProduk()
+function lihatKeranjang(){
 
+let teks="Keranjang:\n\n"
+
+for(let id in cart){
+
+teks+=id+" x"+cart[id]+"\n"
+
+}
+
+if(teks=="Keranjang:\n\n"){
+teks="Keranjang kosong"
+}
+
+alert(teks)
+
+}
 </script>
 
 </body>
