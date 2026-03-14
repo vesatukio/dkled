@@ -1,174 +1,243 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DK Lampu</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<title>DK LED</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
+
 body{
-font-family:Inter,system-ui;
+font-family:'Poppins',sans-serif;
+margin:0;
 background:#f5f5f5;
-font-size:14px;
+}
+
+.header{
+background:#ff6a00;
+color:white;
+padding:10px;
+font-weight:600;
+}
+
+.kategori{
+display:flex;
+overflow:auto;
+background:white;
+padding:8px;
+gap:8px;
+}
+
+.kategori button{
+border:none;
+background:#eee;
+padding:6px 12px;
+border-radius:20px;
+font-size:12px;
+}
+
+.grid{
+
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+padding:8px;
+
+}
+
+.card{
+
+background:white;
+border-radius:8px;
+padding:8px;
+position:relative;
+font-size:13px;
+
+}
+
+.nama{
+font-weight:500;
 }
 
 .harga{
-color:#ee4d2d;
-font-weight:700;
-font-size:16px;
+color:#ff6a00;
+font-weight:600;
 }
 
-.coret{
-text-decoration:line-through;
-font-size:12px;
-color:#999;
-}
+.diskon{
 
-.kartu{
-background:white;
-padding:10px;
-border-radius:8px;
-box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
-
-#orderBox{
-position:fixed;
-bottom:60px;
-left:0;
+position:absolute;
+top:0;
 right:0;
-background:white;
-padding:10px;
-border-top:1px solid #ddd;
-z-index:99;
+background:red;
+color:white;
+font-size:11px;
+padding:4px 6px;
+border-bottom-left-radius:6px;
+
 }
+
+.qty{
+
+display:flex;
+gap:6px;
+margin-top:6px;
+
+}
+
+.qty button{
+width:24px;
+height:24px;
+border:none;
+background:#ff6a00;
+color:white;
+border-radius:4px;
+}
+
+.wa{
+
+position:fixed;
+bottom:70px;
+right:10px;
+background:#25D366;
+color:white;
+padding:10px;
+border-radius:30px;
+font-size:14px;
+
+}
+
+.total{
+
+position:fixed;
+bottom:70px;
+left:10px;
+background:white;
+padding:8px;
+border-radius:6px;
+font-size:14px;
+
+}
+
+.bottom{
+
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:space-around;
+padding:10px;
+
+}
+
 </style>
+
 </head>
 
 <body>
 
-<div class="bg-orange-500 text-white text-center p-3 font-bold text-lg">
-DK Lampu
+<div class="header">
+DK LED
 </div>
 
-<input id="search" placeholder="Cari produk..."
-class="w-full p-2 border">
+<div class="kategori" id="kategori"></div>
 
-<div class="flex gap-2 p-2 overflow-x-auto">
+<div class="grid" id="produk"></div>
 
-<button onclick="setKategori('Semua')" class="bg-orange-500 text-white px-3 py-1 rounded">Semua</button>
-<button onclick="setKategori('Tuser')" class="bg-gray-200 px-3 py-1 rounded">Tuser</button>
-<button onclick="setKategori('Eko')" class="bg-gray-200 px-3 py-1 rounded">Eko</button>
-<button onclick="setKategori('MSL')" class="bg-gray-200 px-3 py-1 rounded">MSL</button>
+<div class="total" id="total">Total: 0</div>
 
+<div class="wa" onclick="orderWA()">
+Order WA
 </div>
 
-<div id="produk-list" class="grid grid-cols-2 gap-3 p-3"></div>
-
-
-<div id="orderBox">
-
-<div class="flex justify-between font-bold">
-
-<div>Total</div>
-<div id="total">Rp 0</div>
-
-</div>
-
-<button onclick="orderWA()"
-class="w-full bg-orange-500 text-white p-2 mt-2 rounded">
-
-Pesan WhatsApp
-
-</button>
-
-</div>
-
-
-<div class="fixed bottom-0 left-0 right-0 bg-white border flex justify-around p-2">
+<div class="bottom">
 
 <button onclick="resetCart()">Reset</button>
-
-<button onclick="lihatCart()">Keranjang</button>
-
-<button onclick="loginAdmin()">Akun</button>
+<button onclick="lihatKeranjang()">Keranjang</button>
+<button onclick="login()">Admin</button>
 
 </div>
-
 
 <script>
 
 const firebaseConfig={
-apiKey:"AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+
+apiKey:"AIzaSyAt3",
 authDomain:"katalog-lampu.firebaseapp.com",
 databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
 projectId:"katalog-lampu"
+
 }
 
 firebase.initializeApp(firebaseConfig)
+
 const db=firebase.database()
 
-let cart=JSON.parse(localStorage.getItem("cart"))||{}
-let kategori="Semua"
-let admin=false
+let cart=JSON.parse(localStorage.getItem("cart")||"{}")
 
+function simpanCart(){
 
-function setKategori(k){
-
-kategori=k
-tampilkanProduk()
+localStorage.setItem("cart",JSON.stringify(cart))
 
 }
 
-function tampilkanProduk(){
+function tampilProduk(kat=""){
 
 db.ref("produk").on("value",snap=>{
 
-let list=document.getElementById("produk-list")
-list.innerHTML=""
+let html=""
 
 snap.forEach(child=>{
 
 let p=child.val()
 let id=child.key
 
-if(kategori!="Semua" && p.kategori!=kategori) return
+if(kat && p.kategori!=kat) return
 
-let diskon=p.diskon||0
-let harga=p.harga-diskon
+let harga=p.harga
 
-let qty=cart[id]?cart[id].qty:0
+if(p.diskon_nominal)
+harga=harga-p.diskon_nominal
 
-list.innerHTML+=`
+if(p.diskon_persen)
+harga=harga-(p.harga*p.diskon_persen/100)
 
-<div class="kartu">
+let teksDiskon=""
 
-<div class="font-semibold">${p.nama}</div>
+if(p.diskon_nominal)
+teksDiskon="-Rp"+p.diskon_nominal
 
-<div class="text-xs text-gray-400">${p.kategori}</div>
+if(p.diskon_persen)
+teksDiskon="-"+p.diskon_persen+"%"
 
-<div class="coret">Rp ${p.harga}</div>
+html+=`
 
-<div class="harga">Rp ${harga}</div>
+<div class="card">
 
-<div class="flex mt-2">
+${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
-<button onclick="kurang('${id}',${harga})" class="px-2">-</button>
+<div class="nama">${p.nama}</div>
 
-<input id="q_${id}" value="${qty}"
-class="w-full text-center border">
+<div class="harga">Rp${harga}</div>
 
-<button onclick="tambah('${id}',${harga})" class="px-2">+</button>
+<div class="qty">
+
+<button onclick="min('${id}')">-</button>
+
+<span>${cart[id]||0}</span>
+
+<button onclick="plus('${id}')">+</button>
 
 </div>
-
-${admin?`<button onclick="editProduk('${id}')" class="text-blue-500 text-xs mt-2">Edit</button>`:""}
 
 </div>
 
@@ -176,108 +245,104 @@ ${admin?`<button onclick="editProduk('${id}')" class="text-blue-500 text-xs mt-2
 
 })
 
+document.getElementById("produk").innerHTML=html
+
+hitungTotal()
+
 })
 
 }
 
+function plus(id){
 
-
-function tambah(id,harga){
-
-if(!cart[id]) cart[id]={qty:0,harga:harga}
-
-cart[id].qty++
-
-document.getElementById("q_"+id).value=cart[id].qty
-
-updateCart()
+cart[id]=(cart[id]||0)+1
+simpanCart()
+tampilProduk()
 
 }
 
-function kurang(id,harga){
+function min(id){
 
-if(!cart[id]) return
+cart[id]=(cart[id]||0)-1
 
-cart[id].qty--
+if(cart[id]<=0) delete cart[id]
 
-if(cart[id].qty<=0){
-
-delete cart[id]
-document.getElementById("q_"+id).value=0
-
-}else{
-
-document.getElementById("q_"+id).value=cart[id].qty
+simpanCart()
+tampilProduk()
 
 }
 
-updateCart()
+function hitungTotal(){
 
-}
-
-
-
-function updateCart(){
-
-localStorage.setItem("cart",JSON.stringify(cart))
+db.ref("produk").once("value").then(snap=>{
 
 let total=0
 
-for(let i in cart){
+snap.forEach(child=>{
 
-total+=cart[i].qty*cart[i].harga
+let p=child.val()
+let id=child.key
+
+let q=cart[id]||0
+
+let harga=p.harga
+
+if(p.diskon_nominal)
+harga-=p.diskon_nominal
+
+if(p.diskon_persen)
+harga-=p.harga*p.diskon_persen/100
+
+total+=harga*q
+
+})
+
+document.getElementById("total").innerText="Total: Rp"+total
+
+})
 
 }
 
-document.getElementById("total").innerText="Rp "+total.toLocaleString()
+function orderWA(){
+
+let teks="Order:%0A"
+
+db.ref("produk").once("value").then(snap=>{
+
+snap.forEach(child=>{
+
+let p=child.val()
+let id=child.key
+
+if(cart[id]){
+
+teks+=p.nama+" x"+cart[id]+"%0A"
 
 }
 
+})
 
+window.open("https://wa.me/6288224166270?text="+teks)
+
+})
+
+}
 
 function resetCart(){
 
 cart={}
-updateCart()
+simpanCart()
+tampilProduk()
 
 }
 
+function login(){
 
+let pass=prompt("Password admin")
 
-function orderWA(){
+if(pass=="dklampu"){
 
-let pesan="Order DK Lampu%0A%0A"
-
-let total=0
-
-for(let i in cart){
-
-let qty=cart[i].qty
-let harga=cart[i].harga
-
-pesan+=qty+" pcs - Rp "+harga+"%0A"
-
-total+=qty*harga
-
-}
-
-pesan+="%0ATotal : Rp "+total
-
-window.open("https://wa.me/6288224166270?text="+pesan)
-
-}
-
-
-
-function loginAdmin(){
-
-let pass=prompt("Masukkan password admin")
-
-if(pass==="dklampu"){
-
-alert("Login berhasil")
-admin=true
-tampilkanProduk()
+location.href="admin.html"
 
 }else{
 
@@ -287,35 +352,31 @@ alert("Password salah")
 
 }
 
+function loadKategori(){
 
+db.ref("kategori").on("value",snap=>{
 
-function editProduk(id){
+let html=`<button onclick="tampilProduk()">Semua</button>`
 
-db.ref("produk/"+id).once("value").then(snap=>{
+snap.forEach(child=>{
 
-let p=snap.val()
+let k=child.val()
 
-let nama=prompt("Nama",p.nama)
-let harga=prompt("Harga",p.harga)
-let diskon=prompt("Diskon",p.diskon||0)
-
-db.ref("produk/"+id).update({
-
-nama:nama,
-harga:Number(harga),
-diskon:Number(diskon)
+html+=`<button onclick="tampilProduk('${k.nama}')">${k.nama}</button>`
 
 })
+
+document.getElementById("kategori").innerHTML=html
 
 })
 
 }
 
-
-tampilkanProduk()
-updateCart()
+loadKategori()
+tampilProduk()
 
 </script>
 
 </body>
+
 </html>
