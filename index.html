@@ -86,19 +86,26 @@ border-bottom-left-radius:6px;
 }
 
 .qty{
-
 display:flex;
-gap:6px;
-margin-top:6px;
-
+justify-content:space-between;
+align-items:center;
+margin-top:8px;
 }
 
 .qty button{
-width:24px;
-height:24px;
+width:32px;
+height:32px;
 border:none;
 background:#ff6a00;
 color:white;
+border-radius:6px;
+font-size:18px;
+}
+
+.qty input{
+width:40px;
+text-align:center;
+border:1px solid #ddd;
 border-radius:4px;
 }
 
@@ -128,15 +135,23 @@ font-size:14px;
 }
 
 .bottom{
-
 position:fixed;
 bottom:0;
 width:100%;
 background:white;
 display:flex;
 justify-content:space-around;
-padding:10px;
+padding:8px;
+box-shadow:0 -2px 8px rgba(0,0,0,0.1);
+}
 
+.bottom button{
+background:#ff6a00;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:8px;
+font-size:13px;
 }
 
 </style>
@@ -166,7 +181,13 @@ Order WA
 <button onclick="login()">Admin</button>
 
 </div>
+let jml=0
 
+for(let id in cart){
+jml+=cart[id]
+}
+
+document.getElementById("jmlcart").innerText=jml
 <script>
 
 const firebaseConfig={
@@ -229,13 +250,13 @@ ${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
 <div class="nama">${p.nama}</div>
 
-<div class="harga">Rp${harga}</div>
+<div class="harga">${rupiah(harga)}</div>
 
 <div class="qty">
 
 <button onclick="min('${id}')">-</button>
 
-<span>${cart[id]||0}</span>
+<input value="${cart[id]||0}" onchange="ubahQty('${id}',this.value)">
 
 <button onclick="plus('${id}')">+</button>
 
@@ -247,7 +268,7 @@ ${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
 })
 
-document.getElementById("produk").innerHTML=html
+document.getElementById("total").innerText="Total: "+rupiah(total)
 
 hitungTotal()
 
@@ -378,19 +399,45 @@ loadKategori()
 tampilProduk()
 function lihatKeranjang(){
 
+db.ref("produk").once("value").then(snap=>{
+
 let teks="Keranjang:\n\n"
 
-for(let id in cart){
+snap.forEach(child=>{
 
-teks+=id+" x"+cart[id]+"\n"
+let p=child.val()
+let id=child.key
 
+if(cart[id]){
+teks+=p.nama+" x"+cart[id]+"\n"
 }
+
+})
 
 if(teks=="Keranjang:\n\n"){
 teks="Keranjang kosong"
 }
 
 alert(teks)
+
+})
+
+}
+alert(teks)
+
+}
+  function ubahQty(id,val){
+
+val = Number(val)
+
+if(val<=0){
+delete cart[id]
+}else{
+cart[id]=val
+}
+
+simpanCart()
+tampilProduk()
 
 }
 </script>
