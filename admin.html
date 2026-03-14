@@ -11,7 +11,7 @@
 body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;padding:15px;}
 .box{background:white;padding:12px;border-radius:8px;margin-bottom:10px;}
 input,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;}
-button{padding:8px 12px;border:none;border-radius:6px;background:#ff6a00;color:white;}
+button{padding:8px 12px;border:none;border-radius:6px;background:#ff6a00;color:white;cursor:pointer;}
 .produk{background:white;padding:10px;border-radius:8px;margin-bottom:6px;}
 </style>
 </head>
@@ -20,20 +20,21 @@ button{padding:8px 12px;border:none;border-radius:6px;background:#ff6a00;color:w
 <h2>Admin DK LED</h2>
 
 <div class="box">
-<h3>Tambah Produk</h3>
-<input id="nama" placeholder="Nama produk">
-<input id="harga" placeholder="Harga">
-<input id="diskon_nominal" placeholder="Diskon nominal">
-<input id="diskon_persen" placeholder="Diskon persen">
-<select id="kategori"></select>
-<button onclick="tambahProduk()">Simpan Produk</button>
+  <h3>Tambah Produk</h3>
+  <input id="nama" placeholder="Nama produk">
+  <input id="harga" placeholder="Harga">
+  <input id="diskon_nominal" placeholder="Diskon nominal">
+  <input id="diskon_persen" placeholder="Diskon persen">
+  <select id="kategori"></select>
+  <input id="gambar" placeholder="URL Gambar">
+  <button onclick="tambahProduk()">Simpan Produk</button>
 </div>
 
 <div class="box">
-<h3>Kategori</h3>
-<input id="kategoriBaru" placeholder="Nama kategori">
-<button onclick="tambahKategori()">Tambah</button>
-<div id="listKategori"></div>
+  <h3>Kategori</h3>
+  <input id="kategoriBaru" placeholder="Nama kategori">
+  <button onclick="tambahKategori()">Tambah</button>
+  <div id="listKategori"></div>
 </div>
 
 <h3>Daftar Produk</h3>
@@ -45,94 +46,110 @@ const firebaseConfig={
   authDomain:"katalog-lampu.firebaseapp.com",
   databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
   projectId:"katalog-lampu"
-}
-firebase.initializeApp(firebaseConfig)
-const db=firebase.database()
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
+// Tambah produk baru
 function tambahProduk(){
-  let nama=document.getElementById("nama").value
-  let harga=parseInt(document.getElementById("harga").value)
-  let diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0
-  let diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0
-  let kategori=document.getElementById("kategori").value
-  db.ref("produk").push({nama,harga,diskon_nominal,diskon_persen,kategori,stok:0})
-  alert("Produk ditambahkan")
+  let nama=document.getElementById("nama").value;
+  let harga=parseInt(document.getElementById("harga").value)||0;
+  let diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0;
+  let diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0;
+  let kategori=document.getElementById("kategori").value;
+  let gambar=document.getElementById("gambar").value;
+
+  db.ref("produk").push({
+    nama,
+    harga,
+    diskon_nominal,
+    diskon_persen,
+    kategori,
+    gambar,
+    stok:0
+  });
+
+  alert("Produk ditambahkan");
 }
-<div class="box">
-  <h3>Tambah Produk</h3>
 
-  <input id="nama" placeholder="Nama produk">
-  <input id="harga" placeholder="Harga">
-  <input id="diskon_nominal" placeholder="Diskon nominal">
-  <input id="diskon_persen" placeholder="Diskon persen">
-  <select id="kategori"></select>
-  
-  <!-- Tambahkan input gambar di sini -->
-  <input id="gambar" placeholder="URL Gambar">
-
-  <button onclick="tambahProduk()">Simpan Produk</button>
-</div>
-  let gambar = document.getElementById("gambar").value;
-db.ref("produk").push({
-  nama,
-  harga,
-  diskon_nominal,
-  diskon_persen,
-  kategori,
-  stok: 0,        // default stok 0
-  gambar
-})
+// Edit produk
 function editProduk(id){
   db.ref("produk/"+id).once("value").then(snap=>{
-    let p=snap.val()
-    let nama=prompt("Nama",p.nama)
-    let harga=prompt("Harga",p.harga)
-    let diskon_nominal=prompt("Diskon nominal",p.diskon_nominal||0)
-    let diskon_persen=prompt("Diskon persen",p.diskon_persen||0)
-    let kategori=prompt("Kategori",p.kategori)
-    db.ref("produk/"+id).update({nama,harga:Number(harga),diskon_nominal:Number(diskon_nominal),diskon_persen:Number(diskon_persen),kategori})
-  })
+    let p=snap.val();
+    let nama=prompt("Nama",p.nama);
+    let harga=prompt("Harga",p.harga);
+    let diskon_nominal=prompt("Diskon nominal",p.diskon_nominal||0);
+    let diskon_persen=prompt("Diskon persen",p.diskon_persen||0);
+    let kategori=prompt("Kategori",p.kategori);
+    let gambar=prompt("URL Gambar",p.gambar||"");
+
+    db.ref("produk/"+id).update({
+      nama,
+      harga:Number(harga),
+      diskon_nominal:Number(diskon_nominal),
+      diskon_persen:Number(diskon_persen),
+      kategori,
+      gambar
+    });
+  });
 }
 
-function hapusProduk(id){if(confirm("Hapus produk?")) db.ref("produk/"+id).remove()}
-function ubahStok(id,val){db.ref("produk/"+id).update({stok:Number(val)}).then(()=>{alert("Stok berhasil diupdate!")})}
+// Hapus produk
+function hapusProduk(id){
+  if(confirm("Hapus produk?")) db.ref("produk/"+id).remove();
+}
 
+// Update stok
+function ubahStok(id,val){
+  db.ref("produk/"+id).update({stok:Number(val)}).then(()=>{alert("Stok berhasil diupdate!")});
+}
+
+// Tampilkan produk
 function tampilProduk(){
   db.ref("produk").on("value",snap=>{
-    let html=""
+    let html="";
     snap.forEach(child=>{
-      let p=child.val(),id=child.key,stok=p.stok||0
+      let p=child.val(), id=child.key, stok=p.stok||0;
       html+=`
       <div class="produk">
         <b>${p.nama}</b><br>
         Harga : ${p.harga}<br>
         Kategori : ${p.kategori}<br>
         Stok : <input type="number" value="${stok}" min="0" onchange="ubahStok('${id}', this.value)"><br>
+        <img src="${p.gambar||'https://via.placeholder.com/150'}" style="width:100px;margin-top:4px;border-radius:6px;"><br>
         <button onclick="editProduk('${id}')">Edit</button>
         <button onclick="hapusProduk('${id}')">Hapus</button>
-      </div>`
-    })
-    document.getElementById("listProduk").innerHTML=html
-  })
+      </div>`;
+    });
+    document.getElementById("listProduk").innerHTML=html;
+  });
 }
 
-function tambahKategori(){let nama=document.getElementById("kategoriBaru").value;db.ref("kategori").push({nama})}
-function hapusKategori(id){db.ref("kategori/"+id).remove()}
+// Kategori
+function tambahKategori(){
+  let nama=document.getElementById("kategoriBaru").value;
+  db.ref("kategori").push({nama});
+}
+
+function hapusKategori(id){
+  db.ref("kategori/"+id).remove();
+}
+
 function tampilKategori(){
   db.ref("kategori").on("value",snap=>{
-    let html="",option=""
+    let html="",option="";
     snap.forEach(child=>{
-      let k=child.val()
-      html+=`<div>${k.nama} <button onclick="hapusKategori('${child.key}')">Hapus</button></div>`
-      option+=`<option>${k.nama}</option>`
-    })
-    document.getElementById("listKategori").innerHTML=html
-    document.getElementById("kategori").innerHTML=option
-  })
+      let k=child.val();
+      html+=`<div>${k.nama} <button onclick="hapusKategori('${child.key}')">Hapus</button></div>`;
+      option+=`<option>${k.nama}</option>`;
+    });
+    document.getElementById("listKategori").innerHTML=html;
+    document.getElementById("kategori").innerHTML=option;
+  });
 }
 
-tampilKategori()
-tampilProduk()
+tampilKategori();
+tampilProduk();
 </script>
 
 </body>
