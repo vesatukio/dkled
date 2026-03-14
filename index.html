@@ -212,7 +212,7 @@ localStorage.setItem("cart",JSON.stringify(cart))
 }
 
 function rupiah(angka){
-return "Rp. "+Number(angka).toLocaleString("id-ID")
+return "Rp. " + Number(angka).toLocaleString("id-ID")
 }
 
 function tampilProduk(kat="",keyword=""){
@@ -330,24 +330,25 @@ snap.forEach(child=>{
 
 let p=child.val()
 let id=child.key
-let q=cart[id]||0
 
-let harga=Number(p.harga)||0
+let q = cart[id] || 0
+
+let harga = Number(p.harga) || 0
 
 if(p.diskon_nominal)
-harga-=Number(p.diskon_nominal)
+harga -= Number(p.diskon_nominal)
 
 if(p.diskon_persen)
-harga-=Number(p.harga)*Number(p.diskon_persen)/100
+harga -= Number(p.harga) * Number(p.diskon_persen) / 100
 
-total+=harga*q
-jml+=q
+total += harga * q
+jml += q
 
 })
 
-document.getElementById("total").innerText="Total: "+rupiah(total)
+document.getElementById("total").innerText = "Total: " + rupiah(total)
 
-document.getElementById("jmlcart").innerText=jml
+document.getElementById("jmlcart").innerText = jml
 
 })
 
@@ -437,6 +438,17 @@ document.getElementById("kategori").innerHTML=html
 loadKategori()
 
 tampilProduk()
+  function plus(id){
+
+cart[id] = (cart[id] || 0) + 1
+
+simpanCart()
+
+renderProduk()
+
+hitungTotal()
+
+}
 
 </script>
 
