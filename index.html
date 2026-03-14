@@ -419,20 +419,16 @@ alert("Password salah")
 }
 
 function loadKategori(){
+  db.ref("kategori").once("value").then(snap=>{
+    let html = `<button onclick="renderProduk()">Semua</button>`
 
-db.ref("kategori").once("value").then(snap=>{
+    snap.forEach(child=>{
+      let k = child.val()
+      html += `<button onclick="renderProduk('${k.nama}')">${k.nama}</button>`
+    })
 
-let html=`<button onclick="renderProduk()">Semua</button>`
-
-snap.forEach(child=>{
-let k=child.val()
-html+=`<button onclick="renderProduk('${k.nama}')">${k.nama}</button>`
-})
-
-document.getElementById("kategori").innerHTML=html
-
-})
-
+    document.getElementById("kategori").innerHTML = html
+  })
 }
 
 loadKategori()
