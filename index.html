@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>DK Lampu</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -10,45 +11,67 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+}
+
+.harga{
+color:#ee4d2d;
+font-weight:bold;
+font-size:16px;
+}
+
+.nama{
+font-size:14px;
+font-weight:bold;
+}
+
+</style>
+
 </head>
 
-<body class="bg-gray-100 pb-32">
+<body>
 
-<!-- HEADER -->
-<div class="bg-orange-500 p-4 sticky top-0 z-50">
-<h1 class="text-white font-bold text-center text-xl">DK Lampu</h1>
-
-<input id="search" placeholder="Cari lampu..."
-class="w-full mt-2 p-2 rounded text-sm">
+<div class="bg-orange-500 text-white text-center p-3 font-bold">
+DK Lampu
 </div>
 
+<input id="search" placeholder="Cari produk"
+class="w-full p-2 border">
 
-<!-- PRODUK -->
 <div id="produk-list" class="grid grid-cols-2 gap-3 p-3"></div>
 
 
-<!-- TOTAL -->
-<div id="totalBox" class="fixed bottom-16 left-0 right-0 bg-white border-t p-3 shadow">
+<div id="orderBox" class="fixed bottom-12 left-0 right-0 bg-white p-3 border">
 
-<div class="flex justify-between text-sm font-bold">
-<span>Total</span>
-<span id="totalHarga">Rp 0</span>
+<div class="flex justify-between">
+
+<div>Total :</div>
+
+<div id="total">Rp 0</div>
+
 </div>
 
-<button onclick="kirimWA()"
-class="w-full mt-2 bg-orange-500 text-white p-2 rounded">
-Pesan via WhatsApp
+<button onclick="orderWA()"
+class="w-full bg-orange-500 text-white p-2 mt-2">
+
+Pesan WhatsApp
+
 </button>
 
 </div>
 
 
-<!-- MENU BAWAH -->
-<div class="fixed bottom-0 left-0 right-0 bg-white border-t p-2 flex justify-around text-xs">
+<div class="fixed bottom-0 left-0 right-0 bg-white border flex justify-around p-2">
 
 <button onclick="resetCart()">Reset</button>
-<button onclick="scrollTo(0,0)">Katalog</button>
-<button onclick="kirimWA()">Pesan</button>
+
+<button onclick="lihatCart()">Keranjang</button>
+
+<button onclick="loginAdmin()">Akun</button>
 
 </div>
 
@@ -56,57 +79,68 @@ Pesan via WhatsApp
 <script>
 
 const firebaseConfig = {
+
 apiKey: "AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+
 authDomain: "katalog-lampu.firebaseapp.com",
+
 databaseURL: "https://katalog-lampu-default-rtdb.firebaseio.com",
-projectId: "katalog-lampu",
-storageBucket: "katalog-lampu.appspot.com",
-messagingSenderId: "229844385794",
-appId: "1:229844385794:web:117057f8bd66879b45a71b"
-};
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+projectId: "katalog-lampu"
 
-let cart = JSON.parse(localStorage.getItem("cart")) || {};
+}
+
+firebase.initializeApp(firebaseConfig)
+
+const db = firebase.database()
+
+let cart = JSON.parse(localStorage.getItem("cart")) || {}
 
 function tampilkanProduk(){
 
-db.ref("produk").on("value", snap => {
+db.ref("produk").on("value",snap=>{
 
-const list = document.getElementById("produk-list");
-list.innerHTML="";
+let list = document.getElementById("produk-list")
 
-snap.forEach(child =>{
+list.innerHTML=""
 
-const p = child.val();
-const id = child.key;
+snap.forEach(child=>{
 
-let qty = cart[id] ? cart[id].qty : 0;
+let p = child.val()
 
-list.innerHTML +=`
+let id = child.key
 
-<div class="bg-white p-3 rounded shadow text-sm">
+let harga = p.harga - (p.diskon || 0)
 
-<h3 class="font-bold">${p.nama}</h3>
-<p class="text-orange-500 font-bold">
-Rp ${Number(p.harga).toLocaleString()}
-</p>
+list.innerHTML+=`
 
-<div class="flex items-center gap-1 mt-2">
+<div class="bg-white p-2">
 
-<button onclick="kurang('${id}',${p.harga})"
-class="bg-orange-500 text-white w-7 h-7 rounded">-</button>
+<div class="nama">${p.nama}</div>
 
-<input id="qty_${id}" value="${qty}"
-class="w-full text-center border rounded h-7 text-xs">
+<div class="text-gray-400 text-xs">${p.kategori}</div>
 
-<button onclick="tambah('${id}',${p.harga})"
-class="bg-orange-500 text-white w-7 h-7 rounded">+</button>
+<div class="text-gray-400 line-through text-xs">
+Rp ${p.harga}
+</div>
+
+<div class="harga">
+Rp ${harga}
+</div>
+
+<div class="flex mt-2">
+
+<button onclick="kurang('${id}',${harga})">-</button>
+
+<input id="q_${id}" value="0"
+class="w-full text-center border">
+
+<button onclick="tambah('${id}',${harga})">+</button>
 
 </div>
 
 </div>
+
 `
 
 })
@@ -115,9 +149,9 @@ class="bg-orange-500 text-white w-7 h-7 rounded">+</button>
 
 }
 
-function tambah(id,harga){
+function tambah(id,h){
 
-if(!cart[id]) cart[id]={qty:0,harga:harga}
+if(!cart[id]) cart[id]={qty:0,harga:h}
 
 cart[id].qty++
 
@@ -125,7 +159,7 @@ updateCart()
 
 }
 
-function kurang(id,harga){
+function kurang(id,h){
 
 if(!cart[id]) return
 
@@ -143,16 +177,13 @@ localStorage.setItem("cart",JSON.stringify(cart))
 
 let total=0
 
-for(let id in cart){
+for(let i in cart){
 
-total += cart[id].qty * cart[id].harga
+total+=cart[i].qty*cart[i].harga
 
 }
 
-document.getElementById("totalHarga").innerText =
-"Rp "+total.toLocaleString()
-
-tampilkanProduk()
+document.getElementById("total").innerText="Rp "+total
 
 }
 
@@ -160,21 +191,17 @@ function resetCart(){
 
 cart={}
 
-localStorage.removeItem("cart")
-
 updateCart()
 
 }
 
-function kirimWA(){
+function orderWA(){
 
 let pesan="Order DK Lampu%0A%0A"
 
-for(let id in cart){
+for(let i in cart){
 
-let qty = cart[id].qty
-
-pesan += qty+" pcs%0A"
+pesan+=cart[i].qty+" pcs%0A"
 
 }
 
@@ -182,22 +209,17 @@ window.open("https://wa.me/6288224166270?text="+pesan)
 
 }
 
-document.getElementById("search").addEventListener("keyup",function(){
+function loginAdmin(){
 
-let kata = this.value.toLowerCase()
+let pass=prompt("Password admin")
 
-let card = document.querySelectorAll("#produk-list div")
+if(pass=="dklampu"){
 
-card.forEach(c=>{
+alert("Login berhasil")
 
-if(c.innerText.toLowerCase().includes(kata))
-c.style.display="block"
-else
-c.style.display="none"
+}
 
-})
-
-})
+}
 
 tampilkanProduk()
 
