@@ -52,12 +52,12 @@ const db=firebase.database();
 
 // Tambah produk baru
 function tambahProduk(){
-  let nama=document.getElementById("nama").value;
-  let harga=parseInt(document.getElementById("harga").value)||0;
-  let diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0;
-  let diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0;
-  let kategori=document.getElementById("kategori").value;
-  let gambar=document.getElementById("gambar").value;
+  let nama = document.getElementById("nama").value;
+  let harga = parseInt(document.getElementById("harga").value);
+  let diskon_nominal = parseInt(document.getElementById("diskon_nominal").value) || 0;
+  let diskon_persen = parseInt(document.getElementById("diskon_persen").value) || 0;
+  let kategori = document.getElementById("kategori").value;
+  let gambar = document.getElementById("gambar").value; // Tambahan baru
 
   db.ref("produk").push({
     nama,
@@ -65,8 +65,8 @@ function tambahProduk(){
     diskon_nominal,
     diskon_persen,
     kategori,
-    gambar,
-    stok:0
+    stok: 0,  // default stok
+    gambar     // simpan URL gambar
   });
 
   alert("Produk ditambahkan");
@@ -150,6 +150,10 @@ function tampilKategori(){
 
 tampilKategori();
 tampilProduk();
+  if(kategori === "Galeri"){
+  html += `<div class="card"><img src="${p.gambar || 'https://via.placeholder.com/150'}"></div>`;
+  return;
+}
 </script>
 
 </body>
