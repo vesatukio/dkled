@@ -1,124 +1,207 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DK Lampu - Katalog</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DK Lampu</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 </head>
-<body class="bg-gray-100 pb-24">
 
-    <div class="bg-orange-600 p-4 sticky top-0 z-50 shadow-md">
-        <h1 class="text-center text-white font-bold text-xl uppercase">DK Lampu</h1>
-    </div>
+<body class="bg-gray-100 pb-32">
 
-    <div class="flex gap-2 overflow-x-auto p-4 bg-white shadow-sm no-scrollbar">
-        <button onclick="tampilkanProduk('Semua')" class="px-5 py-2 bg-orange-500 text-white rounded-full text-xs font-bold shadow-md">Semua</button>
-        <button onclick="tampilkanProduk('Tuser')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">Tuser</button>
-        <button onclick="tampilkanProduk('Eko')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">Eko</button>
-        <button onclick="tampilkanProduk('MSL')" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-full text-xs font-bold">MSL</button>
-    </div>
+<!-- HEADER -->
+<div class="bg-orange-500 p-4 sticky top-0 z-50">
+<h1 class="text-white font-bold text-center text-xl">DK Lampu</h1>
 
-    <div id="produk-list" class="grid grid-cols-2 gap-4 p-4">
-        </div>
+<input id="search" placeholder="Cari lampu..."
+class="w-full mt-2 p-2 rounded text-sm">
+</div>
 
-    <div id="modal-admin" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-            <h2 class="text-lg font-bold mb-4 border-b pb-2">Tambah Stok Lampu</h2>
-            <input type="text" id="nama" placeholder="Nama Lampu (ex: Tuser 9w)" class="w-full border p-3 mb-3 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
-            <select id="kategori" class="w-full border p-3 mb-3 rounded-lg">
-                <option value="Tuser">Tuser</option>
-                <option value="Eko">Eko</option>
-                <option value="MSL">MSL</option>
-                <option value="Casing">Casing LED</option>
-            </select>
-            <input type="number" id="harga" placeholder="Harga (Contoh: 4000)" class="w-full border p-3 mb-4 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
-            <div class="flex gap-2">
-                <button onclick="simpanKeFirebase()" class="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold">SIMPAN</button>
-                <button onclick="toggleAdmin()" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold">BATAL</button>
-            </div>
-        </div>
-    </div>
 
-    <button onclick="toggleAdmin()" class="fixed bottom-20 right-4 bg-blue-600 text-white p-4 rounded-full shadow-2xl font-bold text-xs z-50">ADD</button>
+<!-- PRODUK -->
+<div id="produk-list" class="grid grid-cols-2 gap-3 p-3"></div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around shadow-lg">
-        <div class="text-orange-600 text-center"><p class="text-[10px] font-bold">KATALOG</p></div>
-        <div class="text-gray-400 text-center"><p class="text-[10px] font-bold text-gray-300">PESANAN</p></div>
-        <div class="text-gray-400 text-center"><p class="text-[10px] font-bold text-gray-300">AKUN</p></div>
-    </nav>
 
-    <script>
-        // CONFIG MILIK KAMU (Sudah saya sesuaikan)
-        const firebaseConfig = {
-            apiKey: "AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
-            authDomain: "katalog-lampu.firebaseapp.com",
-            projectId: "katalog-lampu",
-            storageBucket: "katalog-lampu.firebasestorage.app",
-            messagingSenderId: "229844385794",
-            appId: "1:229844385794:web:117057f8bd66879b45a71b",
-            // Tambahkan Database URL kamu di bawah ini jika error, 
-            // tapi biasanya projectId sudah cukup.
-            databaseURL: "https://katalog-lampu-default-rtdb.firebaseio.com" 
-        };
+<!-- TOTAL -->
+<div id="totalBox" class="fixed bottom-16 left-0 right-0 bg-white border-t p-3 shadow">
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<div class="flex justify-between text-sm font-bold">
+<span>Total</span>
+<span id="totalHarga">Rp 0</span>
+</div>
 
-        // 1. Fungsi Tampilkan Data
-        function tampilkanProduk(filter = 'Semua') {
-            db.ref('produk').on('value', (snapshot) => {
-                const list = document.getElementById('produk-list');
-                list.innerHTML = "";
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    if (filter === 'Semua' || data.kategori === filter) {
-                        list.innerHTML += `
-                            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 relative">
-                                <button onclick="hapus('${child.key}')" class="absolute top-1 right-1 bg-red-100 text-red-600 text-[8px] px-1 rounded">Hapus</button>
-                                <h4 class="font-bold text-gray-800 text-sm truncate">${data.nama}</h4>
-                                <p class="text-[10px] text-gray-400">${data.kategori}</p>
-                                <p class="text-orange-600 font-bold text-sm my-2">Rp ${Number(data.harga).toLocaleString('id-ID')}</p>
-                                <div class="flex items-center gap-1">
-                                    <button class="bg-orange-500 text-white w-7 h-7 rounded font-bold">-</button>
-                                    <input type="text" value="0" readonly class="w-full text-center text-xs border rounded h-7">
-                                    <button class="bg-orange-500 text-white w-7 h-7 rounded font-bold">+</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-            });
-        }
+<button onclick="kirimWA()"
+class="w-full mt-2 bg-orange-500 text-white p-2 rounded">
+Pesan via WhatsApp
+</button>
 
-        // 2. Fungsi Tombol Admin
-        function toggleAdmin() {
-            document.getElementById('modal-admin').classList.toggle('hidden');
-        }
+</div>
 
-        function simpanKeFirebase() {
-            const nama = document.getElementById('nama').value;
-            const kategori = document.getElementById('kategori').value;
-            const harga = document.getElementById('harga').value;
 
-            if(nama && harga) {
-                db.ref('produk').push({ nama, kategori, harga }, () => {
-                    alert("Berhasil disimpan!");
-                    document.getElementById('nama').value = "";
-                    document.getElementById('harga').value = "";
-                    toggleAdmin();
-                });
-            }
-        }
+<!-- MENU BAWAH -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t p-2 flex justify-around text-xs">
 
-        function hapus(id) {
-            if(confirm("Hapus barang ini dari katalog?")) db.ref('produk/' + id).remove();
-        }
+<button onclick="resetCart()">Reset</button>
+<button onclick="scrollTo(0,0)">Katalog</button>
+<button onclick="kirimWA()">Pesan</button>
 
-        // Jalankan pas pertama buka
-        tampilkanProduk('Semua');
-    </script>
+</div>
+
+
+<script>
+
+const firebaseConfig = {
+apiKey: "AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+authDomain: "katalog-lampu.firebaseapp.com",
+databaseURL: "https://katalog-lampu-default-rtdb.firebaseio.com",
+projectId: "katalog-lampu",
+storageBucket: "katalog-lampu.appspot.com",
+messagingSenderId: "229844385794",
+appId: "1:229844385794:web:117057f8bd66879b45a71b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let cart = JSON.parse(localStorage.getItem("cart")) || {};
+
+function tampilkanProduk(){
+
+db.ref("produk").on("value", snap => {
+
+const list = document.getElementById("produk-list");
+list.innerHTML="";
+
+snap.forEach(child =>{
+
+const p = child.val();
+const id = child.key;
+
+let qty = cart[id] ? cart[id].qty : 0;
+
+list.innerHTML +=`
+
+<div class="bg-white p-3 rounded shadow text-sm">
+
+<h3 class="font-bold">${p.nama}</h3>
+<p class="text-orange-500 font-bold">
+Rp ${Number(p.harga).toLocaleString()}
+</p>
+
+<div class="flex items-center gap-1 mt-2">
+
+<button onclick="kurang('${id}',${p.harga})"
+class="bg-orange-500 text-white w-7 h-7 rounded">-</button>
+
+<input id="qty_${id}" value="${qty}"
+class="w-full text-center border rounded h-7 text-xs">
+
+<button onclick="tambah('${id}',${p.harga})"
+class="bg-orange-500 text-white w-7 h-7 rounded">+</button>
+
+</div>
+
+</div>
+`
+
+})
+
+})
+
+}
+
+function tambah(id,harga){
+
+if(!cart[id]) cart[id]={qty:0,harga:harga}
+
+cart[id].qty++
+
+updateCart()
+
+}
+
+function kurang(id,harga){
+
+if(!cart[id]) return
+
+cart[id].qty--
+
+if(cart[id].qty<=0) delete cart[id]
+
+updateCart()
+
+}
+
+function updateCart(){
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+let total=0
+
+for(let id in cart){
+
+total += cart[id].qty * cart[id].harga
+
+}
+
+document.getElementById("totalHarga").innerText =
+"Rp "+total.toLocaleString()
+
+tampilkanProduk()
+
+}
+
+function resetCart(){
+
+cart={}
+
+localStorage.removeItem("cart")
+
+updateCart()
+
+}
+
+function kirimWA(){
+
+let pesan="Order DK Lampu%0A%0A"
+
+for(let id in cart){
+
+let qty = cart[id].qty
+
+pesan += qty+" pcs%0A"
+
+}
+
+window.open("https://wa.me/6288224166270?text="+pesan)
+
+}
+
+document.getElementById("search").addEventListener("keyup",function(){
+
+let kata = this.value.toLowerCase()
+
+let card = document.querySelectorAll("#produk-list div")
+
+card.forEach(c=>{
+
+if(c.innerText.toLowerCase().includes(kata))
+c.style.display="block"
+else
+c.style.display="none"
+
+})
+
+})
+
+tampilkanProduk()
+
+</script>
+
 </body>
 </html>
