@@ -10,9 +10,8 @@ body{
 margin:0;
 font-family:Arial;
 background:#f5f5f5;
+padding-bottom:120px;
 }
-
-/* HEADER */
 
 .header{
 background:#ff6a00;
@@ -35,8 +34,6 @@ border-radius:6px;
 border:1px solid #ccc;
 font-size:16px;
 }
-
-/* GRID */
 
 .grid{
 display:grid;
@@ -62,17 +59,15 @@ font-weight:bold;
 margin-bottom:8px;
 }
 
-/* QTY */
-
 .qty{
 display:flex;
 align-items:center;
-justify-content:space-between;
+gap:5px;
 }
 
 .qty button{
-width:32px;
-height:32px;
+width:30px;
+height:30px;
 border:none;
 background:#ff6a00;
 color:white;
@@ -80,26 +75,30 @@ font-size:18px;
 border-radius:6px;
 }
 
-/* TOTAL */
-
-.total{
-background:white;
-padding:12px;
-font-size:18px;
-font-weight:bold;
+.qty input{
+width:40px;
+text-align:center;
 }
 
-/* WA FLOAT */
+/* FLOAT ORDER */
 
-.wa{
+.orderBox{
 position:fixed;
 right:15px;
 bottom:90px;
+background:white;
+padding:10px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.orderBtn{
 background:#25D366;
 color:white;
-padding:14px 18px;
-border-radius:30px;
-font-weight:bold;
+padding:10px 15px;
+border-radius:20px;
+margin-top:5px;
+text-align:center;
 }
 
 /* MENU BAWAH */
@@ -121,6 +120,14 @@ background:white;
 font-size:16px;
 }
 
+.badge{
+background:red;
+color:white;
+border-radius:50%;
+padding:2px 7px;
+font-size:12px;
+}
+
 </style>
 </head>
 
@@ -136,29 +143,26 @@ DK Lampu
 
 <div class="grid" id="produk"></div>
 
-<div class="total">
-Total : Rp <span id="total">0</span>
-</div>
-
-<div class="wa" onclick="kirimWA()">
-Order WA
+<div class="orderBox">
+<div>Total : Rp <span id="total">0</span></div>
+<div class="orderBtn" onclick="kirimWA()">Order WA</div>
 </div>
 
 <div class="bottom">
 <button onclick="resetCart()">Reset</button>
-<button onclick="lihatKeranjang()">Keranjang</button>
+<button onclick="lihatKeranjang()">Keranjang <span id="jumlahCart" class="badge">0</span></button>
 <button onclick="menuAkun()">Akun</button>
 </div>
 
 <script>
 
+let kategori = JSON.parse(localStorage.getItem("kategori")) || ["Lampu","Driver"]
+
 let produk = JSON.parse(localStorage.getItem("produk")) || [
-{nama:"Lampu LED 5W",harga:5000},
-{nama:"Lampu LED 10W",harga:7000},
-{nama:"Lampu LED 15W",harga:9000},
-{nama:"Lampu LED 20W",harga:12000},
-{nama:"Driver LED 18W",harga:6000},
-{nama:"Driver LED 24W",harga:8000}
+{nama:"Lampu LED 5W",harga:5000,kategori:"Lampu"},
+{nama:"Lampu LED 10W",harga:7000,kategori:"Lampu"},
+{nama:"Lampu LED 15W",harga:9000,kategori:"Lampu"},
+{nama:"Driver LED 18W",harga:6000,kategori:"Driver"}
 ]
 
 let cart = JSON.parse(localStorage.getItem("cart")) || {}
@@ -176,6 +180,7 @@ html+=`
 <div class="card">
 
 <div class="nama">${p.nama}</div>
+<div>${p.kategori}</div>
 
 <div class="harga">Rp ${p.harga}</div>
 
@@ -183,7 +188,7 @@ html+=`
 
 <button onclick="kurang(${i})">-</button>
 
-<div>${qty}</div>
+<input type="number" value="${qty}" onchange="manual(${i},this.value)">
 
 <button onclick="tambah(${i})">+</button>
 
@@ -204,7 +209,6 @@ hitungTotal()
 function tambah(i){
 
 cart[i]=(cart[i]||0)+1
-
 simpan()
 
 }
@@ -213,7 +217,19 @@ function kurang(i){
 
 if(cart[i]){
 cart[i]--
-if(cart[i]==0) delete cart[i]
+if(cart[i]<=0) delete cart[i]
+}
+
+simpan()
+
+}
+
+function manual(i,val){
+
+if(val<=0){
+delete cart[i]
+}else{
+cart[i]=Number(val)
 }
 
 simpan()
@@ -224,6 +240,7 @@ function simpan(){
 
 localStorage.setItem("cart",JSON.stringify(cart))
 localStorage.setItem("produk",JSON.stringify(produk))
+localStorage.setItem("kategori",JSON.stringify(kategori))
 
 tampilProduk()
 
@@ -232,14 +249,17 @@ tampilProduk()
 function hitungTotal(){
 
 let total=0
+let jumlah=0
 
 for(let i in cart){
 
 total+=produk[i].harga*cart[i]
+jumlah+=cart[i]
 
 }
 
 document.getElementById("total").innerText=total
+document.getElementById("jumlahCart").innerText=jumlah
 
 }
 
@@ -252,7 +272,7 @@ let k=document.getElementById("cari").value.toLowerCase()
 document.querySelectorAll(".card").forEach(card=>{
 
 card.style.display=
-card.innerText.toLowerCase().includes(k) ? "block":"none"
+card.innerText.toLowerCase().includes(k)?"block":"none"
 
 })
 
@@ -281,7 +301,6 @@ window.open("https://wa.me/6288224166270?text="+text)
 function resetCart(){
 
 cart={}
-
 simpan()
 
 }
@@ -308,25 +327,41 @@ function menuAkun(){
 
 let pilih = prompt(
 
-"1 Tambah Produk\n2 Hapus Produk"
+"1 Tambah Produk\n2 Hapus Produk\n3 Tambah Kategori\n4 Hapus Kategori"
 
 )
 
 if(pilih==1){
 
 let nama=prompt("Nama produk")
-
 let harga=prompt("Harga")
+let kat=prompt("Kategori")
 
-produk.push({nama:nama,harga:Number(harga)})
+produk.push({nama:nama,harga:Number(harga),kategori:kat})
 
 }
 
 if(pilih==2){
 
-let no=prompt("Nomor produk")
+let no=prompt("Nomor produk (1-"+produk.length+")")
 
 produk.splice(no-1,1)
+
+}
+
+if(pilih==3){
+
+let k=prompt("Nama kategori")
+
+kategori.push(k)
+
+}
+
+if(pilih==4){
+
+let no=prompt("Nomor kategori")
+
+kategori.splice(no-1,1)
 
 }
 
