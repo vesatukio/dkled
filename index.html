@@ -2,7 +2,6 @@
 <html lang="id">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
@@ -24,8 +23,22 @@ background:#f5f5f5;
 .header{
 background:#ff6a00;
 color:white;
-padding:10px;
+padding:12px;
 font-weight:600;
+font-size:18px;
+text-align:center;
+}
+
+.search{
+padding:8px;
+background:white;
+}
+
+.search input{
+width:100%;
+padding:8px;
+border:1px solid #ddd;
+border-radius:6px;
 }
 
 .kategori{
@@ -45,22 +58,18 @@ font-size:12px;
 }
 
 .grid{
-
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:8px;
 padding:8px;
-
 }
 
 .card{
-
 background:white;
 border-radius:8px;
-padding:8px;
+padding:10px;
 position:relative;
 font-size:13px;
-
 }
 
 .nama{
@@ -70,10 +79,10 @@ font-weight:500;
 .harga{
 color:#ff6a00;
 font-weight:600;
+margin-top:4px;
 }
 
 .diskon{
-
 position:absolute;
 top:0;
 right:0;
@@ -82,7 +91,6 @@ color:white;
 font-size:11px;
 padding:4px 6px;
 border-bottom-left-radius:6px;
-
 }
 
 .qty{
@@ -109,29 +117,26 @@ border:1px solid #ddd;
 border-radius:4px;
 }
 
-.wa{
+.total{
+position:fixed;
+bottom:70px;
+left:10px;
+background:white;
+padding:10px;
+border-radius:8px;
+font-size:14px;
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
 
+.wa{
 position:fixed;
 bottom:70px;
 right:10px;
 background:#25D366;
 color:white;
-padding:10px;
+padding:12px 16px;
 border-radius:30px;
 font-size:14px;
-
-}
-
-.total{
-
-position:fixed;
-bottom:70px;
-left:10px;
-background:white;
-padding:8px;
-border-radius:6px;
-font-size:14px;
-
 }
 
 .bottom{
@@ -141,7 +146,7 @@ width:100%;
 background:white;
 display:flex;
 justify-content:space-around;
-padding:8px;
+padding:10px;
 box-shadow:0 -2px 8px rgba(0,0,0,0.1);
 }
 
@@ -155,48 +160,43 @@ font-size:13px;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="header">
-DK LED
+<div class="header">DK LED</div>
+
+<div class="search">
+<input type="text" placeholder="Cari produk..." onkeyup="cariProduk(this.value)">
 </div>
 
 <div class="kategori" id="kategori"></div>
 
 <div class="grid" id="produk"></div>
 
-<div class="total" id="total">Total: 0</div>
+<div class="total" id="total">Total: Rp. 0</div>
 
-<div class="wa" onclick="orderWA()">
-Order WA
-</div>
+<div class="wa" onclick="orderWA()">Order WA</div>
 
 <div class="bottom">
 
 <button onclick="resetCart()">Reset</button>
-<button onclick="lihatKeranjang()">Keranjang</button>
+
+<button onclick="lihatKeranjang()">
+Keranjang (<span id="jmlcart">0</span>)
+</button>
+
 <button onclick="login()">Admin</button>
 
 </div>
-let jml=0
 
-for(let id in cart){
-jml+=cart[id]
-}
-
-document.getElementById("jmlcart").innerText=jml
 <script>
 
 const firebaseConfig={
-
 apiKey:"AIzaSyAt3",
 authDomain:"katalog-lampu.firebaseapp.com",
 databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
 projectId:"katalog-lampu"
-
 }
 
 firebase.initializeApp(firebaseConfig)
@@ -205,48 +205,55 @@ const db=firebase.database()
 
 let cart=JSON.parse(localStorage.getItem("cart")||"{}")
 
-function simpanCart(){
+let semuaProduk=[]
 
+function simpanCart(){
 localStorage.setItem("cart",JSON.stringify(cart))
+}
+
+function rupiah(angka){
+return "Rp. "+Number(angka).toLocaleString("id-ID")
+}
+
+function tampilProduk(kat="",keyword=""){
+
+db.ref("produk").once("value").then(snap=>{
+
+semuaProduk=[]
+
+snap.forEach(child=>{
+let p=child.val()
+p.id=child.key
+semuaProduk.push(p)
+})
+
+renderProduk(kat,keyword)
+
+})
 
 }
 
-function tampilProduk(kat=""){
-
-db.ref("produk").on("value",snap=>{
+function renderProduk(kat="",keyword=""){
 
 let html=""
 
-snap.forEach(child=>{
-
-let p=child.val()
-let id=child.key
+semuaProduk.forEach(p=>{
 
 if(kat && p.kategori!=kat) return
+
+if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return
 
 let harga=Number(p.harga)||0
 
 if(p.diskon_nominal)
-harga = harga - Number(p.diskon_nominal)
+harga-=Number(p.diskon_nominal)
 
 if(p.diskon_persen)
-harga = harga - (Number(p.harga) * Number(p.diskon_persen) / 100)
-
-let teksDiskon=""
-
-if(p.diskon_nominal && p.diskon_nominal>0){
-teksDiskon="-Rp"+Number(p.diskon_nominal)
-}
-
-if(p.diskon_persen && p.diskon_persen>0){
-teksDiskon="-"+Number(p.diskon_persen)+"%"
-}
+harga-=Number(p.harga)*Number(p.diskon_persen)/100
 
 html+=`
 
 <div class="card">
-
-${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
 <div class="nama">${p.nama}</div>
 
@@ -254,11 +261,11 @@ ${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
 <div class="qty">
 
-<button onclick="min('${id}')">-</button>
+<button onclick="min('${p.id}')">-</button>
 
-<input value="${cart[id]||0}" onchange="ubahQty('${id}',this.value)">
+<input value="${cart[p.id]||0}" onchange="ubahQty('${p.id}',this.value)">
 
-<button onclick="plus('${id}')">+</button>
+<button onclick="plus('${p.id}')">+</button>
 
 </div>
 
@@ -268,20 +275,20 @@ ${teksDiskon?`<div class="diskon">${teksDiskon}</div>`:""}
 
 })
 
-document.getElementById("total").innerText="Total: "+rupiah(total)
+document.getElementById("produk").innerHTML=html
 
 hitungTotal()
 
-})
+}
 
+function cariProduk(k){
+renderProduk("",k)
 }
 
 function plus(id){
-
 cart[id]=(cart[id]||0)+1
 simpanCart()
-tampilProduk()
-
+renderProduk()
 }
 
 function min(id){
@@ -291,7 +298,24 @@ cart[id]=(cart[id]||0)-1
 if(cart[id]<=0) delete cart[id]
 
 simpanCart()
-tampilProduk()
+
+renderProduk()
+
+}
+
+function ubahQty(id,val){
+
+val=Number(val)
+
+if(val<=0){
+delete cart[id]
+}else{
+cart[id]=val
+}
+
+simpanCart()
+
+renderProduk()
 
 }
 
@@ -300,12 +324,12 @@ function hitungTotal(){
 db.ref("produk").once("value").then(snap=>{
 
 let total=0
+let jml=0
 
 snap.forEach(child=>{
 
 let p=child.val()
 let id=child.key
-
 let q=cart[id]||0
 
 let harga=Number(p.harga)||0
@@ -317,10 +341,13 @@ if(p.diskon_persen)
 harga-=Number(p.harga)*Number(p.diskon_persen)/100
 
 total+=harga*q
+jml+=q
 
 })
 
-document.getElementById("total").innerText="Total: Rp"+total
+document.getElementById("total").innerText="Total: "+rupiah(total)
+
+document.getElementById("jmlcart").innerText=jml
 
 })
 
@@ -338,9 +365,7 @@ let p=child.val()
 let id=child.key
 
 if(cart[id]){
-
 teks+=p.nama+" x"+cart[id]+"%0A"
-
 }
 
 })
@@ -352,10 +377,31 @@ window.open("https://wa.me/6288224166270?text="+teks)
 }
 
 function resetCart(){
-
 cart={}
 simpanCart()
-tampilProduk()
+renderProduk()
+}
+
+function lihatKeranjang(){
+
+let teks="Keranjang:%0A%0A"
+
+db.ref("produk").once("value").then(snap=>{
+
+snap.forEach(child=>{
+
+let p=child.val()
+let id=child.key
+
+if(cart[id]){
+teks+=p.nama+" x"+cart[id]+"%0A"
+}
+
+})
+
+alert(decodeURIComponent(teks))
+
+})
 
 }
 
@@ -364,29 +410,22 @@ function login(){
 let pass=prompt("Password admin")
 
 if(pass=="dklampu"){
-
 location.href="admin.html"
-
 }else{
-
 alert("Password salah")
-
 }
 
 }
 
 function loadKategori(){
 
-db.ref("kategori").on("value",snap=>{
+db.ref("kategori").once("value").then(snap=>{
 
-let html=`<button onclick="tampilProduk()">Semua</button>`
+let html=`<button onclick="renderProduk()">Semua</button>`
 
 snap.forEach(child=>{
-
 let k=child.val()
-
-html+=`<button onclick="tampilProduk('${k.nama}')">${k.nama}</button>`
-
+html+=`<button onclick="renderProduk('${k.nama}')">${k.nama}</button>`
 })
 
 document.getElementById("kategori").innerHTML=html
@@ -396,52 +435,10 @@ document.getElementById("kategori").innerHTML=html
 }
 
 loadKategori()
-tampilProduk()
-function lihatKeranjang(){
 
-db.ref("produk").once("value").then(snap=>{
-
-let teks="Keranjang:\n\n"
-
-snap.forEach(child=>{
-
-let p=child.val()
-let id=child.key
-
-if(cart[id]){
-teks+=p.nama+" x"+cart[id]+"\n"
-}
-
-})
-
-if(teks=="Keranjang:\n\n"){
-teks="Keranjang kosong"
-}
-
-alert(teks)
-
-})
-
-}
-alert(teks)
-
-}
-  function ubahQty(id,val){
-
-val = Number(val)
-
-if(val<=0){
-delete cart[id]
-}else{
-cart[id]=val
-}
-
-simpanCart()
 tampilProduk()
 
-}
 </script>
 
 </body>
-
 </html>
