@@ -140,28 +140,23 @@ snap.forEach(child=>{
 let p=child.val()
 let id=child.key
 
+
+
+`let stok = p.stok || 0; // default 0 jika belum ada
+
 html+=`
-
 <div class="produk">
-
 <b>${p.nama}</b>
-
 <br>
-
 Harga : ${p.harga}
-
 <br>
-
 Kategori : ${p.kategori}
-
 <br>
-
+Stok : <input type="number" value="${stok}" min="0" onchange="ubahStok('${id}', this.value)">
+<br>
 <button onclick="editProduk('${id}')">Edit</button>
-
 <button onclick="hapusProduk('${id}')">Hapus</button>
-
 </div>
-
 `
 
 })
@@ -268,6 +263,56 @@ function ubahStok(id, val){
         alert("Stok berhasil diupdate!");
     });
 }
+    <script>
+  // Inisialisasi Firebase
+  const firebaseConfig={
+    apiKey:"AIzaSyAt3",
+    authDomain:"katalog-lampu.firebaseapp.com",
+    databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
+    projectId:"katalog-lampu"
+  }
+  firebase.initializeApp(firebaseConfig)
+  const db=firebase.database()
+
+  // Fungsi untuk update stok produk
+  function ubahStok(id, val){
+      val = Number(val);
+      db.ref("produk/"+id).update({stok: val}).then(()=>{
+          alert("Stok berhasil diupdate!");
+      });
+  }
+
+  // Fungsi tambah produk, edit produk, hapus produk, dll...
+  function tambahProduk(){ /* ... */ }
+  function editProduk(id){ /* ... */ }
+  function hapusProduk(id){ /* ... */ }
+
+  // Fungsi tampilkan produk di admin
+  function tampilProduk(){
+      db.ref("produk").on("value",snap=>{
+          let html=""
+          snap.forEach(child=>{
+              let p=child.val()
+              let id=child.key
+              let stok = p.stok || 0
+
+              html+=`
+              <div class="produk">
+                <b>${p.nama}</b><br>
+                Harga : ${p.harga}<br>
+                Kategori : ${p.kategori}<br>
+                Stok : <input type="number" value="${stok}" min="0" onchange="ubahStok('${id}', this.value)"><br>
+                <button onclick="editProduk('${id}')">Edit</button>
+                <button onclick="hapusProduk('${id}')">Hapus</button>
+              </div>
+              `
+          })
+          document.getElementById("listProduk").innerHTML=html
+      })
+  }
+
+  tampilProduk()
+</script>
 </script>
 
 </body>
