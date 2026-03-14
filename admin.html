@@ -262,7 +262,12 @@ db.ref("kategori/"+id).remove()
 
 tampilKategori()
 tampilProduk()
-
+function ubahStok(id, val){
+    val = Number(val);
+    db.ref("produk/"+id).update({stok: val}).then(()=>{
+        alert("Stok berhasil diupdate!");
+    });
+}
 </script>
 
 </body>
