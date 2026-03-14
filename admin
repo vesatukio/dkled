@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Admin DK Lampu</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+}
+
+</style>
+
+</head>
+
+<body class="p-4">
+
+<h1 class="text-xl font-bold mb-4">Admin Produk DK Lampu</h1>
+
+<div class="bg-white p-4 rounded shadow">
+
+<input id="nama" placeholder="Nama produk" class="border p-2 w-full mb-2">
+
+<input id="harga" placeholder="Harga" class="border p-2 w-full mb-2">
+
+<input id="diskon_nominal" placeholder="Diskon nominal" class="border p-2 w-full mb-2">
+
+<input id="diskon_persen" placeholder="Diskon persen" class="border p-2 w-full mb-2">
+
+<input id="kategori" placeholder="Kategori" class="border p-2 w-full mb-2">
+
+<button onclick="simpan()" class="bg-orange-500 text-white px-4 py-2 rounded">
+
+Tambah Produk
+
+</button>
+
+</div>
+
+
+<h2 class="mt-6 font-bold">Daftar Produk</h2>
+
+<div id="list"></div>
+
+
+<script>
+
+const firebaseConfig={
+
+apiKey:"AIzaSyAt3fn56ya8pHhOg4DQujC3OUQRAO6Au04",
+authDomain:"katalog-lampu.firebaseapp.com",
+databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
+projectId:"katalog-lampu"
+
+}
+
+firebase.initializeApp(firebaseConfig)
+
+const db=firebase.database()
+
+function simpan(){
+
+let nama=document.getElementById("nama").value
+let harga=parseInt(document.getElementById("harga").value)
+let diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0
+let diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0
+let kategori=document.getElementById("kategori").value
+
+db.ref("produk").push({
+
+nama,
+harga,
+diskon_nominal,
+diskon_persen,
+kategori
+
+})
+
+alert("Produk ditambahkan")
+
+}
+
+function tampilkan(){
+
+db.ref("produk").on("value",snap=>{
+
+let html=""
+
+snap.forEach(child=>{
+
+let p=child.val()
+let id=child.key
+
+html+=`
+
+<div class="bg-white p-3 mt-2 rounded shadow">
+
+<b>${p.nama}</b>
+
+<br>
+
+Harga : ${p.harga}
+
+<br>
+
+Kategori : ${p.kategori}
+
+<br>
+
+<button onclick="edit('${id}')">Edit</button>
+
+<button onclick="hapus('${id}')">Hapus</button>
+
+</div>
+
+`
+
+})
+
+document.getElementById("list").innerHTML=html
+
+})
+
+}
+
+function edit(id){
+
+db.ref("produk/"+id).once("value").then(snap=>{
+
+let p=snap.val()
+
+let nama=prompt("Nama",p.nama)
+let harga=prompt("Harga",p.harga)
+let diskon_nominal=prompt("Diskon nominal",p.diskon_nominal||0)
+let diskon_persen=prompt("Diskon persen",p.diskon_persen||0)
+let kategori=prompt("Kategori",p.kategori)
+
+db.ref("produk/"+id).update({
+
+nama,
+harga:Number(harga),
+diskon_nominal:Number(diskon_nominal),
+diskon_persen:Number(diskon_persen),
+kategori
+
+})
+
+})
+
+}
+
+function hapus(id){
+
+if(confirm("Hapus produk?")){
+
+db.ref("produk/"+id).remove()
+
+}
+
+}
+
+tampilkan()
+
+</script>
+
+</body>
+</html>
