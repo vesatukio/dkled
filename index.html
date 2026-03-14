@@ -355,26 +355,31 @@ document.getElementById("jmlcart").innerText = jml
 }
 
 function orderWA(){
+  let teks = "Order:%0A%0A"
+  let totalOrder = 0
 
-let teks="Order:%0A"
+  db.ref("produk").once("value").then(snap => {
+    snap.forEach(child => {
+      let p = child.val()
+      let id = child.key
+      let qty = cart[id] || 0
+      if(qty > 0){
+        let harga = Number(p.harga) || 0
+        if(p.diskon_nominal) harga -= Number(p.diskon_nominal)
+        if(p.diskon_persen) harga -= Number(p.harga) * Number(p.diskon_persen)/100
 
-db.ref("produk").once("value").then(snap=>{
+        let subtotal = harga * qty
+        totalOrder += subtotal
 
-snap.forEach(child=>{
+        teks += `${p.nama} x${qty} - ${rupiah(harga)} = ${rupiah(subtotal)}%0A`
+      }
+    })
 
-let p=child.val()
-let id=child.key
+    teks += `%0ATotal Order: ${rupiah(totalOrder)}`
 
-if(cart[id]){
-teks+=p.nama+" x"+cart[id]+"%0A"
-}
-
-})
-
-window.open("https://wa.me/6288224166270?text="+teks)
-
-})
-
+    // buka WA
+    window.open("https://wa.me/6288224166270?text=" + teks)
+  })
 }
 
 function resetCart(){
