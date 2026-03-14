@@ -7,32 +7,38 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 <style>
 body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;padding:15px;}
-.box{background:white;padding:12px;border-radius:8px;margin-bottom:10px;}
-input,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;}
-button{padding:8px 12px;border:none;border-radius:6px;background:#ff6a00;color:white;cursor:pointer;}
-.produk,.card{background:white;padding:10px;border-radius:8px;margin-bottom:6px;}
-.card img{width:100%;height:100px;object-fit:cover;border-radius:6px;}
+.box{background:white;padding:15px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+input,select,button{width:100%;padding:8px;margin:5px 0;border:1px solid #ddd;border-radius:6px;font-size:14px;}
+button{border:none;background:#ff6a00;color:white;cursor:pointer;}
+button:hover{opacity:0.9;}
+.produk{background:white;padding:10px;border-radius:8px;margin:5px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.produk img{width:100%;height:100px;object-fit:cover;border-radius:6px;}
+.produk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.label{position:absolute;background:red;color:white;padding:4px;border-radius:4px;font-size:12px;top:5px;left:5px;}
+#listKategori button.active{background:#ff6a00;color:white;}
+#listKategori button{background:#ddd;color:black;margin:3px;}
 </style>
 </head>
 <body>
 
 <h2>Admin DK LED</h2>
 
-<!-- Form Tambah Produk -->
 <div class="box">
   <h3>Tambah Produk</h3>
   <input id="nama" placeholder="Nama produk">
-  <input id="harga" placeholder="Harga">
-  <input id="diskon_nominal" placeholder="Diskon nominal">
-  <input id="diskon_persen" placeholder="Diskon persen">
+  <input id="harga" type="number" placeholder="Harga">
+  <input id="diskon_nominal" type="number" placeholder="Diskon nominal">
+  <input id="diskon_persen" type="number" placeholder="Diskon persen">
   <select id="kategori"></select>
-  <input id="gambar" placeholder="URL Gambar">
+  <input type="file" id="fileGambar">
+  <button onclick="uploadGambar()">Upload Gambar</button>
+  <input id="gambar" placeholder="URL Gambar" readonly>
   <button onclick="tambahProduk()">Simpan Produk</button>
 </div>
 
-<!-- Form Kategori -->
 <div class="box">
   <h3>Kategori</h3>
   <input id="kategoriBaru" placeholder="Nama kategori">
@@ -41,10 +47,9 @@ button{padding:8px 12px;border:none;border-radius:6px;background:#ff6a00;color:w
 </div>
 
 <h3>Daftar Produk</h3>
-<div id="listProduk"></div>
+<div id="listProduk" class="produk-grid"></div>
 
 <script>
-// Firebase
 const firebaseConfig={
   apiKey:"AIzaSyAt3",
   authDomain:"katalog-lampu.firebaseapp.com",
@@ -53,63 +58,96 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const storage=firebase.storage();
 
-// --- PRODUK ---
+let kategoriAktif="";
+let uploadedGambarURL="";
+
+// Upload Gambar
+function uploadGambar(){
+  const file=document.getElementById("fileGambar").files[0];
+  if(!file){ alert("Pilih file gambar dulu!"); return; }
+  const ref=storage.ref("produk/"+file.name);
+  ref.put(file).then(()=>ref.getDownloadURL().then(url=>{
+    uploadedGambarURL=url;
+    document.getElementById("gambar").value=url;
+    alert("Gambar berhasil diupload!");
+  })).catch(err=>alert(err));
+}
+
+// Produk
 function tambahProduk(){
-  let nama=document.getElementById("nama").value;
-  let harga=parseInt(document.getElementById("harga").value);
-  let diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0;
-  let diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0;
-  let kategori=document.getElementById("kategori").value;
-  let gambar=document.getElementById("gambar").value;
+  const nama=document.getElementById("nama").value;
+  const harga=parseInt(document.getElementById("harga").value);
+  const diskon_nominal=parseInt(document.getElementById("diskon_nominal").value)||0;
+  const diskon_persen=parseInt(document.getElementById("diskon_persen").value)||0;
+  const kategori=document.getElementById("kategori").value;
+  const gambar=uploadedGambarURL||document.getElementById("gambar").value||'';
+
+  if(!nama || !harga || !kategori){ alert("Nama, harga, kategori wajib diisi"); return; }
 
   db.ref("produk").push({nama,harga,diskon_nominal,diskon_persen,kategori,stok:0,gambar});
-  alert("Produk ditambahkan");
   tampilProdukPerKategori(kategoriAktif);
+
+  document.getElementById("nama").value="";
+  document.getElementById("harga").value="";
+  document.getElementById("diskon_nominal").value="";
+  document.getElementById("diskon_persen").value="";
+  document.getElementById("kategori").value="";
+  document.getElementById("fileGambar").value="";
+  document.getElementById("gambar").value="";
+  uploadedGambarURL="";
 }
 
 function editProduk(id){
   db.ref("produk/"+id).once("value").then(snap=>{
-    let p=snap.val();
-    let nama=prompt("Nama",p.nama);
-    let harga=prompt("Harga",p.harga);
-    let diskon_nominal=prompt("Diskon nominal",p.diskon_nominal||0);
-    let diskon_persen=prompt("Diskon persen",p.diskon_persen||0);
-    let kategori=prompt("Kategori",p.kategori);
-    let gambar=prompt("URL Gambar",p.gambar||"");
-    db.ref("produk/"+id).update({nama,harga:Number(harga),diskon_nominal:Number(diskon_nominal),diskon_persen:Number(diskon_persen),kategori,gambar});
+    const p=snap.val();
+    const nama=prompt("Nama",p.nama);
+    const harga=prompt("Harga",p.harga);
+    const diskon_nominal=prompt("Diskon nominal",p.diskon_nominal||0);
+    const diskon_persen=prompt("Diskon persen",p.diskon_persen||0);
+    const stok=prompt("Stok",p.stok||0);
+    const kategori=prompt("Kategori",p.kategori);
+    const gambar=prompt("URL Gambar",p.gambar||"");
+    db.ref("produk/"+id).update({nama, harga:Number(harga), diskon_nominal:Number(diskon_nominal), diskon_persen:Number(diskon_persen), stok:Number(stok), kategori, gambar});
     tampilProdukPerKategori(kategoriAktif);
   });
 }
 
 function hapusProduk(id){
-  if(confirm("Hapus produk?")) db.ref("produk/"+id).remove();
+  if(confirm("Hapus produk?")) db.ref("produk/"+id).remove().then(()=>tampilProdukPerKategori(kategoriAktif));
 }
 
 function ubahStok(id,val){
-  db.ref("produk/"+id).update({stok:Number(val)}).then(()=>{alert("Stok berhasil diupdate!")});
+  db.ref("produk/"+id).update({stok:Number(val)}).then(()=>tampilProdukPerKategori(kategoriAktif));
 }
 
-// --- KATEGORI ---
+// Kategori
 function tambahKategori(){
-  let nama=document.getElementById("kategoriBaru").value;
+  const nama=document.getElementById("kategoriBaru").value;
+  if(!nama){ alert("Isi nama kategori"); return; }
   db.ref("kategori").push({nama});
+  document.getElementById("kategoriBaru").value="";
   tampilKategori();
 }
 
 function hapusKategori(id){
-  db.ref("kategori/"+id).remove();
-  tampilKategori();
+  if(confirm("Hapus kategori ini? Produk terkait kategori ini akan dikosongkan")) {
+    db.ref("kategori/"+id).remove();
+    db.ref("produk").once("value").then(snap=>{
+      snap.forEach(child=>{ if(child.val().kategori===kategoriAktif) db.ref("produk/"+child.key).update({kategori:""}); });
+    });
+    tampilKategori();
+    tampilProdukPerKategori("");
+  }
 }
 
-let kategoriAktif="";
 function tampilKategori(){
   db.ref("kategori").once("value").then(snap=>{
-    let html="",option="<option>--Pilih--</option>";
-    html+=`<button onclick="tampilProdukPerKategori('');kategoriAktif='';highlightKategori()">Semua</button>`;
+    let html="<button onclick=\"tampilProdukPerKategori(''); kategoriAktif=''; highlightKategori()\">Semua</button>",option="<option>--Pilih--</option>";
     snap.forEach(child=>{
-      let k=child.val();
-      html+=`<button onclick="tampilProdukPerKategori('${k.nama}');kategoriAktif='${k.nama}';highlightKategori()">${k.nama}</button>`;
+      const k=child.val();
+      html+=`<button onclick="tampilProdukPerKategori('${k.nama}'); kategoriAktif='${k.nama}'; highlightKategori()">${k.nama}</button>`;
       option+=`<option>${k.nama}</option>`;
     });
     document.getElementById("listKategori").innerHTML=html;
@@ -125,35 +163,28 @@ function highlightKategori(){
   });
 }
 
-// --- TAMPIL PRODUK PER KATEGORI ---
+// Tampil Produk
 function tampilProdukPerKategori(kat=""){
   kategoriAktif=kat;
   db.ref("produk").once("value").then(snap=>{
     let html="";
     snap.forEach(child=>{
-      let p=child.val(),id=child.key,stok=p.stok||0;
+      const p=child.val(),id=child.key;
       if(kat && p.kategori!=kat) return;
 
-      // Kategori Galeri khusus gambar
-      if(kat==="Galeri"){
-        html+=`<div class="card"><img src="${p.gambar||'https://via.placeholder.com/150'}"></div>`;
-        return;
-      }
+      const harga=Number(p.harga)-Number(p.diskon_nominal||0)-Number(p.harga*(p.diskon_persen||0)/100);
+      let label="";
+      if(p.stok<=0) label="HABIS";
+      else if(p.diskon_nominal) label="Diskon Rp."+p.diskon_nominal;
+      else if(p.diskon_persen) label="Disc "+p.diskon_persen+"%";
 
-      let harga=Number(p.harga)||0;
-      if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
-      if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
-
-      let labelTampil = (p.stok<=0) ? "HABIS" : (p.diskon_nominal ? `Diskon Rp.${p.diskon_nominal}` : (p.diskon_persen ? `Disc ${p.diskon_persen}%` : ""));
-
-      html+=`
-      <div class="produk" style="${p.stok<=0?'opacity:0.5;pointer-events:none;':''}">
-        ${labelTampil?`<div style="position:absolute;background:red;color:white;padding:4px;border-radius:4px;">${labelTampil}</div>`:""}
+      html+=`<div class="produk" style="${p.stok<=0?'opacity:0.5;pointer-events:none;':''}">
+        ${label?`<div class="label">${label}</div>`:""}
         <b>${p.nama}</b><br>
-        Harga : ${harga}<br>
-        Kategori : ${p.kategori}<br>
-        Stok : <input type="number" value="${stok}" min="0" onchange="ubahStok('${id}',this.value)"><br>
-        <img src="${p.gambar||'https://via.placeholder.com/150'}" style="width:100px;height:100px;object-fit:cover;border-radius:6px;"><br>
+        Harga: ${harga}<br>
+        Kategori: ${p.kategori}<br>
+        Stok: <input type="number" value="${p.stok||0}" min="0" onchange="ubahStok('${id}',this.value)"><br>
+        <img src="${p.gambar||'https://via.placeholder.com/150'}"><br>
         <button onclick="editProduk('${id}')">Edit</button>
         <button onclick="hapusProduk('${id}')">Hapus</button>
       </div>`;
@@ -162,10 +193,9 @@ function tampilProdukPerKategori(kat=""){
   });
 }
 
-// Inisialisasi
+// Init
 tampilKategori();
 tampilProdukPerKategori("");
 </script>
-
 </body>
 </html>
