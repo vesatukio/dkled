@@ -58,7 +58,30 @@ function tambahProduk(){
   db.ref("produk").push({nama,harga,diskon_nominal,diskon_persen,kategori,stok:0})
   alert("Produk ditambahkan")
 }
+<div class="box">
+  <h3>Tambah Produk</h3>
 
+  <input id="nama" placeholder="Nama produk">
+  <input id="harga" placeholder="Harga">
+  <input id="diskon_nominal" placeholder="Diskon nominal">
+  <input id="diskon_persen" placeholder="Diskon persen">
+  <select id="kategori"></select>
+  
+  <!-- Tambahkan input gambar di sini -->
+  <input id="gambar" placeholder="URL Gambar">
+
+  <button onclick="tambahProduk()">Simpan Produk</button>
+</div>
+  let gambar = document.getElementById("gambar").value;
+db.ref("produk").push({
+  nama,
+  harga,
+  diskon_nominal,
+  diskon_persen,
+  kategori,
+  stok: 0,        // default stok 0
+  gambar
+})
 function editProduk(id){
   db.ref("produk/"+id).once("value").then(snap=>{
     let p=snap.val()
