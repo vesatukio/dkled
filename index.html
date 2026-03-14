@@ -64,21 +64,22 @@ const db=firebase.database();
 
 let cart=JSON.parse(localStorage.getItem("cart")||"{}");
 let semuaProduk=[];
-let kategoriAktif="";
+let kategoriAktif="Lampu"; // <-- default kategori saat load halaman
 
 // Helper
 function simpanCart(){localStorage.setItem("cart",JSON.stringify(cart));}
 function rupiah(angka){return "Rp. " + Number(angka).toLocaleString("id-ID");}
 
-// Tampil semua produk
+// Tampil produk
 function tampilProduk(kat="",keyword=""){
   db.ref("produk").once("value").then(snap=>{
     semuaProduk=[];
     snap.forEach(child=>{
       let p=child.val(); p.id=child.key; semuaProduk.push(p);
     });
-    kategoriAktif=kat;
-    renderProduk(kat,keyword);
+    kategoriAktif = kat || kategoriAktif; // jika klik kategori baru, update aktif
+    renderProduk(kategoriAktif, keyword);
+    highlightKategori();
   });
 }
 
@@ -175,7 +176,7 @@ function lihatKeranjang(){
 // Login admin
 function login(){let pass=prompt("Password admin");if(pass=="dklampu") location.href="admin.html"; else alert("Password salah");}
 
-// Load kategori
+// Load kategori dan highlight
 function loadKategori(){
   db.ref("kategori").once("value").then(snap=>{
     let html="",btnAll=`<button onclick="tampilProduk();kategoriAktif='';highlightKategori()">${"Semua"}</button>`;
@@ -198,7 +199,7 @@ function highlightKategori(){
 }
 
 loadKategori();
-tampilProduk();
+tampilProduk(kategoriAktif); // <-- tampil default kategori saat load halaman
 </script>
 
 </body>
