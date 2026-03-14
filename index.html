@@ -8,6 +8,32 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
+  <style>
+/* CSS lain sudah ada sebelumnya */
+body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
+.header{background:#ff6a00;color:white;padding:12px;font-weight:600;text-align:center;}
+.search{padding:8px;background:white;}
+.search input{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;}
+.kategori{display:flex;overflow:auto;background:white;padding:8px;gap:8px;}
+.kategori button{border:none;background:#eee;padding:6px 12px;border-radius:20px;font-size:12px;}
+/* Tambahkan ini untuk kategori aktif */
+.kategori button.active{
+    background:#ff6a00; /* oranye */
+    color:white;
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;}
+.card{background:white;border-radius:8px;padding:10px;position:relative;font-size:13px;}
+.nama{font-weight:500;}
+.harga{color:#ff6a00;font-weight:600;margin-top:4px;}
+.diskon{position:absolute;top:0;right:0;background:red;color:white;font-size:11px;padding:4px 6px;border-bottom-left-radius:6px;}
+.qty{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.qty button{width:32px;height:32px;border:none;background:#ff6a00;color:white;border-radius:6px;font-size:18px;}
+.qty input{width:40px;text-align:center;border:1px solid #ddd;border-radius:4px;}
+.total{position:fixed;bottom:70px;left:10px;background:white;padding:10px;border-radius:8px;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.wa{position:fixed;bottom:70px;right:10px;background:#25D366;color:white;padding:12px 16px;border-radius:30px;font-size:14px;cursor:pointer;}
+.bottom{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px;box-shadow:0 -2px 8px rgba(0,0,0,0.1);}
+.bottom button{background:#ff6a00;color:white;border:none;padding:10px 16px;border-radius:8px;font-size:13px;}
+</style>
 body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
 .header{background:#ff6a00;color:white;padding:12px;font-weight:600;text-align:center;}
 .search{padding:8px;background:white;}
@@ -103,7 +129,44 @@ function renderProduk(kat="",keyword=""){
   document.getElementById("produk").innerHTML=html;
   hitungTotal();
 }
+function renderProduk(keyword="") {
+  let html="";
+  semuaProduk.forEach(p=>{
+    if(kategoriAktif && p.kategori!=kategoriAktif) return; // filter kategori
+    if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return;
 
+    if(kategoriAktif==="Galeri"){ 
+      // tampil hanya gambar
+      html+=`
+      <div class="card">
+        <img src="${p.gambar||'https://via.placeholder.com/150'}" style="width:100%;border-radius:8px;">
+      </div>`;
+      return;
+    }
+
+    // Produk normal
+    let harga=Number(p.harga)||0;
+    if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
+    if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
+
+    let habis = (p.stok!==undefined && Number(p.stok)<=0);
+    let labelTampil = habis ? "HABIS" : (p.diskon_nominal ? `Diskon Rp.${Number(p.diskon_nominal).toLocaleString("id-ID")}` : (p.diskon_persen ? `Disc ${p.diskon_persen}%` : ""));
+
+    html+=`
+    <div class="card" style="${habis?'opacity:0.5;pointer-events:none;':''}">
+      ${labelTampil?`<div class="diskon">${labelTampil}</div>`:''}
+      <div class="nama">${p.nama}</div>
+      <div class="harga">${rupiah(harga)}</div>
+      <div class="qty">
+        <button onclick="min('${p.id}')" ${habis?'disabled':''}>-</button>
+        <input value="${cart[p.id]||0}" onchange="ubahQty('${p.id}',this.value)" ${habis?'disabled':''}>
+        <button onclick="plus('${p.id}')" ${habis?'disabled':''}>+</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById("produk").innerHTML=html;
+  hitungTotal();
+}
 function cariProduk(k){renderProduk("",k)}
 
 function plus(id){cart[id]=(cart[id]||0)+1;simpanCart();renderProduk();hitungTotal();}
