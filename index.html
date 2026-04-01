@@ -3,149 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DK LED</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Admin DK LED</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
-body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
-.header{background:#ff6a00;color:white;padding:12px;text-align:center;}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;}
-.card{background:white;border-radius:8px;padding:10px;font-size:13px;}
-.nama{font-weight:500;}
-.harga{color:#ff6a00;font-weight:600;margin-top:4px;}
-.info{font-size:11px;color:#666;margin-top:4px;}
-.qty{display:flex;justify-content:space-between;margin-top:8px;}
-.qty button{width:30px;height:30px;background:#ff6a00;color:white;border:none;border-radius:6px;}
-.qty input{width:40px;text-align:center;}
-.stok{margin-top:6px;padding:6px;border:none;border-radius:6px;width:100%;}
-.stok.ada{background:#4caf50;color:white;}
-.stok.habis{background:#ccc;}
-.total{position:fixed;bottom:70px;left:10px;background:white;padding:10px;border-radius:8px;}
-.wa{position:fixed;bottom:70px;right:10px;background:#25D366;color:white;padding:12px;border-radius:30px;}
-.bottom{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:white;padding:10px;}
-.bottom button{background:#ff6a00;color:white;border:none;padding:10px;border-radius:8px;}
+body{font-family:sans-serif;padding:10px;background:#f5f5f5}
+input{margin:4px;padding:6px;width:100%}
+button{margin:4px;padding:8px;background:#ff6a00;color:white;border:none}
+.card{background:white;padding:10px;margin-bottom:8px}
 </style>
 </head>
 <body>
 
-<div class="header">DK LED</div>
-<div class="grid" id="produk"></div>
-<div class="total" id="total">Total: 0</div>
-<div class="wa" onclick="orderWA()">Order WA</div>
-<div class="bottom">
-<button onclick="resetCart()">Reset</button>
-<button onclick="lihatKeranjang()">Keranjang (<span id="jmlcart">0</span>)</button>
-<button onclick="login()">Admin</button>
-</div>
+<h2>Admin Produk</h2>
+
+<input id="nama" placeholder="Nama produk">
+<input id="harga" placeholder="Harga">
+<input id="qty1" placeholder="Qty 1">
+<input id="diskon1" placeholder="Diskon 1 %">
+<input id="qty2" placeholder="Qty 2">
+<input id="diskon2" placeholder="Diskon 2 %">
+<input id="qty3" placeholder="Qty 3">
+<input id="diskon3" placeholder="Diskon 3 %">
+<button onclick="simpan()">Simpan Produk</button>
+
+<hr>
+<div id="list"></div>
 
 <script>
 const firebaseConfig={apiKey:"AIzaSyAt3",databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let cart=JSON.parse(localStorage.getItem("cart")||"{}");
-let semuaProduk=[];
+let editId=null;
 
-function simpan(){localStorage.setItem("cart",JSON.stringify(cart));}
-function rupiah(a){return "Rp."+Number(a).toLocaleString("id-ID");}
+function simpan(){
+ let data={
+  nama:document.getElementById("nama").value,
+  harga:Number(document.getElementById("harga").value),
+  qty1:Number(qty1.value),
+  diskon1:Number(diskon1.value),
+  qty2:Number(qty2.value),
+  diskon2:Number(diskon2.value),
+  qty3:Number(qty3.value),
+  diskon3:Number(diskon3.value),
+  stok:1
+ };
+
+ if(editId){
+  db.ref("produk/"+editId).update(data);
+  editId=null;
+ }else{
+  db.ref("produk").push(data);
+ }
+ kosong();
+}
+
+function kosong(){
+ document.querySelectorAll("input").forEach(i=>i.value="");
+}
 
 function load(){
  db.ref("produk").on("value",snap=>{
-  semuaProduk=[];
-  snap.forEach(child=>{
-    let p=child.val();
-    p.id=child.key;
-    semuaProduk.push(p);
+  let html="";
+  snap.forEach(c=>{
+    let p=c.val();
+    let id=c.key;
+
+    html+=`<div class="card">
+    <b>${p.nama}</b><br>
+    Harga: ${p.harga}<br>
+    <button onclick="edit('${id}')">Edit</button>
+    <button onclick="hapus('${id}')">Hapus</button>
+    </div>`;
   });
-  render();
+  document.getElementById("list").innerHTML=html;
  });
 }
 
-function getHarga(p,qty){
- let h=p.harga||0;
- if(qty>=p.qty3) h-=h*p.diskon3/100;
- else if(qty>=p.qty2) h-=h*p.diskon2/100;
- else if(qty>=p.qty1) h-=h*p.diskon1/100;
- return Math.round(h);
-}
-
-function infoDiskon(p){
- let t=[];
- if(p.qty1 && p.diskon1) t.push(`≥ ${p.qty1} pcs → ${p.diskon1}%`);
- if(p.qty2 && p.diskon2) t.push(`≥ ${p.qty2} pcs → ${p.diskon2}%`);
- if(p.qty3 && p.diskon3) t.push(`≥ ${p.qty3} pcs → ${p.diskon3}%`);
- return t.join('<br>');
-}
-
-function render(){
- let html="";
- semuaProduk.forEach(p=>{
-  let q=cart[p.id]||0;
-  let harga=getHarga(p,q);
-  let stok=p.stok!=0;
-
-  html+=`<div class="card">
-    <div class="nama">${p.nama}</div>
-    <div class="harga">${rupiah(harga)}</div>
-    <div class="info">${infoDiskon(p)}</div>
-
-    <div class="qty">
-      <button onclick="min('${p.id}')">-</button>
-      <input value="${q}" onchange="setQty('${p.id}',this.value)">
-      <button onclick="plus('${p.id}')">+</button>
-    </div>
-
-    <button class="stok ${stok?'ada':'habis'}" onclick="toggle('${p.id}',${stok})">
-      ${stok?'ADA':'HABIS'}
-    </button>
-  </div>`;
+function edit(id){
+ db.ref("produk/"+id).once("value").then(s=>{
+  let p=s.val();
+  nama.value=p.nama;
+  harga.value=p.harga;
+  qty1.value=p.qty1;
+  diskon1.value=p.diskon1;
+  qty2.value=p.qty2;
+  diskon2.value=p.diskon2;
+  qty3.value=p.qty3;
+  diskon3.value=p.diskon3;
+  editId=id;
  });
- document.getElementById("produk").innerHTML=html || "Produk kosong";
- total();
 }
 
-function plus(id){cart[id]=(cart[id]||0)+1;simpan();render();}
-function min(id){cart[id]=(cart[id]||0)-1;if(cart[id]<=0) delete cart[id];simpan();render();}
-function setQty(id,v){v=Number(v);if(v<=0) delete cart[id];else cart[id]=v;simpan();render();}
-
-function toggle(id,s){db.ref("produk/"+id).update({stok:s?0:1});}
-
-function total(){
- let t=0,j=0;
- semuaProduk.forEach(p=>{
-  let q=cart[p.id]||0;
-  t+=getHarga(p,q)*q;
-  j+=q;
- });
- document.getElementById("total").innerText="Total: "+rupiah(t);
- document.getElementById("jmlcart").innerText=j;
-}
-
-function orderWA(){
- let teks="Order:%0A";
- semuaProduk.forEach(p=>{
-  let q=cart[p.id]||0;
-  if(q>0) teks+=`${p.nama} x${q}%0A`;
- });
- window.open("https://wa.me/6288224166270?text="+teks);
-}
-
-function resetCart(){cart={};simpan();render();}
-
-function lihatKeranjang(){
- let teks="Keranjang:\n";
- semuaProduk.forEach(p=>{
-  let q=cart[p.id]||0;
-  if(q>0) teks+=p.nama+" x"+q+"\n";
- });
- alert(teks);
-}
-
-function login(){
- let pass=prompt("Password");
- if(pass=="dklampu") alert("Silakan edit diskon di Firebase");
- else alert("Salah");
+function hapus(id){
+ if(confirm("Hapus produk?")) db.ref("produk/"+id).remove();
 }
 
 load();
