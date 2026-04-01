@@ -14,7 +14,7 @@ body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
 .card{background:white;border-radius:8px;padding:10px;font-size:13px;}
 .nama{font-weight:500;}
 .harga{color:#ff6a00;font-weight:600;margin-top:4px;}
-.info{font-size:11px;color:#666;margin-top:4px;line-height:1.4;}
+.info{font-size:11px;color:#666;margin-top:4px;}
 .qty{display:flex;justify-content:space-between;margin-top:8px;}
 .qty button{width:30px;height:30px;background:#ff6a00;color:white;border:none;border-radius:6px;}
 .qty input{width:40px;text-align:center;}
@@ -51,27 +51,31 @@ function simpan(){localStorage.setItem("cart",JSON.stringify(cart));}
 function rupiah(a){return "Rp."+Number(a).toLocaleString("id-ID");}
 
 function load(){
- db.ref("produk").on("value",s=>{
+ db.ref("produk").on("value",snap=>{
   semuaProduk=[];
-  s.forEach(c=>{let p=c.val();p.id=c.key;semuaProduk.push(p)});
+  snap.forEach(child=>{
+    let p=child.val();
+    p.id=child.key;
+    semuaProduk.push(p);
+  });
   render();
  });
 }
 
 function getHarga(p,qty){
- let harga=p.harga||0;
- if(qty>=p.qty3) harga=harga-(harga*p.diskon3/100);
- else if(qty>=p.qty2) harga=harga-(harga*p.diskon2/100);
- else if(qty>=p.qty1) harga=harga-(harga*p.diskon1/100);
- return Math.round(harga);
+ let h=p.harga||0;
+ if(qty>=p.qty3) h-=h*p.diskon3/100;
+ else if(qty>=p.qty2) h-=h*p.diskon2/100;
+ else if(qty>=p.qty1) h-=h*p.diskon1/100;
+ return Math.round(h);
 }
 
 function infoDiskon(p){
- let teks=[];
- if(p.qty1 && p.diskon1) teks.push(`≥ ${p.qty1} pcs → ${p.diskon1}%`);
- if(p.qty2 && p.diskon2) teks.push(`≥ ${p.qty2} pcs → ${p.diskon2}%`);
- if(p.qty3 && p.diskon3) teks.push(`≥ ${p.qty3} pcs → ${p.diskon3}%`);
- return teks.join('<br>');
+ let t=[];
+ if(p.qty1 && p.diskon1) t.push(`≥ ${p.qty1} pcs → ${p.diskon1}%`);
+ if(p.qty2 && p.diskon2) t.push(`≥ ${p.qty2} pcs → ${p.diskon2}%`);
+ if(p.qty3 && p.diskon3) t.push(`≥ ${p.qty3} pcs → ${p.diskon3}%`);
+ return t.join('<br>');
 }
 
 function render(){
@@ -82,24 +86,22 @@ function render(){
   let stok=p.stok!=0;
 
   html+=`<div class="card">
-  <div class="nama">${p.nama}</div>
-  <div class="harga">${rupiah(harga)}</div>
+    <div class="nama">${p.nama}</div>
+    <div class="harga">${rupiah(harga)}</div>
+    <div class="info">${infoDiskon(p)}</div>
 
-  <div class="info">${infoDiskon(p)}</div>
+    <div class="qty">
+      <button onclick="min('${p.id}')">-</button>
+      <input value="${q}" onchange="setQty('${p.id}',this.value)">
+      <button onclick="plus('${p.id}')">+</button>
+    </div>
 
-  <div class="qty">
-   <button onclick="min('${p.id}')">-</button>
-   <input value="${q}" onchange="setQty('${p.id}',this.value)">
-   <button onclick="plus('${p.id}')">+</button>
-  </div>
-
-  <button class="stok ${stok?'ada':'habis'}" onclick="toggle('${p.id}',${stok})">
-  ${stok?'ADA':'HABIS'}
-  </button>
-
+    <button class="stok ${stok?'ada':'habis'}" onclick="toggle('${p.id}',${stok})">
+      ${stok?'ADA':'HABIS'}
+    </button>
   </div>`;
  });
- document.getElementById("produk").innerHTML=html;
+ document.getElementById("produk").innerHTML=html || "Produk kosong";
  total();
 }
 
@@ -110,19 +112,14 @@ function setQty(id,v){v=Number(v);if(v<=0) delete cart[id];else cart[id]=v;simpa
 function toggle(id,s){db.ref("produk/"+id).update({stok:s?0:1});}
 
 function total(){
- let t=0,jml=0;
+ let t=0,j=0;
  semuaProduk.forEach(p=>{
   let q=cart[p.id]||0;
   t+=getHarga(p,q)*q;
-  jml+=q;
+  j+=q;
  });
  document.getElementById("total").innerText="Total: "+rupiah(t);
- document.getElementById("jmlcart").innerText=jml;
-});
- document.getElementById("total").innerText="Total: "+rupiah(t);
- document.getElementById("jmlcart").innerText=jml;
-});
- document.getElementById("total").innerText="Total: "+rupiah(t);
+ document.getElementById("jmlcart").innerText=j;
 }
 
 function orderWA(){
@@ -145,22 +142,10 @@ function lihatKeranjang(){
  alert(teks);
 }
 
-function lihatKeranjang(){
- let teks="Keranjang:
-";
- semuaProduk.forEach(p=>{
-  let q=cart[p.id]||0;
-  if(q>0) teks+=p.nama+" x"+q+"
-";
- });
- alert(teks);
-}
-
 function login(){
  let pass=prompt("Password");
- if(pass=="dklampu"){
-  alert("Edit diskon di Firebase: qty1,2,3 + diskon1,2,3");
- }
+ if(pass=="dklampu") alert("Silakan edit diskon di Firebase");
+ else alert("Salah");
 }
 
 load();
