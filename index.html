@@ -6,32 +6,107 @@
 <title>Admin DK LED</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <style>
-body{font-family:sans-serif;padding:10px;background:#f5f5f5}
-input{margin:4px;padding:6px;width:100%}
-button{margin:4px;padding:8px;background:#ff6a00;color:white;border:none}
-.card{background:white;padding:10px;margin-bottom:8px}
+body{
+  font-family:Arial, sans-serif;
+  background:#f4f6f9;
+  margin:0;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+  padding:15px;
+}
+
+h2{
+  text-align:center;
+}
+
+.card{
+  background:#fff;
+  padding:12px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom:10px;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+.row{
+  display:flex;
+  gap:6px;
+}
+
+.row input{
+  flex:1;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#ff6a00;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btn-small{
+  width:auto;
+  padding:6px 10px;
+  margin-top:6px;
+}
+
+.btn-edit{background:#2196f3}
+.btn-hapus{background:#e53935}
 </style>
 </head>
+
 <body>
+<div class="container">
 
 <h2>Admin Produk</h2>
 
+<div class="card">
 <input id="nama" placeholder="Nama produk">
 <input id="harga" placeholder="Harga">
-<input id="qty1" placeholder="Qty 1">
-<input id="diskon1" placeholder="Diskon 1 %">
-<input id="qty2" placeholder="Qty 2">
-<input id="diskon2" placeholder="Diskon 2 %">
-<input id="qty3" placeholder="Qty 3">
-<input id="diskon3" placeholder="Diskon 3 %">
-<button onclick="simpan()">Simpan Produk</button>
 
-<hr>
+<div class="row">
+<input id="qty1" placeholder="Qty 1">
+<input id="diskon1" placeholder="Diskon %">
+</div>
+
+<div class="row">
+<input id="qty2" placeholder="Qty 2">
+<input id="diskon2" placeholder="Diskon %">
+</div>
+
+<div class="row">
+<input id="qty3" placeholder="Qty 3">
+<input id="diskon3" placeholder="Diskon %">
+</div>
+
+<button onclick="simpan()">Simpan Produk</button>
+</div>
+
 <div id="list"></div>
 
+</div>
+
 <script>
-const firebaseConfig={apiKey:"AIzaSyAt3",databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com"};
+const firebaseConfig={
+ apiKey:"AIzaSyAt3",
+ databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com"
+};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
@@ -39,8 +114,8 @@ let editId=null;
 
 function simpan(){
  let data={
-  nama:document.getElementById("nama").value,
-  harga:Number(document.getElementById("harga").value),
+  nama:nama.value,
+  harga:Number(harga.value),
   qty1:Number(qty1.value),
   diskon1:Number(diskon1.value),
   qty2:Number(qty2.value),
@@ -66,17 +141,20 @@ function kosong(){
 function load(){
  db.ref("produk").on("value",snap=>{
   let html="";
+
   snap.forEach(c=>{
     let p=c.val();
     let id=c.key;
 
     html+=`<div class="card">
     <b>${p.nama}</b><br>
-    Harga: ${p.harga}<br>
-    <button onclick="edit('${id}')">Edit</button>
-    <button onclick="hapus('${id}')">Hapus</button>
+    Harga: Rp ${p.harga}<br>
+    <small>Diskon: ${p.qty1}/${p.diskon1}% | ${p.qty2}/${p.diskon2}% | ${p.qty3}/${p.diskon3}%</small><br>
+    <button class="btn-small btn-edit" onclick="edit('${id}')">Edit</button>
+    <button class="btn-small btn-hapus" onclick="hapus('${id}')">Hapus</button>
     </div>`;
   });
+
   document.getElementById("list").innerHTML=html;
  });
 }
