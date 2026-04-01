@@ -20,11 +20,16 @@ body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
 .nama{font-weight:500;}
 .harga{color:#ff6a00;font-weight:600;margin-top:4px;}
 .termurah{background:#4caf50;color:white;padding:2px 6px;border-radius:6px;font-size:10px;margin-left:6px;}
+.qty{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.qty button{width:32px;height:32px;border:none;background:#ff6a00;color:white;border-radius:6px;font-size:18px;}
+.qty input{width:40px;text-align:center;border:1px solid #ddd;border-radius:4px;}
 .btn{margin-top:6px;padding:6px;border:none;border-radius:6px;width:100%;cursor:pointer;}
 .stok{background:#ddd;}
 .stok.aktif{background:#4caf50;color:white;}
-.diskon{background:#ff6a00;color:white;}
-.wa{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:14px;border-radius:50px;cursor:pointer;}
+.total{position:fixed;bottom:70px;left:10px;background:white;padding:10px;border-radius:8px;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.wa{position:fixed;bottom:70px;right:10px;background:#25D366;color:white;padding:12px 16px;border-radius:30px;cursor:pointer;}
+.bottom{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px;box-shadow:0 -2px 8px rgba(0,0,0,0.1);}
+.bottom button{background:#ff6a00;color:white;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -39,7 +44,15 @@ body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;}
 
 <div class="grid" id="produk"></div>
 
-<div class="wa" onclick="exportWA()">Order WA</div>
+<div class="total" id="total">Total: Rp. 0</div>
+
+<div class="wa" onclick="orderWA()">Order WA</div>
+
+<div class="bottom">
+  <button onclick="resetCart()">Reset</button>
+  <button onclick="lihatKeranjang()">Keranjang (<span id="jmlcart">0</span>)</button>
+  <button onclick="login()">Admin</button>
+</div>
 
 <script>
 const firebaseConfig={
@@ -53,8 +66,9 @@ const db=firebase.database();
 
 let semuaProduk=[];
 let kategoriAktif="";
-let cart={};
+let cart=JSON.parse(localStorage.getItem("cart")||"{}");
 
+function simpanCart(){localStorage.setItem("cart",JSON.stringify(cart));}
 function rupiah(a){return "Rp. "+Number(a).toLocaleString("id-ID");}
 
 function load(){
@@ -86,13 +100,11 @@ function hitungHarga(p){
 }
 
 function setKategori(k){kategoriAktif=k; render();}
-
 function cari(k){render(k);}
 
 function render(keyword=""){
   let html="";
 
-  // cari termurah per kategori
   let minHarga={};
   semuaProduk.forEach(p=>{
     let h=hitungHarga(p);
@@ -118,46 +130,80 @@ function render(keyword=""){
       </div>
       <div class="harga">${rupiah(harga)}</div>
 
+      <div class="qty">
+        <button onclick="min('${p.id}')">-</button>
+        <input value="${cart[p.id]||0}" onchange="ubahQty('${p.id}',this.value)">
+        <button onclick="plus('${p.id}')">+</button>
+      </div>
+
       <button class="btn stok ${stokAda?'aktif':''}" onclick="toggleStok('${p.id}',${stokAda})">
         ${stokAda?'ADA':'HABIS'}
       </button>
-
-      <button class="btn diskon" onclick="setDiskon('${p.id}')">Diskon</button>
-
-      <button class="btn" onclick="tambahCart('${p.id}')">Pilih</button>
     </div>`;
   });
 
   document.getElementById("produk").innerHTML=html;
+  hitungTotal();
 }
+
+function plus(id){cart[id]=(cart[id]||0)+1;simpanCart();render();}
+function min(id){cart[id]=(cart[id]||0)-1;if(cart[id]<=0) delete cart[id];simpanCart();render();}
+function ubahQty(id,val){val=Number(val);if(val<=0) delete cart[id]; else cart[id]=val;simpanCart();render();}
 
 function toggleStok(id,s){db.ref("produk/"+id).update({stok:s?0:1});}
 
-function setDiskon(id){
-  let d1=prompt("Diskon 1");
-  let d2=prompt("Diskon 2");
-  let d3=prompt("Diskon 3");
-  db.ref("produk/"+id).update({
-    diskon1:Number(d1)||0,
-    diskon2:Number(d2)||0,
-    diskon3:Number(d3)||0
-  });
-}
-
-function tambahCart(id){
-  cart[id]=true;
-  alert("Ditambahkan");
-}
-
-function exportWA(){
-  let teks="Order:%0A";
+function hitungTotal(){
+  let total=0,jml=0;
   semuaProduk.forEach(p=>{
-    if(cart[p.id]){
-      teks+=p.nama+" - "+rupiah(hitungHarga(p))+"%0A";
+    let q=cart[p.id]||0;
+    let harga=hitungHarga(p);
+    total+=harga*q;
+    jml+=q;
+  });
+  document.getElementById("total").innerText="Total: "+rupiah(total);
+  document.getElementById("jmlcart").innerText=jml;
+}
+
+function orderWA(){
+  let nama = prompt("Nama pembeli:") || "-";
+  let catatan = prompt("Catatan (opsional):") || "-";
+
+  let teks="Order:%0A";
+  teks+=`Nama: ${nama}%0A`;
+  teks+=`--------------------%0A`;
+
+  let no=1;
+  semuaProduk.forEach(p=>{
+    let q=cart[p.id]||0;
+    if(q>0){
+      teks+=`${no}. ${p.nama} x${q}%0A`;
+      no++;
+    }
+  });
+
+  teks+=`--------------------%0A`;
+  teks+=`Catatan: ${catatan}`;
+
+  window.open("https://wa.me/6288224166270?text="+teks);
+} x${q}%0A`;
+    }
+  });
+  window.open("https://wa.me/6288224166270?text="+teks);
+} x${q} - ${rupiah(hitungHarga(p))}%0A`;
     }
   });
   window.open("https://wa.me/6288224166270?text="+teks);
 }
+
+function resetCart(){cart={};simpanCart();render();}
+
+function lihatKeranjang(){
+  let teks="Keranjang:\n";
+  semuaProduk.forEach(p=>{if(cart[p.id]) teks+=p.nama+" x"+cart[p.id]+"\n"});
+  alert(teks);
+}
+
+function login(){let pass=prompt("Password admin");if(pass=="dklampu") location.href="admin.html"; else alert("Password salah");}
 
 load();
 </script>
