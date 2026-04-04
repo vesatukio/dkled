@@ -3,101 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin DK LED</title>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<title>Admin LED (Sheets)</title>
+
 <style>
-body{font-family:sans-serif;padding:10px;background:#f5f5f5}
-input{margin:4px;padding:6px;width:100%}
-button{margin:4px;padding:8px;background:#ff6a00;color:white;border:none}
-.card{background:white;padding:10px;margin-bottom:8px}
+body{font-family:sans-serif;background:#f5f5f5;padding:10px}
+input{width:100%;padding:8px;margin:4px 0}
+button{padding:8px;margin:4px 0;border:none;background:#28a745;color:#fff}
+.card{background:#fff;padding:10px;margin-bottom:8px}
 </style>
 </head>
+
 <body>
 
-<h2>Admin Produk</h2>
+<h2>Admin Produk (Google Sheets)</h2>
 
-<input id="nama" placeholder="Nama produk">
+<input id="nama" placeholder="Nama">
 <input id="harga" placeholder="Harga">
-<input id="qty1" placeholder="Qty 1">
-<input id="diskon1" placeholder="Diskon 1 %">
-<input id="qty2" placeholder="Qty 2">
-<input id="diskon2" placeholder="Diskon 2 %">
-<input id="qty3" placeholder="Qty 3">
-<input id="diskon3" placeholder="Diskon 3 %">
-<button onclick="simpan()">Simpan Produk</button>
+<input id="kategori" placeholder="Kategori">
+
+<input id="qty1" placeholder="Qty1">
+<input id="diskon1" placeholder="Diskon1">
+<input id="qty2" placeholder="Qty2">
+<input id="diskon2" placeholder="Diskon2">
+<input id="qty3" placeholder="Qty3">
+<input id="diskon3" placeholder="Diskon3">
+
+<button onclick="simpan()">Simpan</button>
 
 <hr>
 <div id="list"></div>
 
 <script>
-const firebaseConfig={apiKey:"AIzaSyAt3",databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com"};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+const API="https://script.google.com/macros/s/AKfycbxKHul7tT96vHxQmSa1Q14MABbd6ho5ftGv7hm7ntT3e7KzxMxSw1FuiNPrwB8VbJ2o/exec";
 
-let editId=null;
-
-function simpan(){
- let data={
-  nama:document.getElementById("nama").value,
-  harga:Number(document.getElementById("harga").value),
-  qty1:Number(qty1.value),
-  diskon1:Number(diskon1.value),
-  qty2:Number(qty2.value),
-  diskon2:Number(diskon2.value),
-  qty3:Number(qty3.value),
-  diskon3:Number(diskon3.value),
-  stok:1
- };
-
- if(editId){
-  db.ref("produk/"+editId).update(data);
-  editId=null;
- }else{
-  db.ref("produk").push(data);
- }
- kosong();
-}
-
-function kosong(){
- document.querySelectorAll("input").forEach(i=>i.value="");
-}
+let data=[];
+let editRow=null;
 
 function load(){
- db.ref("produk").on("value",snap=>{
-  let html="";
-  snap.forEach(c=>{
-    let p=c.val();
-    let id=c.key;
-
-    html+=`<div class="card">
-    <b>${p.nama}</b><br>
-    Harga: ${p.harga}<br>
-    <button onclick="edit('${id}')">Edit</button>
-    <button onclick="hapus('${id}')">Hapus</button>
-    </div>`;
-  });
-  document.getElementById("list").innerHTML=html;
- });
+fetch(API)
+.then(res=>res.json())
+.then(res=>{
+data=res;
+render();
+});
 }
 
-function edit(id){
- db.ref("produk/"+id).once("value").then(s=>{
-  let p=s.val();
-  nama.value=p.nama;
-  harga.value=p.harga;
-  qty1.value=p.qty1;
-  diskon1.value=p.diskon1;
-  qty2.value=p.qty2;
-  diskon2.value=p.diskon2;
-  qty3.value=p.qty3;
-  diskon3.value=p.diskon3;
-  editId=id;
- });
+function render(){
+let html="";
+data.forEach(p=>{
+html+=`
+<div class="card">
+<b>${p.nama}</b><br>
+Rp ${p.harga}<br>
+${p.kategori}<br>
+
+<button onclick="edit(${p.row})">Edit</button>
+<button onclick="hapus(${p.row})">Hapus</button>
+</div>
+`;
+});
+document.getElementById("list").innerHTML=html;
 }
 
-function hapus(id){
- if(confirm("Hapus produk?")) db.ref("produk/"+id).remove();
+function simpan(){
+let obj={
+id:Date.now(),
+nama:nama.value,
+harga:harga.value,
+kategori:kategori.value,
+qty1:qty1.value,
+diskon1:diskon1.value,
+qty2:qty2.value,
+diskon2:diskon2.value,
+qty3:qty3.value,
+diskon3:diskon3.value
+};
+
+if(editRow){
+obj.row=editRow;
+
+fetch(API,{
+method:"POST",
+body:JSON.stringify(obj)
+}).then(()=>{
+alert("Update!");
+editRow=null;
+load();
+});
+
+}else{
+fetch(API,{
+method:"POST",
+body:JSON.stringify(obj)
+}).then(()=>{
+alert("Tersimpan!");
+load();
+});
+}
+}
+
+function edit(row){
+let p=data.find(x=>x.row==row);
+
+nama.value=p.nama;
+harga.value=p.harga;
+kategori.value=p.kategori;
+
+qty1.value=p.qty1;
+diskon1.value=p.diskon1;
+qty2.value=p.qty2;
+diskon2.value=p.diskon2;
+qty3.value=p.qty3;
+diskon3.value=p.diskon3;
+
+editRow=row;
+}
+
+function hapus(row){
+if(confirm("Hapus?")){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({row:row,_method:"DELETE"})
+}).then(()=>load());
+}
 }
 
 load();
