@@ -5,19 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 
-<link rel="icon" href="icon-192.png">
-
 <style>
 body{font-family:sans-serif;margin:0;background:#f5f5f5}
-header{background:#111;color:#fff;padding:12px;text-align:center}
-
-#search{
-width:95%;
-margin:10px;
-padding:10px;
-border-radius:8px;
-border:1px solid #ccc
-}
+header{background:#111;color:#fff;padding:10px;text-align:center}
 
 #produk{
 display:grid;
@@ -33,104 +23,153 @@ padding:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1)
 }
 
-.harga{
-color:#e53935;
-font-weight:bold;
-font-size:16px
+.harga{color:red;font-weight:bold}
+
+.qty{
+display:flex;
+gap:5px;
+margin-top:5px
 }
 
-.coret{
-text-decoration:line-through;
-color:#888;
-font-size:12px
+.qty button{
+width:30px;
+background:#ddd;
+border:none;
+}
+
+.qty input{
+width:40px;
+text-align:center;
+}
+
+.footer{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#fff;
+padding:10px;
+box-shadow:0 -2px 5px rgba(0,0,0,.1)
 }
 
 button{
 background:#25D366;
 color:white;
 border:none;
-padding:8px;
+padding:10px;
 width:100%;
-border-radius:6px;
-margin-top:5px
+border-radius:5px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<h2>Duta Terang LED</h2>
-</header>
+<header><h2>Duta Terang LED</h2></header>
 
-<input type="text" id="search" placeholder="Cari produk...">
+<div id="produk"></div>
 
-<div id="produk">Loading...</div>
+<div class="footer">
+<div id="total">Total: Rp 0</div>
+<button onclick="checkout()">Checkout WhatsApp</button>
+<button onclick="resetCart()" style="background:red;margin-top:5px">Reset Keranjang</button>
+</div>
 
 <script>
 const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
-const noWA = "62XXXXXXXXXX"; // GANTI NOMOR KAMU
+const noWA = "6288224166270";
 
-let semua = [];
+let produkList = [];
+let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
 fetch(apiURL)
-.then(res => res.json())
-.then(data => {
+.then(res=>res.json())
+.then(data=>{
+ let rows=data.data||data;
 
-  let rows = data.data || data;
-
-  rows.forEach(r => {
-    semua.push({
-      nama: r.nama,
-      harga: parseInt(r.harga),
-      d1: r["diskon 1"],
-      d2: r["diskon 2"],
-      d3: r["diskon3"],
-      kategori: r.kategori
-    });
+ rows.forEach(r=>{
+  produkList.push({
+    nama:r.nama,
+    harga:parseInt(r["diskon 1"]||r.harga)
   });
+ });
 
-  tampil(semua);
+ tampil();
 });
 
-function tampil(data){
+function tampil(){
  let html="";
 
- data.forEach(p=>{
+ produkList.forEach((p,i)=>{
 
- let diskonHTML = "";
-
- if(p.d1) diskonHTML += `<div>💸 1 pcs: Rp ${Number(p.d1).toLocaleString()}</div>`;
- if(p.d2) diskonHTML += `<div>📦 10 pcs: Rp ${Number(p.d2).toLocaleString()}</div>`;
- if(p.d3) diskonHTML += `<div>🏷️ Grosir: Rp ${Number(p.d3).toLocaleString()}</div>`;
+ let qty = cart[i] || 0;
 
  html+=`
  <div class="card">
   <h4>${p.nama}</h4>
+  <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 
-  <div class="coret">Rp ${p.harga.toLocaleString()}</div>
-  <div class="harga">
-    Rp ${p.d1 ? Number(p.d1).toLocaleString() : p.harga.toLocaleString()}
+  <div class="qty">
+    <button onclick="ubah(${i},-1)">-</button>
+    <input value="${qty}" onchange="manual(${i},this.value)">
+    <button onclick="ubah(${i},1)">+</button>
   </div>
-
-  ${diskonHTML}
-
-  <a href="https://wa.me/${noWA}?text=Halo, saya mau order:
-${p.nama}" target="_blank">
-   <button>Beli</button>
-  </a>
  </div>
  `;
  });
 
  document.getElementById("produk").innerHTML=html;
+ hitung();
 }
 
-// SEARCH
-document.getElementById("search").addEventListener("input",e=>{
- let val=e.target.value.toLowerCase();
- tampil(semua.filter(p=>p.nama.toLowerCase().includes(val)));
-});
+function ubah(i,val){
+ cart[i]=(cart[i]||0)+val;
+ if(cart[i]<0) cart[i]=0;
+ simpan();
+}
+
+function manual(i,val){
+ cart[i]=parseInt(val)||0;
+ simpan();
+}
+
+function simpan(){
+ localStorage.setItem("cart",JSON.stringify(cart));
+ tampil();
+}
+
+function hitung(){
+ let total=0;
+
+ produkList.forEach((p,i)=>{
+   total += (cart[i]||0)*p.harga;
+ });
+
+ document.getElementById("total").innerText="Total: Rp "+total.toLocaleString();
+}
+
+function checkout(){
+ let text="Halo, saya mau order:\n\n";
+ let total=0;
+
+ produkList.forEach((p,i)=>{
+  let q=cart[i];
+  if(q>0){
+    text+=`${p.nama} x${q}\n`;
+    total+=q*p.harga;
+  }
+ });
+
+ text+=`\nTotal: Rp ${total.toLocaleString()}`;
+
+ window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+}
+
+function resetCart(){
+ localStorage.removeItem("cart");
+ cart={};
+ tampil();
+}
 </script>
 
 </body>
