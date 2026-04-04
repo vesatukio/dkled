@@ -27,7 +27,11 @@ function loadProduk(){
   snap.forEach(child=>{
     let p=child.val();
     p.id=child.key;
-    semuaProduk.push(p);
+    // skip data rusak
+if(!p.nama || p.nama.trim()==="") return;
+if(!p.harga || Number(p.harga)<=0) return;
+
+semuaProduk.push(p);
   });
   renderProduk();
  });
@@ -37,8 +41,12 @@ function loadProduk(){
 function renderProduk(keyword=""){
  let html="";
  semuaProduk.forEach(p=>{
-  if(kategoriAktif && p.kategori!=kategoriAktif) return;
-  if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return;
+  if(kategoriAktif){
+ let katData = (p.kategori || "").toLowerCase().trim();
+ let katAktif = kategoriAktif.toLowerCase().trim();
+
+ if(!katData.includes(katAktif)) return;
+}
 
   if(kategoriAktif==="Galeri"){
     html+=`<div class="card">
