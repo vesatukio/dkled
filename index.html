@@ -3,52 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Toko LED</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<title>Duta Terang LED</title>
 
 <style>
-body{
-  font-family:Arial;
-  margin:0;
-  background:#f4f4f4;
-}
-header{
-  background:#222;
-  color:#fff;
-  padding:10px;
-  text-align:center;
-}
-.container{
-  padding:10px;
-}
-.produk{
-  background:#fff;
-  margin-bottom:10px;
-  padding:10px;
-  border-radius:6px;
-}
-button{
-  padding:6px 10px;
-  border:none;
-  background:#28a745;
-  color:#fff;
-  border-radius:4px;
-  cursor:pointer;
-}
+body{font-family:Arial;background:#f4f4f4;margin:0}
+header{background:#222;color:#fff;padding:12px;text-align:center}
+.container{padding:10px}
+.produk{background:#fff;margin-bottom:10px;padding:10px;border-radius:6px}
+button{padding:6px 10px;border:none;border-radius:4px;cursor:pointer}
+.btn-cart{background:#28a745;color:#fff}
+.btn-wa{background:#25D366;color:#fff;width:100%;margin-top:5px}
 .cart{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  padding:10px;
-  border-top:2px solid #ccc;
+ position:fixed;
+ bottom:0;left:0;right:0;
+ background:#fff;
+ padding:10px;
+ border-top:2px solid #ccc;
 }
 .kategori button{
-  margin:3px;
-  background:#007bff;
+ background:#007bff;
+ color:#fff;
+ margin:3px;
 }
 </style>
 </head>
@@ -56,106 +31,112 @@ button{
 <body>
 
 <header>
-  <h2>Toko Duta Terang LED</h2>
+<h2>Duta Terang LED</h2>
 </header>
 
 <div class="container">
 
-  <div class="kategori">
-    <button onclick="setKategori('All')">Semua</button>
-    <button onclick="setKategori('Lampu')">Lampu</button>
-    <button onclick="setKategori('Driver')">Driver</button>
-    <button onclick="setKategori('Aksesoris')">Aksesoris</button>
-  </div>
+<div class="kategori" id="kategori"></div>
 
-  <div id="produkList"></div>
+<div id="produkList"></div>
 
 </div>
 
 <div class="cart">
-  <b>Keranjang:</b>
-  <span id="cartInfo"></span>
-  <br>
-  <b>Total: Rp <span id="totalHarga">0</span></b>
+<b>Total: Rp <span id="total">0</span></b>
+<button class="btn-wa" onclick="checkout()">Order via WhatsApp</button>
 </div>
 
 <script>
-const firebaseConfig={
- apiKey:"AIzaSyAt3",
- authDomain:"katalog-lampu.firebaseapp.com",
- databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
- projectId:"katalog-lampu"
-};
+const API_URL="https://script.google.com/macros/s/AKfycbxKHul7tT96vHxQmSa1Q14MABbd6ho5ftGv7hm7ntT3e7KzxMxSw1FuiNPrwB8VbJ2o/exec";
+const NO_WA="628XXXXXXXXXX"; // GANTI NOMOR KAMU
 
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
-
-let semuaProduk=[];
+let produk=[];
 let cart=JSON.parse(localStorage.getItem("cart")||"{}");
 let kategoriAktif="All";
 
-// Ambil data dari Firebase
-db.ref("produk").on("value",snap=>{
-  semuaProduk=[];
-  snap.forEach(d=>{
-    semuaProduk.push({id:d.key,...d.val()});
-  });
-  tampilkanProduk();
+fetch(API_URL)
+.then(res=>res.json())
+.then(data=>{
+  produk=data;
+  buatKategori();
+  tampilkan();
+  hitung();
 });
+
+function buatKategori(){
+  let unik=["All"];
+  produk.forEach(p=>{
+    if(!unik.includes(p.kategori)) unik.push(p.kategori);
+  });
+
+  let html="";
+  unik.forEach(k=>{
+    html+=`<button onclick="setKategori('${k}')">${k}</button>`;
+  });
+
+  document.getElementById("kategori").innerHTML=html;
+}
 
 function setKategori(k){
   kategoriAktif=k;
-  tampilkanProduk();
+  tampilkan();
 }
 
-function tampilkanProduk(){
+function tampilkan(){
   let html="";
-  
-  semuaProduk
+  produk
   .filter(p=>kategoriAktif==="All" || p.kategori===kategoriAktif)
   .forEach(p=>{
     html+=`
-      <div class="produk">
-        <b>${p.nama}</b><br>
-        Rp ${p.harga}<br>
-        <small>${p.kategori}</small><br><br>
-        <button onclick="tambahCart('${p.id}')">+ Keranjang</button>
-      </div>
+    <div class="produk">
+      <b>${p.nama}</b><br>
+      Rp ${p.harga}<br>
+      <small>${p.kategori}</small><br><br>
+      <button class="btn-cart" onclick="tambah('${p.id}')">+ Keranjang</button>
+    </div>
     `;
   });
 
   document.getElementById("produkList").innerHTML=html;
 }
 
-function tambahCart(id){
+function tambah(id){
   if(!cart[id]) cart[id]=0;
   cart[id]++;
-  simpanCart();
+  simpan();
 }
 
-function simpanCart(){
+function simpan(){
   localStorage.setItem("cart",JSON.stringify(cart));
-  renderCart();
+  hitung();
 }
 
-function renderCart(){
+function hitung(){
   let total=0;
-  let text="";
 
-  semuaProduk.forEach(p=>{
+  produk.forEach(p=>{
     if(cart[p.id]){
-      let jumlah=cart[p.id];
-      let sub=jumlah*p.harga;
-      total+=sub;
-      text+=`${p.nama}(${jumlah}) `;
+      total+=cart[p.id]*p.harga;
     }
   });
 
-  document.getElementById("cartInfo").innerText=text;
-  document.getElementById("totalHarga").innerText=total;
+  document.getElementById("total").innerText=total;
 }
 
-renderCart();
+function checkout(){
+  let text="Halo, saya mau order:%0A";
+
+  produk.forEach(p=>{
+    if(cart[p.id]){
+      text+=`${p.nama} x${cart[p.id]}%0A`;
+    }
+  });
+
+  text+="%0ATerima kasih";
+
+  window.open(`https://wa.me/${NO_WA}?text=${text}`);
+}
 </script>
 
 </body>
