@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin Produk</title>
+<title>Admin DK LED</title>
 
 <style>
 body{font-family:sans-serif;padding:10px}
-input{margin:3px;padding:5px}
+input{margin:3px;padding:5px;width:200px}
 button{margin:3px;padding:5px}
 .card{
 border:1px solid #ccc;
@@ -41,6 +41,7 @@ border-radius:8px
 const api = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 
 let dataProduk=[];
+let rowEdit=null;
 
 function load(){
  fetch(api)
@@ -61,7 +62,7 @@ function tampil(){
   Rp ${p.harga}<br>
 
   <button onclick='isi(${JSON.stringify(p)})'>Edit</button>
-  <button onclick='hapus("${p.nama}")'>Hapus</button>
+  <button onclick='hapus(${p.row})'>Hapus</button>
  </div>
  `;
  });
@@ -77,7 +78,7 @@ function isi(p){
  d3.value=p["diskon3"];
  kategori.value=p.kategori;
 
- window.namaLama = p.nama;
+ rowEdit = p.row;
 }
 
 function tambah(){
@@ -100,7 +101,7 @@ function edit(){
   method:"POST",
   body:JSON.stringify({
     action:"edit",
-    namaLama:window.namaLama,
+    row:rowEdit,
     nama:nama.value,
     harga:harga.value,
     "diskon 1":d1.value,
@@ -111,13 +112,13 @@ function edit(){
  }).then(()=>load());
 }
 
-function hapus(nama){
- if(confirm("Hapus?")){
+function hapus(row){
+ if(confirm("Hapus produk?")){
   fetch(api,{
    method:"POST",
    body:JSON.stringify({
      action:"hapus",
-     nama:nama
+     row:row
    })
   }).then(()=>load());
  }
