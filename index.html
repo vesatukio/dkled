@@ -10,7 +10,7 @@ const db=firebase.database();
 
 let cart=JSON.parse(localStorage.getItem("cart")||"{}");
 let semuaProduk=[];
-let kategoriAktif="Lampu";
+let kategoriAktif=""; // FIX: jangan default kategori
 
 // helper
 function simpanCart(){
@@ -20,46 +20,56 @@ function rupiah(angka){
  return "Rp. " + Number(angka).toLocaleString("id-ID");
 }
 
-// ambil produk sekali saja
+// LOAD PRODUK (AMAN)
 function loadProduk(){
  db.ref("produk").once("value").then(snap=>{
   semuaProduk=[];
+
   snap.forEach(child=>{
     let p=child.val();
     p.id=child.key;
-    // skip data rusak
-if(!p.nama || p.nama.trim()==="") return;
-if(!p.harga || Number(p.harga)<=0) return;
 
-semuaProduk.push(p);
+    // FILTER DATA RUSAK
+    if(!p.nama || p.nama.trim()==="") return;
+    if(!p.harga || Number(p.harga)<=0) return;
+
+    semuaProduk.push(p);
   });
+
   renderProduk();
  });
 }
 
-// render produk
+// RENDER PRODUK
 function renderProduk(keyword=""){
  let html="";
+
  semuaProduk.forEach(p=>{
+  // FILTER KATEGORI FLEXIBLE
   if(kategoriAktif){
- let katData = (p.kategori || "").toLowerCase().trim();
- let katAktif = kategoriAktif.toLowerCase().trim();
+    let katData=(p.kategori||"").toLowerCase();
+    let katAktif=kategoriAktif.toLowerCase();
+    if(!katData.includes(katAktif)) return;
+  }
 
- if(!katData.includes(katAktif)) return;
-}
+  // FILTER SEARCH
+  if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return;
 
-  if(kategoriAktif==="Galeri"){
-    html+=`<div class="card">
-      <img src="${p.gambar||'https://via.placeholder.com/150'}">
+  // MODE GALERI
+  if(kategoriAktif.toLowerCase()==="galeri"){
+    html+=`
+    <div class="card">
+      <img src="${p.gambar||'https://via.placeholder.com/300?text=LED'}">
     </div>`;
     return;
   }
 
+  // HITUNG HARGA
   let harga=Number(p.harga)||0;
   if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
   if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
 
-  let habis = (p.stok!==undefined && Number(p.stok)<=0);
+  let habis=(p.stok!==undefined && Number(p.stok)<=0);
 
   let label="";
   if(habis) label="HABIS";
@@ -69,6 +79,9 @@ function renderProduk(keyword=""){
   html+=`
   <div class="card" style="${habis?'opacity:0.5;pointer-events:none;':''}">
     ${label?`<div class="diskon">${label}</div>`:''}
+
+    <img src="${p.gambar||'https://via.placeholder.com/300?text=LED'}">
+
     <div class="nama">${p.nama}</div>
     <div class="harga">${rupiah(harga)}</div>
 
@@ -80,16 +93,21 @@ function renderProduk(keyword=""){
   </div>`;
  });
 
+ // fallback kalau kosong
+ if(html===""){
+  html=`<div style="text-align:center;padding:20px">Produk tidak ditemukan</div>`;
+ }
+
  document.getElementById("produk").innerHTML=html;
  hitungTotal();
 }
 
-// cari
+// SEARCH
 function cariProduk(k){
  renderProduk(k);
 }
 
-// qty
+// QTY
 function plus(id){
  cart[id]=(cart[id]||0)+1;
  simpanCart();
@@ -109,14 +127,14 @@ function ubahQty(id,val){
  renderProduk();
 }
 
-// total TANPA ambil ulang firebase
+// TOTAL
 function hitungTotal(){
- let total=0, jml=0;
+ let total=0,jml=0;
 
  semuaProduk.forEach(p=>{
   let q=cart[p.id]||0;
-  let harga=Number(p.harga)||0;
 
+  let harga=Number(p.harga)||0;
   if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
   if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
 
@@ -128,9 +146,9 @@ function hitungTotal(){
  document.getElementById("jmlcart").innerText=jml;
 }
 
-// WA
+// ORDER WA
 function orderWA(){
- let teks="Order:%0A%0A";
+ let teks="Halo, saya ingin order:%0A%0A";
  let totalOrder=0;
 
  semuaProduk.forEach(p=>{
@@ -144,22 +162,22 @@ function orderWA(){
     let subtotal=harga*qty;
     totalOrder+=subtotal;
 
-    teks+=`${p.nama} x${qty} - ${rupiah(harga)} = ${rupiah(subtotal)}%0A`;
+    teks+=`${p.nama} x${qty} = ${rupiah(subtotal)}%0A`;
   }
  });
 
- teks+=`%0ATotal Order: ${rupiah(totalOrder)}`;
+ teks+=`%0ATotal: ${rupiah(totalOrder)}`;
  window.open("https://wa.me/6288224166270?text="+teks);
 }
 
-// reset
+// RESET
 function resetCart(){
  cart={};
  simpanCart();
  renderProduk();
 }
 
-// kategori
+// KATEGORI
 function loadKategori(){
  db.ref("kategori").once("value").then(snap=>{
   let html=`<button onclick="setKategori('')">Semua</button>`;
@@ -175,22 +193,26 @@ function loadKategori(){
 }
 
 function setKategori(k){
- kategoriAktif=k;
+ kategoriAktif=k||"";
  renderProduk();
  highlightKategori();
 }
 
+// HIGHLIGHT
 function highlightKategori(){
  document.querySelectorAll("#kategori button").forEach(btn=>{
   btn.classList.remove("active");
 
-  if(btn.innerText===kategoriAktif || (kategoriAktif==="" && btn.innerText==="Semua")){
+  if(
+    btn.innerText.toLowerCase()===(kategoriAktif||"").toLowerCase() ||
+    (kategoriAktif==="" && btn.innerText==="Semua")
+  ){
     btn.classList.add("active");
   }
  });
 }
 
-// init
+// INIT
 loadKategori();
 loadProduk();
 </script>
