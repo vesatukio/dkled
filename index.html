@@ -66,7 +66,7 @@ border-radius:5px;
 <body>
 
 <header><h2>Duta Terang LED</h2></header>
-
+<div id="kategori" style="padding:10px"></div>
 <div id="produk"></div>
 
 <div class="footer">
@@ -104,12 +104,28 @@ fetch(apiURL)
  rows.forEach(r=>{
   produkList.push({
     nama:r.nama,
-    harga:parseInt(r["diskon 1"]||r.harga)
+    harga:parseInt(r.harga),
+    diskon1:parseInt(r.diskon1||0),
+    diskon2:parseInt(r.diskon2||0),
+    kategori:r.kategori
   });
  });
 
+ tampilKategori();
  tampil();
 });
+
+function hitungHarga(p, qty){
+ let harga = p.harga;
+
+ if(qty >= 50 && p.diskon2){
+   harga = p.harga - (p.harga * p.diskon2 / 100);
+ } else if(qty >= 10 && p.diskon1){
+   harga = p.harga - (p.harga * p.diskon1 / 100);
+ }
+
+ return Math.round(harga);
+}
 
 function tampil(){
  let html="";
@@ -117,11 +133,24 @@ function tampil(){
  produkList.forEach((p,i)=>{
 
  let qty = cart[i] || 0;
+ let hargaFinal = hitungHarga(p, qty);
 
  html+=`
  <div class="card">
   <h4>${p.nama}</h4>
-  <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+
+  <div style="font-size:12px;color:#888">
+    Normal: Rp ${p.harga.toLocaleString()}
+  </div>
+
+  <div class="harga">
+    Rp ${hargaFinal.toLocaleString()}
+  </div>
+
+  <small>
+    10 pcs diskon ${p.diskon1 || 0}%<br>
+    50 pcs diskon ${p.diskon2 || 0}%
+  </small>
 
   <div class="qty">
     <button onclick="ubah(${i},-1)">-</button>
@@ -133,7 +162,43 @@ function tampil(){
  });
 
  document.getElementById("produk").innerHTML=html;
- hitung();
+ hitungTotal();
+}
+
+function tampilKategori(){
+ let unik = [...new Set(produkList.map(p=>p.kategori))];
+
+ let html = `<button onclick="filter('')">Semua</button>`;
+
+ unik.forEach(k=>{
+   html += `<button onclick="filter('${k}')">${k}</button>`;
+ });
+
+ document.getElementById("kategori").innerHTML = html;
+}
+
+function filter(k){
+ if(!k) tampil();
+ else tampilFilter(k);
+}
+
+function tampilFilter(kat){
+ let data = produkList.filter(p=>p.kategori==kat);
+
+ let html="";
+ data.forEach((p,i)=>{
+ let qty = cart[i] || 0;
+ let hargaFinal = hitungHarga(p, qty);
+
+ html+=`
+ <div class="card">
+  <h4>${p.nama}</h4>
+  <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+ </div>
+ `;
+ });
+
+ document.getElementById("produk").innerHTML=html;
 }
 
 function ubah(i,val){
@@ -152,14 +217,17 @@ function simpan(){
  tampil();
 }
 
-function hitung(){
+function hitungTotal(){
  let total=0;
 
  produkList.forEach((p,i)=>{
-   total += (cart[i]||0)*p.harga;
+  let qty = cart[i]||0;
+  let harga = hitungHarga(p, qty);
+  total += qty * harga;
  });
 
- document.getElementById("total").innerText="Total: Rp "+total.toLocaleString();
+ document.getElementById("total").innerText =
+ "Total: Rp " + total.toLocaleString();
 }
 
 function checkout(){
@@ -169,20 +237,15 @@ function checkout(){
  produkList.forEach((p,i)=>{
   let q=cart[i];
   if(q>0){
-    text+=`${p.nama} x${q}\n`;
-    total+=q*p.harga;
+    let harga = hitungHarga(p,q);
+    text+=`${p.nama} x${q} = Rp ${(q*harga).toLocaleString()}\n`;
+    total+=q*harga;
   }
  });
 
  text+=`\nTotal: Rp ${total.toLocaleString()}`;
 
  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
-}
-
-function resetCart(){
- localStorage.removeItem("cart");
- cart={};
- tampil();
 }
 </script>
 
