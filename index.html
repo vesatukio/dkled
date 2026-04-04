@@ -1,1 +1,188 @@
-<!DOCTYPE html> <html lang="id"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width,initial-scale=1"> <title>DK LED</title> <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script> <style> body{font-family:'Poppins',sans-serif;margin:0;background:#f5f5f5;} .header{background:#ff6a00;color:white;padding:12px;font-weight:600;text-align:center;} .search{padding:8px;background:white;} .search input{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;} .kategori{display:flex;overflow:auto;background:white;padding:8px;gap:8px;} .kategori button{border:none;background:#eee;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;} .kategori button.active{background:#ff6a00;color:white;} .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;} .card{background:white;border-radius:8px;padding:10px;position:relative;font-size:13px;} .card img{width:100%;border-radius:8px;margin-bottom:4px;} .nama{font-weight:500;} .harga{color:#ff6a00;font-weight:600;margin-top:4px;} .diskon{position:absolute;top:0;right:0;background:red;color:white;font-size:11px;padding:4px 6px;border-bottom-left-radius:6px;} .qty{display:flex;justify-content:space-between;align-items:center;margin-top:8px;} .qty button{width:32px;height:32px;border:none;background:#ff6a00;color:white;border-radius:6px;font-size:18px;} .qty input{width:40px;text-align:center;border:1px solid #ddd;border-radius:4px;} .total{position:fixed;bottom:70px;left:10px;background:white;padding:10px;border-radius:8px;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);} .wa{position:fixed;bottom:70px;right:10px;background:#25D366;color:white;padding:12px 16px;border-radius:30px;font-size:14px;cursor:pointer;} .bottom{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px;box-shadow:0 -2px 8px rgba(0,0,0,0.1);} .bottom button{background:#ff6a00;color:white;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;} </style> </head> <body> <div class="header">DK LED</div> <div class="search"> <input type="text" placeholder="Cari produk..." onkeyup="cariProduk(this.value)"> </div> <div class="kategori" id="kategori"></div> <div class="grid" id="produk"></div> <div class="total" id="total">Total: Rp. 0</div> <div class="wa" onclick="orderWA()">Order WA</div> <div class="bottom"> <button onclick="resetCart()">Reset</button> <button onclick="lihatKeranjang()">Keranjang (<span id="jmlcart">0</span>)</button> <button onclick="login()">Admin</button> </div> <script> const firebaseConfig={ apiKey:"AIzaSyAt3", authDomain:"katalog-lampu.firebaseapp.com", databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com", projectId:"katalog-lampu" }; firebase.initializeApp(firebaseConfig); const db=firebase.database(); let cart=JSON.parse(localStorage.getItem("cart")||"{}"); let semuaProduk=[]; let kategoriAktif="Lampu"; // <-- default kategori saat load halaman // Helper function simpanCart(){localStorage.setItem("cart",JSON.stringify(cart));} function rupiah(angka){return "Rp. " + Number(angka).toLocaleString("id-ID");} // Tampil produk function tampilProduk(kat="",keyword=""){ db.ref("produk").once("value").then(snap=>{ semuaProduk=[]; snap.forEach(child=>{ let p=child.val(); p.id=child.key; semuaProduk.push(p); }); kategoriAktif = kat || kategoriAktif; // jika klik kategori baru, update aktif renderProduk(kategoriAktif, keyword); highlightKategori(); }); } // Render produk function renderProduk(kat="",keyword=""){ let html=""; semuaProduk.forEach(p=>{ if(kat && p.kategori!=kat) return; if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return; // Kategori Galeri hanya gambar if(kat==="Galeri"){ html+=<div class="card"><img src="${p.gambar||'https://via.placeholder.com/150'}"></div>; return; } let harga=Number(p.harga)||0; if(p.diskon_nominal) harga-=Number(p.diskon_nominal); if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100; let habis = (p.stok!==undefined && Number(p.stok)<=0); let labelTampil = habis ? "HABIS" : (p.diskon_nominal ? Diskon Rp.${Number(p.diskon_nominal).toLocaleString("id-ID")} : (p.diskon_persen ? Disc ${p.diskon_persen}% : "")); html+= <div class="card" style="${habis?'opacity:0.5;pointer-events:none;':''}"> ${labelTampil?<div class="diskon">${labelTampil}</div>:''} <div class="nama">${p.nama}</div> <div class="harga">${rupiah(harga)}</div> <div class="qty"> <button onclick="min('${p.id}')" ${habis?'disabled':''}>-</button> <input value="${cart[p.id]||0}" onchange="ubahQty('${p.id}',this.value)" ${habis?'disabled':''}> <button onclick="plus('${p.id}')" ${habis?'disabled':''}>+</button> </div> </div>; }); document.getElementById("produk").innerHTML=html; hitungTotal(); } // Cari produk function cariProduk(k){renderProduk(kategoriAktif,k);} // Plus/minus/ubah qty function plus(id){cart[id]=(cart[id]||0)+1;simpanCart();renderProduk(kategoriAktif);hitungTotal();} function min(id){cart[id]=(cart[id]||0)-1;if(cart[id]<=0) delete cart[id];simpanCart();renderProduk(kategoriAktif);hitungTotal();} function ubahQty(id,val){val=Number(val);if(val<=0) delete cart[id]; else cart[id]=val;simpanCart();renderProduk(kategoriAktif);hitungTotal();} // Hitung total & jumlah function hitungTotal(){ db.ref("produk").once("value").then(snap=>{ let total=0,jml=0; snap.forEach(child=>{ let p=child.val(),id=child.key; let q=cart[id]||0; let harga=Number(p.harga)||0; if(p.diskon_nominal) harga-=Number(p.diskon_nominal); if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100; total+=harga*q; jml+=q; }); document.getElementById("total").innerText = "Total: "+rupiah(total); document.getElementById("jmlcart").innerText=jml; }); } // Order WA function orderWA(){ let teks="Order:%0A%0A"; let totalOrder=0; db.ref("produk").once("value").then(snap=>{ snap.forEach(child=>{ let p=child.val(),id=child.key,qty=cart[id]||0; if(qty>0){ let harga=Number(p.harga)||0; if(p.diskon_nominal) harga-=Number(p.diskon_nominal); if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100; let subtotal = harga*qty; totalOrder+=subtotal; teks+=${p.nama} x${qty} - ${rupiah(harga)} = ${rupiah(subtotal)}%0A; } }); teks+=%0ATotal Order: ${rupiah(totalOrder)}; window.open("https://wa.me/6288224166270?text="+teks); }); } // Reset & lihat keranjang function resetCart(){cart={};simpanCart();renderProduk(kategoriAktif);} function lihatKeranjang(){ let teks="Keranjang:%0A%0A"; db.ref("produk").once("value").then(snap=>{ snap.forEach(child=>{let p=child.val(),id=child.key;if(cart[id]) teks+=${p.nama} x${cart[id]}%0A;}); alert(decodeURIComponent(teks)); }); } // Login admin function login(){let pass=prompt("Password admin");if(pass=="dklampu") location.href="admin.html"; else alert("Password salah");} // Load kategori dan highlight function loadKategori(){ db.ref("kategori").once("value").then(snap=>{ let html="",btnAll=<button onclick="tampilProduk();kategoriAktif='';highlightKategori()">${"Semua"}</button>; html+=btnAll; snap.forEach(child=>{ let k=child.val(); html+=<button onclick="tampilProduk('${k.nama}');highlightKategori()">${k.nama}</button>; }); document.getElementById("kategori").innerHTML=html; highlightKategori(); }); } // Highlight kategori aktif function highlightKategori(){ document.querySelectorAll("#kategori button").forEach(btn=>{ btn.classList.remove("active"); if(btn.innerText===kategoriAktif || (kategoriAktif=="" && btn.innerText==="Semua")) btn.classList.add("active"); }); } loadKategori(); tampilProduk(kategoriAktif); // <-- tampil default kategori saat load halaman </script> </body> </html>
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyAt3",
+ authDomain:"katalog-lampu.firebaseapp.com",
+ databaseURL:"https://katalog-lampu-default-rtdb.firebaseio.com",
+ projectId:"katalog-lampu"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+let cart=JSON.parse(localStorage.getItem("cart")||"{}");
+let semuaProduk=[];
+let kategoriAktif="Lampu";
+
+// helper
+function simpanCart(){
+ localStorage.setItem("cart",JSON.stringify(cart));
+}
+function rupiah(angka){
+ return "Rp. " + Number(angka).toLocaleString("id-ID");
+}
+
+// ambil produk sekali saja
+function loadProduk(){
+ db.ref("produk").once("value").then(snap=>{
+  semuaProduk=[];
+  snap.forEach(child=>{
+    let p=child.val();
+    p.id=child.key;
+    semuaProduk.push(p);
+  });
+  renderProduk();
+ });
+}
+
+// render produk
+function renderProduk(keyword=""){
+ let html="";
+ semuaProduk.forEach(p=>{
+  if(kategoriAktif && p.kategori!=kategoriAktif) return;
+  if(keyword && !p.nama.toLowerCase().includes(keyword.toLowerCase())) return;
+
+  if(kategoriAktif==="Galeri"){
+    html+=`<div class="card">
+      <img src="${p.gambar||'https://via.placeholder.com/150'}">
+    </div>`;
+    return;
+  }
+
+  let harga=Number(p.harga)||0;
+  if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
+  if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
+
+  let habis = (p.stok!==undefined && Number(p.stok)<=0);
+
+  let label="";
+  if(habis) label="HABIS";
+  else if(p.diskon_nominal) label=`Diskon Rp.${Number(p.diskon_nominal).toLocaleString("id-ID")}`;
+  else if(p.diskon_persen) label=`Disc ${p.diskon_persen}%`;
+
+  html+=`
+  <div class="card" style="${habis?'opacity:0.5;pointer-events:none;':''}">
+    ${label?`<div class="diskon">${label}</div>`:''}
+    <div class="nama">${p.nama}</div>
+    <div class="harga">${rupiah(harga)}</div>
+
+    <div class="qty">
+      <button onclick="min('${p.id}')" ${habis?'disabled':''}>-</button>
+      <input value="${cart[p.id]||0}" onchange="ubahQty('${p.id}',this.value)" ${habis?'disabled':''}>
+      <button onclick="plus('${p.id}')" ${habis?'disabled':''}>+</button>
+    </div>
+  </div>`;
+ });
+
+ document.getElementById("produk").innerHTML=html;
+ hitungTotal();
+}
+
+// cari
+function cariProduk(k){
+ renderProduk(k);
+}
+
+// qty
+function plus(id){
+ cart[id]=(cart[id]||0)+1;
+ simpanCart();
+ renderProduk();
+}
+function min(id){
+ cart[id]=(cart[id]||0)-1;
+ if(cart[id]<=0) delete cart[id];
+ simpanCart();
+ renderProduk();
+}
+function ubahQty(id,val){
+ val=Number(val);
+ if(val<=0) delete cart[id];
+ else cart[id]=val;
+ simpanCart();
+ renderProduk();
+}
+
+// total TANPA ambil ulang firebase
+function hitungTotal(){
+ let total=0, jml=0;
+
+ semuaProduk.forEach(p=>{
+  let q=cart[p.id]||0;
+  let harga=Number(p.harga)||0;
+
+  if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
+  if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
+
+  total+=harga*q;
+  jml+=q;
+ });
+
+ document.getElementById("total").innerText="Total: "+rupiah(total);
+ document.getElementById("jmlcart").innerText=jml;
+}
+
+// WA
+function orderWA(){
+ let teks="Order:%0A%0A";
+ let totalOrder=0;
+
+ semuaProduk.forEach(p=>{
+  let qty=cart[p.id]||0;
+  if(qty>0){
+    let harga=Number(p.harga)||0;
+
+    if(p.diskon_nominal) harga-=Number(p.diskon_nominal);
+    if(p.diskon_persen) harga-=Number(p.harga)*Number(p.diskon_persen)/100;
+
+    let subtotal=harga*qty;
+    totalOrder+=subtotal;
+
+    teks+=`${p.nama} x${qty} - ${rupiah(harga)} = ${rupiah(subtotal)}%0A`;
+  }
+ });
+
+ teks+=`%0ATotal Order: ${rupiah(totalOrder)}`;
+ window.open("https://wa.me/6288224166270?text="+teks);
+}
+
+// reset
+function resetCart(){
+ cart={};
+ simpanCart();
+ renderProduk();
+}
+
+// kategori
+function loadKategori(){
+ db.ref("kategori").once("value").then(snap=>{
+  let html=`<button onclick="setKategori('')">Semua</button>`;
+
+  snap.forEach(child=>{
+    let k=child.val();
+    html+=`<button onclick="setKategori('${k.nama}')">${k.nama}</button>`;
+  });
+
+  document.getElementById("kategori").innerHTML=html;
+  highlightKategori();
+ });
+}
+
+function setKategori(k){
+ kategoriAktif=k;
+ renderProduk();
+ highlightKategori();
+}
+
+function highlightKategori(){
+ document.querySelectorAll("#kategori button").forEach(btn=>{
+  btn.classList.remove("active");
+
+  if(btn.innerText===kategoriAktif || (kategoriAktif==="" && btn.innerText==="Semua")){
+    btn.classList.add("active");
+  }
+ });
+}
+
+// init
+loadKategori();
+loadProduk();
+</script>
