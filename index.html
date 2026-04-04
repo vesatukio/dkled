@@ -2,241 +2,135 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 
+<link rel="icon" href="icon-192.png">
+
 <style>
-body{font-family:Arial;margin:0;background:#f0f2f5;padding-bottom:70px}
-header{background:#0d6efd;color:#fff;padding:15px;text-align:center;font-weight:bold}
+body{font-family:sans-serif;margin:0;background:#f5f5f5}
+header{background:#111;color:#fff;padding:12px;text-align:center}
 
-.container{padding:10px}
-
-.search input{
-width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-bottom:10px
+#search{
+width:95%;
+margin:10px;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc
 }
 
-.kategori{
-overflow-x:auto;white-space:nowrap;margin-bottom:10px
-}
-.kategori button{
-margin-right:5px;padding:6px 12px;border:none;border-radius:20px;background:#ddd
-}
-.kategori .active{background:#0d6efd;color:#fff}
-
-.grid{
+#produk{
 display:grid;
-grid-template-columns:repeat(2,1fr);
+grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
 gap:10px;
+padding:10px
 }
 
-.produk{
+.card{
 background:#fff;
-padding:10px;
 border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1)
-}
-
-.nama{font-size:14px;font-weight:bold}
-.harga{color:#e53935;font-weight:bold;margin:5px 0}
-
-.btn{
-width:100%;
-padding:8px;
-border:none;
-border-radius:6px;
-background:#28a745;
-color:#fff
-}
-
-/* MENU BAWAH */
-.menu{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#fff;
-border-top:1px solid #ccc;
-display:flex;
-justify-content:space-around;
-padding:8px;
-}
-
-.menu button{
-border:none;
-background:none;
-font-size:14px;
-}
-
-/* ADMIN */
-.admin{
-display:none;
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:#fff;
-padding:20px;
-overflow:auto;
-}
-
-.admin input{
-width:100%;
 padding:10px;
-margin-bottom:10px;
-border:1px solid #ccc;
+box-shadow:0 2px 5px rgba(0,0,0,.1)
+}
+
+.harga{
+color:#e53935;
+font-weight:bold;
+font-size:16px
+}
+
+.coret{
+text-decoration:line-through;
+color:#888;
+font-size:12px
+}
+
+button{
+background:#25D366;
+color:white;
+border:none;
+padding:8px;
+width:100%;
 border-radius:6px;
+margin-top:5px
 }
 </style>
 </head>
 
 <body>
 
-<header>Duta Terang LED</header>
+<header>
+<h2>Duta Terang LED</h2>
+</header>
 
-<div class="container">
+<input type="text" id="search" placeholder="Cari produk...">
 
-<div class="search">
-<input type="text" placeholder="Cari produk..." onkeyup="cari(this.value)">
-</div>
-
-<div class="kategori" id="kategori"></div>
-
-<div class="grid" id="produkList"></div>
-
-</div>
-
-<!-- ADMIN PANEL -->
-<div class="admin" id="adminPanel">
-<h3>Tambah Produk</h3>
-<input id="nama" placeholder="Nama produk">
-<input id="harga" placeholder="Harga">
-<input id="kategoriInput" placeholder="Kategori">
-<button onclick="tambahProduk()">Simpan</button>
-<button onclick="tutupAdmin()">Tutup</button>
-</div>
-
-<!-- MENU BAWAH -->
-<div class="menu">
-<button onclick="lihatCart()">🛒 Keranjang</button>
-<button onclick="resetCart()">🔄 Reset</button>
-<button onclick="bukaAdmin()">⚙️ Admin</button>
-</div>
+<div id="produk">Loading...</div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbxKHul7tT96vHxQmSa1Q14MABbd6ho5ftGv7hm7ntT3e7KzxMxSw1FuiNPrwB8VbJ2o/exec";
-const NO_WA="628822416270";
+const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
+const noWA = "62XXXXXXXXXX"; // GANTI NOMOR KAMU
 
-let produk=[];
-let cart=JSON.parse(localStorage.getItem("cart")||"{}");
-let kategoriAktif="All";
-let keyword="";
+let semua = [];
 
-fetch(API_URL)
-.then(res=>res.json())
-.then(data=>{
-  produk=data;
-  buatKategori();
-  tampilkan();
+fetch(apiURL)
+.then(res => res.json())
+.then(data => {
+
+  let rows = data.data || data;
+
+  rows.forEach(r => {
+    semua.push({
+      nama: r.nama,
+      harga: parseInt(r.harga),
+      d1: r["diskon 1"],
+      d2: r["diskon 2"],
+      d3: r["diskon3"],
+      kategori: r.kategori
+    });
+  });
+
+  tampil(semua);
 });
 
-function buatKategori(){
-let unik=["All"];
-produk.forEach(p=>{
-if(!unik.includes(p.kategori)) unik.push(p.kategori);
+function tampil(data){
+ let html="";
+
+ data.forEach(p=>{
+
+ let diskonHTML = "";
+
+ if(p.d1) diskonHTML += `<div>💸 1 pcs: Rp ${Number(p.d1).toLocaleString()}</div>`;
+ if(p.d2) diskonHTML += `<div>📦 10 pcs: Rp ${Number(p.d2).toLocaleString()}</div>`;
+ if(p.d3) diskonHTML += `<div>🏷️ Grosir: Rp ${Number(p.d3).toLocaleString()}</div>`;
+
+ html+=`
+ <div class="card">
+  <h4>${p.nama}</h4>
+
+  <div class="coret">Rp ${p.harga.toLocaleString()}</div>
+  <div class="harga">
+    Rp ${p.d1 ? Number(p.d1).toLocaleString() : p.harga.toLocaleString()}
+  </div>
+
+  ${diskonHTML}
+
+  <a href="https://wa.me/${noWA}?text=Halo, saya mau order:
+${p.nama}" target="_blank">
+   <button>Beli</button>
+  </a>
+ </div>
+ `;
+ });
+
+ document.getElementById("produk").innerHTML=html;
+}
+
+// SEARCH
+document.getElementById("search").addEventListener("input",e=>{
+ let val=e.target.value.toLowerCase();
+ tampil(semua.filter(p=>p.nama.toLowerCase().includes(val)));
 });
-
-let html="";
-unik.forEach(k=>{
-html+=`<button onclick="setKategori('${k}',this)">${k}</button>`;
-});
-
-document.getElementById("kategori").innerHTML=html;
-}
-
-function setKategori(k,el){
-kategoriAktif=k;
-
-document.querySelectorAll(".kategori button")
-.forEach(b=>b.classList.remove("active"));
-
-if(el) el.classList.add("active");
-
-tampilkan();
-}
-
-function cari(k){
-keyword=k.toLowerCase();
-tampilkan();
-}
-
-function tampilkan(){
-let html="";
-
-produk
-.filter(p=>
-(kategoriAktif==="All"||p.kategori===kategoriAktif)&&
-p.nama.toLowerCase().includes(keyword)
-)
-.forEach(p=>{
-html+=`
-<div class="produk">
-<div class="nama">${p.nama}</div>
-<div class="harga">Rp ${p.harga}</div>
-<button class="btn" onclick="tambah('${p.id}')">+ Keranjang</button>
-</div>
-`;
-});
-
-document.getElementById("produkList").innerHTML=html;
-}
-
-function tambah(id){
-if(!cart[id]) cart[id]=0;
-cart[id]++;
-simpanCart();
-}
-
-function simpanCart(){
-localStorage.setItem("cart",JSON.stringify(cart));
-}
-
-function lihatCart(){
-let text="Keranjang:%0A";
-
-produk.forEach(p=>{
-if(cart[p.id]){
-text+=`${p.nama} x${cart[p.id]}%0A`;
-}
-});
-
-window.open(`https://wa.me/${NO_WA}?text=${text}`);
-}
-
-function resetCart(){
-if(confirm("Hapus semua keranjang?")){
-cart={};
-simpanCart();
-alert("Keranjang dikosongkan");
-}
-}
-
-/* ADMIN */
-function bukaAdmin(){
-document.getElementById("adminPanel").style.display="block";
-}
-
-function tutupAdmin(){
-document.getElementById("adminPanel").style.display="none";
-}
-
-function tambahProduk(){
-let nama=document.getElementById("nama").value;
-let harga=document.getElementById("harga").value;
-let kategori=document.getElementById("kategoriInput").value;
-
-alert("Produk ditambahkan di tampilan saja (Sheets tetap manual)");
-}
 </script>
 
 </body>
