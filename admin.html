@@ -1,35 +1,43 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Admin Duta Terang LED</title>
+<title>Admin</title>
 </head>
 
-<body style="font-family:sans-serif;padding:20px">
+<body style="font-family:sans-serif">
 
 <h2>Admin Produk</h2>
 
-<p>Tambah produk lewat Google Sheet:</p>
+<input id="nama" placeholder="Nama"><br>
+<input id="harga" placeholder="Harga"><br>
+<input id="d1" placeholder="Diskon 1"><br>
+<input id="d2" placeholder="Diskon 2"><br>
+<input id="d3" placeholder="Diskon 3"><br>
+<input id="kategori" placeholder="Kategori"><br><br>
 
-<a href="https://docs.google.com/spreadsheets/" target="_blank">
-<button style="padding:10px;background:green;color:white;border:none">
-Buka Google Sheet
-</button>
-</a>
+<button onclick="tambah()">Tambah Produk</button>
 
-<br><br>
+<script>
+const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 
-<p>Format wajib:</p>
-
-<pre>
-id | nama | harga | diskon 1 | diskon 2 | diskon3 | kategori
-</pre>
-
-<p>Contoh:</p>
-
-<pre>
-1 | Lampu LED 5W | 3500 | 3200 | 3000 | 2800 | Lampu
-</pre>
+function tambah(){
+ fetch(apiURL,{
+  method:"POST",
+  body:JSON.stringify({
+    action:"tambah",
+    nama:nama.value,
+    harga:harga.value,
+    d1:d1.value,
+    d2:d2.value,
+    d3:d3.value,
+    kategori:kategori.value
+  })
+ })
+ .then(res=>res.text())
+ .then(()=>alert("Berhasil tambah"));
+}
+</script>
 
 </body>
 </html>
