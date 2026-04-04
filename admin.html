@@ -2,134 +2,34 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin LED (Sheets)</title>
-
-<style>
-body{font-family:sans-serif;background:#f5f5f5;padding:10px}
-input{width:100%;padding:8px;margin:4px 0}
-button{padding:8px;margin:4px 0;border:none;background:#28a745;color:#fff}
-.card{background:#fff;padding:10px;margin-bottom:8px}
-</style>
+<title>Admin Duta Terang LED</title>
 </head>
 
-<body>
+<body style="font-family:sans-serif;padding:20px">
 
-<h2>Admin Produk (Google Sheets)</h2>
+<h2>Admin Produk</h2>
 
-<input id="nama" placeholder="Nama">
-<input id="harga" placeholder="Harga">
-<input id="kategori" placeholder="Kategori">
+<p>Tambah produk lewat Google Sheet:</p>
 
-<input id="qty1" placeholder="Qty1">
-<input id="diskon1" placeholder="Diskon1">
-<input id="qty2" placeholder="Qty2">
-<input id="diskon2" placeholder="Diskon2">
-<input id="qty3" placeholder="Qty3">
-<input id="diskon3" placeholder="Diskon3">
+<a href="https://docs.google.com/spreadsheets/" target="_blank">
+<button style="padding:10px;background:green;color:white;border:none">
+Buka Google Sheet
+</button>
+</a>
 
-<button onclick="simpan()">Simpan</button>
+<br><br>
 
-<hr>
-<div id="list"></div>
+<p>Format wajib:</p>
 
-<script>
-const API="https://script.google.com/macros/s/AKfycbxKHul7tT96vHxQmSa1Q14MABbd6ho5ftGv7hm7ntT3e7KzxMxSw1FuiNPrwB8VbJ2o/exec";
+<pre>
+id | nama | harga | diskon 1 | diskon 2 | diskon3 | kategori
+</pre>
 
-let data=[];
-let editRow=null;
+<p>Contoh:</p>
 
-function load(){
-fetch(API)
-.then(res=>res.json())
-.then(res=>{
-data=res;
-render();
-});
-}
-
-function render(){
-let html="";
-data.forEach(p=>{
-html+=`
-<div class="card">
-<b>${p.nama}</b><br>
-Rp ${p.harga}<br>
-${p.kategori}<br>
-
-<button onclick="edit(${p.row})">Edit</button>
-<button onclick="hapus(${p.row})">Hapus</button>
-</div>
-`;
-});
-document.getElementById("list").innerHTML=html;
-}
-
-function simpan(){
-let obj={
-id:Date.now(),
-nama:nama.value,
-harga:harga.value,
-kategori:kategori.value,
-qty1:qty1.value,
-diskon1:diskon1.value,
-qty2:qty2.value,
-diskon2:diskon2.value,
-qty3:qty3.value,
-diskon3:diskon3.value
-};
-
-if(editRow){
-obj.row=editRow;
-
-fetch(API,{
-method:"POST",
-body:JSON.stringify(obj)
-}).then(()=>{
-alert("Update!");
-editRow=null;
-load();
-});
-
-}else{
-fetch(API,{
-method:"POST",
-body:JSON.stringify(obj)
-}).then(()=>{
-alert("Tersimpan!");
-load();
-});
-}
-}
-
-function edit(row){
-let p=data.find(x=>x.row==row);
-
-nama.value=p.nama;
-harga.value=p.harga;
-kategori.value=p.kategori;
-
-qty1.value=p.qty1;
-diskon1.value=p.diskon1;
-qty2.value=p.qty2;
-diskon2.value=p.diskon2;
-qty3.value=p.qty3;
-diskon3.value=p.diskon3;
-
-editRow=row;
-}
-
-function hapus(row){
-if(confirm("Hapus?")){
-fetch(API,{
-method:"POST",
-body:JSON.stringify({row:row,_method:"DELETE"})
-}).then(()=>load());
-}
-}
-
-load();
-</script>
+<pre>
+1 | Lampu LED 5W | 3500 | 3200 | 3000 | 2800 | Lampu
+</pre>
 
 </body>
 </html>
