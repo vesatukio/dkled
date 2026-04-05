@@ -30,8 +30,8 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   background: #fff;
   box-shadow: 0 -2px 5px rgba(0,0,0,.1);
   display: flex;
-  justify-content: space-around;  /* rata horizontal */
-  align-items: center;
+  justify-content: space-around;
+  align-items: flex-end;
   padding: 5px 0;
 }
 
@@ -40,7 +40,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative; /* untuk cartCount absolute */
+  position: relative;
 }
 
 /* Tombol ikon footer */
@@ -62,32 +62,27 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 .footer .reset { background: #f44336; }
 .footer .admin { background: #555; }
 
-/* Jumlah keranjang muncul di pojok kanan atas ikon */
+/* Jumlah keranjang muncul di atas ikon */
 #cartCount {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  bottom: 55px;
   background: red;
   color: white;
   font-size: 0.8em;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
 }
 
-/* Total harga di tengah sejajar horizontal */
+/* Total harga footer */
 #totalHarga {
   font-size: 0.9em;
   color: #000;
   font-weight: bold;
   text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 80px; /* supaya tidak terlalu kecil */
 }
 
 /* Admin panel */
@@ -98,32 +93,32 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   border-radius: 10px;
   margin: 10px;
 }
+.admin-panel div{margin-bottom:5px;}
 .admin-panel input { width: 50px; margin: 0 5px; }
 </style>
 </head>
 <body>
 
 <header>Duta Terang LED</header>
-
 <div id="kategori"></div>
 <div id="produk"></div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" class="admin-panel">
+  <h4>Admin Panel</h4>
+  <div id="adminContent"></div>
+</div>
 
 <div class="footer">
   <!-- Keranjang -->
   <div style="text-align:center;position:relative;">
-    <button onclick="checkout()" style="position:relative;display:flex;justify-content:center;align-items:center;">🛒</button>
-    <!-- Jumlah produk muncul di pojok kanan atas ikon -->
-    <span id="cartCount" style="position:absolute;top:-5px;right:-5px;
-          background:red;color:white;font-size:0.8em;width:18px;height:18px;
-          display:flex;justify-content:center;align-items:center;border-radius:50%">0</span>
+    <span id="cartCount">0</span>
+    <button onclick="checkout()">🛒</button>
     <div style="font-size:10px;margin-top:2px;">Keranjang</div>
   </div>
 
   <!-- Total Harga -->
-  <div id="totalHarga" style="font-size:0.9em;color:#000;font-weight:bold;
-        display:flex;align-items:center;justify-content:center;">
-    Rp 0
-  </div>
+  <div id="totalHarga">Rp 0</div>
 
   <!-- Reset -->
   <div style="text-align:center;">
@@ -157,6 +152,7 @@ fetch(apiURL)
     harga: parseInt(r.harga),
     diskon1: parseInt(r.diskon1||0),
     diskon2: parseInt(r.diskon2||0),
+    diskon3: parseInt(r.diskon3||0),
     kategori: r.kategori
   });
  });
@@ -164,10 +160,11 @@ fetch(apiURL)
  tampil();
 });
 
-// Hitung harga dengan diskon
+// Hitung harga dengan 3 level diskon
 function hitungHarga(p, qty){
  let harga = p.harga;
- if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ if(qty >= 100 && p.diskon3) harga = p.harga * (1 - p.diskon3/100);
+ else if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
  else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
@@ -178,12 +175,10 @@ function tampil(){
  produkList.forEach(p=>{
   let qty = cart[p.id]||0;
   let hargaFinal = hitungHarga(p, qty);
-
-  // Diskon hanya muncul kalau >0
   let diskonText="";
   if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
-  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
-
+  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
+  if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
   html+=`
   <div class="card">
     <h4>${p.nama}</h4>
@@ -195,8 +190,7 @@ function tampil(){
       <input value="${qty}" onchange="manual(${p.id},this.value)">
       <button onclick="ubah(${p.id},1)">+</button>
     </div>
-  </div>
-  `;
+  </div>`;
  });
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
@@ -218,11 +212,7 @@ function filter(k){
    data.forEach(p=>{
      let qty = cart[p.id] || 0;
      let hargaFinal = hitungHarga(p, qty);
-     html+=`
-     <div class="card">
-       <h4>${p.nama}</h4>
-       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
-     </div>`;
+     html+=`<div class="card"><h4>${p.nama}</h4><div class="harga">Rp ${hargaFinal.toLocaleString()}</div></div>`;
    });
    document.getElementById("produk").innerHTML = html;
  }
@@ -277,12 +267,15 @@ function tampilAdmin(){
  produkList.forEach(p=>{
    html+=`<div>${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
    Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
-   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)"></div>`;
+   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)">
+   Diskon100: <input type="number" value="${p.diskon3}" onchange="ubahAdmin(${p.id},'diskon3',this.value)"></div>`;
  });
  document.getElementById("adminContent").innerHTML = html;
 }
 
+// Ubah data admin
 function ubahAdmin(id,field,val){ produkList[id][field] = parseInt(val)||0; tampil(); }
 </script>
+
 </body>
 </html>
