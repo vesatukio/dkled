@@ -179,26 +179,32 @@ function hitungHarga(p, qty){
 
 // Tampilkan semua produk
 function tampil(){
- let html="";
- produkList.forEach((p)=>{
-  let qty = cart[p.id] || 0;
-  let hargaFinal = hitungHarga(p, qty);
-  html+=`
-  <div class="card">
-    <h4>${p.nama}</h4>
-    <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
-    <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
-    <small>10 pcs diskon ${p.diskon1 || 0}%<br>50 pcs diskon ${p.diskon2 || 0}%</small>
-    <div class="qty">
-      <button onclick="ubah(${p.id},-1)">-</button>
-      <input value="${qty}" onchange="manual(${p.id},this.value)">
-      <button onclick="ubah(${p.id},1)">+</button>
-    </div>
-  </div>
-  `;
- });
- document.getElementById("produk").innerHTML = html;
- hitungTotal();
+  let html="";
+  produkList.forEach((p)=>{
+    let qty = cart[p.id] || 0;
+    let hargaFinal = hitungHarga(p, qty);
+
+    // Hanya tampilkan diskon kalau >0
+    let diskonText = "";
+    if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
+    if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
+
+    html+=`
+      <div class="card">
+        <h4>${p.nama}</h4>
+        <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
+        <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+        ${diskonText ? `<small>${diskonText}</small>` : ""}
+        <div class="qty">
+          <button onclick="ubah(${p.id},-1)">-</button>
+          <input value="${qty}" onchange="manual(${p.id},this.value)">
+          <button onclick="ubah(${p.id},1)">+</button>
+        </div>
+      </div>
+    `;
+  });
+  document.getElementById("produk").innerHTML = html;
+  hitungTotal();
 }
 
 // Tampilkan kategori
