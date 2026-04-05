@@ -152,7 +152,6 @@ fetch(apiURL)
     harga: parseInt(r.harga),
     diskon1: parseInt(r.diskon1||0),
     diskon2: parseInt(r.diskon2||0),
-    diskon3: parseInt(r.diskon3||0),
     kategori: r.kategori
   });
  });
@@ -160,11 +159,10 @@ fetch(apiURL)
  tampil();
 });
 
-// Hitung harga dengan 3 level diskon
+// Hitung harga dengan diskon
 function hitungHarga(p, qty){
  let harga = p.harga;
- if(qty >= 100 && p.diskon3) harga = p.harga * (1 - p.diskon3/100);
- else if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
  else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
@@ -177,8 +175,7 @@ function tampil(){
   let hargaFinal = hitungHarga(p, qty);
   let diskonText="";
   if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
-  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
-  if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
+  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
   html+=`
   <div class="card">
     <h4>${p.nama}</h4>
@@ -267,8 +264,7 @@ function tampilAdmin(){
  produkList.forEach(p=>{
    html+=`<div>${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
    Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
-   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)">
-   Diskon100: <input type="number" value="${p.diskon3}" onchange="ubahAdmin(${p.id},'diskon3',this.value)"></div>`;
+   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)"></div>`;
  });
  document.getElementById("adminContent").innerHTML = html;
 }
