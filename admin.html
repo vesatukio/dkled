@@ -1,131 +1,211 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin DK LED</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duta Terang LED</title>
 <style>
-body{font-family:sans-serif;padding:10px}
-input{margin:3px;padding:5px;width:200px}
-button{margin:3px;padding:5px}
-.card{
-border:1px solid #ccc;
-padding:10px;
-margin:5px;
-border-radius:8px
-}
+body{font-family:sans-serif;margin:0;background:#f9f9f9}
+header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.2em;font-weight:bold}
+
+/* Kategori */
+#kategori{display:flex;flex-wrap:wrap;gap:5px;padding:10px}
+#kategori button{background:#00e5ff;border:none;border-radius:20px;padding:5px 10px;font-size:0.9em}
+
+/* Produk */
+#produk{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:10px}
+.card{background:#fff;border-radius:10px;padding:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);display:flex;flex-direction:column;justify-content:space-between}
+.card h4{margin:0 0 5px 0;font-size:1em}
+.harga{color:#e91e63;font-weight:bold}
+.qty{display:flex;gap:5px;margin-top:5px}
+.qty button{width:30px;background:#ddd;border:none;border-radius:5px}
+.qty input{width:40px;text-align:center;border-radius:5px;border:1px solid #ccc}
+
+/* Footer horizontal */
+.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 5px rgba(0,0,0,.1);display:flex;justify-content:space-around;align-items:center;padding:5px 0}
+.footer button{background:#4caf50;color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5em;display:flex;justify-content:center;align-items:center}
+.footer .reset{background:#f44336}
+.footer .admin{background:#555}
+#cartCount{position:absolute;top:-5px;right:-5px;background:red;color:white;font-size:0.8em;width:18px;height:18px;display:flex;justify-content:center;align-items:center;border-radius:50%}
+#totalHarga{font-size:0.9em;color:#000;font-weight:bold;text-align:center;width:100px}
+.admin-panel{display:none;padding:10px;background:#ffecb3;border-radius:10px;margin:10px}
+.admin-panel input{width:50px;margin:0 5px}
 </style>
 </head>
-
 <body>
 
-<h2>Admin Produk</h2>
+<header>Duta Terang LED</header>
 
-<h3>Tambah / Edit</h3>
-<input id="nama" placeholder="Nama"><br>
-<input id="harga" placeholder="Harga"><br>
-<input id="d1" placeholder="Diskon 1"><br>
-<input id="d2" placeholder="Diskon 2"><br>
-<input id="d3" placeholder="Diskon 3"><br>
-<input id="kategori" placeholder="Kategori"><br>
+<div id="kategori"></div>
+<div id="produk"></div>
 
-<button onclick="tambah()">Tambah</button>
-<button onclick="edit()">Update</button>
+<div class="footer">
+  <div style="text-align:center;position:relative;">
+    <button onclick="checkout()">🛒</button>
+    <span id="cartCount">0</span>
+    <div style="font-size:10px;">Keranjang</div>
+  </div>
+  <div id="totalHarga">Rp 0</div>
+  <div style="text-align:center;">
+    <button class="reset" onclick="resetCart()">🔄</button>
+    <div style="font-size:10px;">Reset</div>
+  </div>
+  <div style="text-align:center;">
+    <button class="admin" onclick="loginAdmin()">⚙️</button>
+    <div style="font-size:10px;">Admin</div>
+  </div>
+</div>
 
-<hr>
-
-<h3>Daftar Produk</h3>
-<div id="list"></div>
+<div class="admin-panel" id="adminPanel">
+  <h4>Admin Panel</h4>
+  <div id="adminContent"></div>
+</div>
 
 <script>
-const api = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
+const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
+const noWA = "6288224166270";
 
-let dataProduk=[];
-let rowEdit=null;
+let produkList = [];
+let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
-function load(){
- fetch(api)
- .then(res=>res.json())
- .then(data=>{
-  dataProduk=data;
-  tampil();
+// Ambil data Google Sheet
+fetch(apiURL)
+.then(res=>res.json())
+.then(data=>{
+ let rows = data.data || data;
+ rows.forEach((r,i)=>{
+  produkList.push({
+    id: i,
+    nama: r.nama,
+    harga: parseInt(r.harga),
+    diskon1: parseInt(r.diskon1||0),
+    diskon2: parseInt(r.diskon2||0),
+    kategori: r.kategori
+  });
  });
+ tampilKategori();
+ tampil();
+});
+
+// Hitung harga dengan diskon
+function hitungHarga(p, qty){
+ let harga = p.harga;
+ if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
+ return Math.round(harga);
 }
 
+// Tampilkan produk
 function tampil(){
  let html="";
+ produkList.forEach(p=>{
+  let qty = cart[p.id]||0;
+  let hargaFinal = hitungHarga(p, qty);
 
- dataProduk.forEach(p=>{
- html+=`
- <div class="card">
-  <b>${p.nama}</b><br>
-  Rp ${p.harga}<br>
+  // Diskon hanya muncul kalau >0
+  let diskonText="";
+  if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
+  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
 
-  <button onclick='isi(${JSON.stringify(p)})'>Edit</button>
-  <button onclick='hapus(${p.row})'>Hapus</button>
- </div>
- `;
+  html+=`
+  <div class="card">
+    <h4>${p.nama}</h4>
+    <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
+    <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+    ${diskonText? `<small>${diskonText}</small>` : ""}
+    <div class="qty">
+      <button onclick="ubah(${p.id},-1)">-</button>
+      <input value="${qty}" onchange="manual(${p.id},this.value)">
+      <button onclick="ubah(${p.id},1)">+</button>
+    </div>
+  </div>
+  `;
  });
-
- document.getElementById("list").innerHTML=html;
+ document.getElementById("produk").innerHTML = html;
+ hitungTotal();
 }
 
-function isi(p){
- nama.value=p.nama;
- harga.value=p.harga;
- d1.value=p["diskon 1"];
- d2.value=p["diskon 2"];
- d3.value=p["diskon3"];
- kategori.value=p.kategori;
-
- rowEdit = p.row;
+// Tampilkan kategori
+function tampilKategori(){
+ let unik = [...new Set(produkList.map(p=>p.kategori))];
+ let html = `<button onclick="filter('')">Semua</button>`;
+ unik.forEach(k=> html+=`<button onclick="filter('${k}')">${k}</button>`);
+ document.getElementById("kategori").innerHTML = html;
 }
 
-function tambah(){
- fetch(api,{
-  method:"POST",
-  body:JSON.stringify({
-    action:"tambah",
-    nama:nama.value,
-    harga:harga.value,
-    "diskon 1":d1.value,
-    "diskon 2":d2.value,
-    "diskon3":d3.value,
-    kategori:kategori.value
-  })
- }).then(()=>load());
-}
-
-function edit(){
- fetch(api,{
-  method:"POST",
-  body:JSON.stringify({
-    action:"edit",
-    row:rowEdit,
-    nama:nama.value,
-    harga:harga.value,
-    "diskon 1":d1.value,
-    "diskon 2":d2.value,
-    "diskon3":d3.value,
-    kategori:kategori.value
-  })
- }).then(()=>load());
-}
-
-function hapus(row){
- if(confirm("Hapus produk?")){
-  fetch(api,{
-   method:"POST",
-   body:JSON.stringify({
-     action:"hapus",
-     row:row
-   })
-  }).then(()=>load());
+function filter(k){
+ if(!k) tampil();
+ else {
+   let data = produkList.filter(p=>p.kategori==k);
+   let html="";
+   data.forEach(p=>{
+     let qty = cart[p.id] || 0;
+     let hargaFinal = hitungHarga(p, qty);
+     html+=`
+     <div class="card">
+       <h4>${p.nama}</h4>
+       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+     </div>`;
+   });
+   document.getElementById("produk").innerHTML = html;
  }
 }
 
-load();
-</script>
+// Ubah jumlah produk
+function ubah(id,val){ cart[id]=(cart[id]||0)+val; if(cart[id]<0) cart[id]=0; simpan(); }
+function manual(id,val){ cart[id]=parseInt(val)||0; simpan(); }
+function simpan(){ localStorage.setItem("cart",JSON.stringify(cart)); tampil(); hitungTotal(); }
 
+// Hitung total & jumlah produk
+function hitungTotal(){
+ let total=0, count=0;
+ produkList.forEach(p=>{
+   let qty = cart[p.id]||0;
+   total += qty*hitungHarga(p,qty);
+   count += qty;
+ });
+ document.getElementById("cartCount").innerText = count;
+ document.getElementById("totalHarga").innerText = "Rp "+total.toLocaleString();
+}
+
+// Reset keranjang
+function resetCart(){ cart={}; simpan(); }
+
+// Checkout WA
+function checkout(){
+ let text="Halo, saya mau order:\n\n";
+ let total=0;
+ produkList.forEach(p=>{
+   let q=cart[p.id];
+   if(q>0){
+     let harga = hitungHarga(p,q);
+     text += `${p.nama} x${q} = Rp ${(q*harga).toLocaleString()}\n`;
+     total += q*harga;
+   }
+ });
+ text += `\nTotal: Rp ${total.toLocaleString()}`;
+ window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+}
+
+// Login Admin
+function loginAdmin(){
+ let pass = prompt("Password Admin:");
+ if(pass==="12345"){ document.getElementById("adminPanel").style.display="block"; tampilAdmin(); }
+ else alert("Password salah!");
+}
+
+// Tampilkan admin panel
+function tampilAdmin(){
+ let html="";
+ produkList.forEach(p=>{
+   html+=`<div>${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
+   Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
+   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)"></div>`;
+ });
+ document.getElementById("adminContent").innerHTML = html;
+}
+
+function ubahAdmin(id,field,val){ produkList[id][field] = parseInt(val)||0; tampil(); }
+</script>
 </body>
 </html>
