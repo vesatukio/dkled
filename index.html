@@ -82,20 +82,23 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 
 <header>Duta Terang LED</header>
 
-<div id="kategori"></div>
-<div id="produk"></div>
-
-<div id="adminPanel" class="admin-panel">
-  <h4>Admin Panel</h4>
-  <div id="adminContent"></div>
+<!-- SEARCH -->
+<div style="padding:10px">
+  <input 
+    id="search" 
+    placeholder="Ketik watt / nama... contoh: 12"
+    style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc"
+    oninput="cari(this.value)"
+  >
 </div>
+
+<div id="produk"></div>
 
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
 <div class="footer">
   <button class="keranjang" onclick="checkout()">🛒</button>
   <button class="reset" onclick="resetCart()">🔄</button>
-  <button class="admin" onclick="loginAdmin()">⚙️</button>
 </div>
 
 <script>
@@ -113,68 +116,61 @@ fetch(apiURL)
   produkList.push({
     id:i,
     nama:r.nama,
-    harga:+r.harga,
-    diskon1:+r.diskon1||0,
-    diskon2:+r.diskon2||0,
-    diskon3:+r.diskon3||0,
-    kategori:r.kategori
+    harga:+r.harga
   });
  });
- tampilKategori();
- tampil();
+ tampil(produkList);
 });
 
-function hitungHarga(p, qty){
- if(qty>=100 && p.diskon3) return p.harga*(1-p.diskon3/100);
- if(qty>=50 && p.diskon2) return p.harga*(1-p.diskon2/100);
- if(qty>=10 && p.diskon1) return p.harga*(1-p.diskon1/100);
- return p.harga;
+// Cari
+function cari(text){
+ text = text.toLowerCase();
+ let hasil = produkList.filter(p=>p.nama.toLowerCase().includes(text));
+ tampil(hasil);
 }
 
-function getWatt(nama){
- let m = nama.match(/(\d+)\s*w/i);
- return m ? +m[1] : 0;
-}
-
-function tampil(){
+// Tampilkan
+function tampil(data){
  let html="";
- let grup={};
 
- produkList.forEach(p=>{
-  let w=getWatt(p.nama);
+ // grup per watt
+ let grup={};
+ data.forEach(p=>{
+  let w = (p.nama.match(/(\d+)/)||["0"])[0];
   if(!grup[w]) grup[w]=[];
   grup[w].push(p);
  });
 
  Object.keys(grup).sort((a,b)=>a-b).forEach(w=>{
-  let data=grup[w];
-  let min=Math.min(...data.map(p=>p.harga));
-  let max=Math.max(...data.map(p=>p.harga));
+  let list = grup[w];
 
-  html+=`<h3 style="padding:10px">${w} Watt</h3>`;
+  let min = Math.min(...list.map(p=>p.harga));
 
-  data.sort((a,b)=>a.harga-b.harga);
+  html += `<h3 style="padding:10px">${w} Watt</h3>`;
 
-  data.forEach((p,i)=>{
-   let qty=cart[p.id]||0;
-   let harga=Math.round(hitungHarga(p,qty));
+  list.sort((a,b)=>a.harga-b.harga);
 
-   let label="";
-   if(p.harga==min) label=`<span class="termurah">TERMURAH</span>`;
-   else if(p.harga==max) label=`<span class="mahal">TERMAHAL</span>`;
+  list.forEach(p=>{
+   let qty = cart[p.id]||0;
 
-   let rekom="";
-   let next=data[i+1];
-   if(next && (next.harga-p.harga)<=1000){
-    rekom=`<div class="rekomendasi">🔥 Selisih Rp ${(next.harga-p.harga).toLocaleString()} upgrade ke ${next.nama}</div>`;
-   }
+   let label = p.harga==min 
+     ? `<span class="termurah">TERMURAH</span>` 
+     : "";
+
+   let selisih = p.harga - min;
 
    html+=`
    <div class="card">
      <h4>${p.nama} ${label}</h4>
-     <small>Rp ${p.harga.toLocaleString()}</small>
-     <div class="harga">Rp ${harga.toLocaleString()}</div>
-     ${rekom}
+
+     <div class="harga">
+       Rp ${p.harga.toLocaleString()}
+     </div>
+
+     <div class="selisih">
+       Selisih: Rp ${selisih.toLocaleString()}
+     </div>
+
      <div class="qty">
        <button onclick="ubah(${p.id},-1)">-</button>
        <input value="${qty}" onchange="manual(${p.id},this.value)">
@@ -182,75 +178,49 @@ function tampil(){
      </div>
    </div>`;
   });
+
  });
 
- document.getElementById("produk").innerHTML=html;
+ document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
 
-function tampilKategori(){
- let unik=[...new Set(produkList.map(p=>p.kategori))];
- let html=`<button onclick="tampil()">Semua</button>`;
- unik.forEach(k=>html+=`<button onclick="filter('${k}')">${k}</button>`);
- document.getElementById("kategori").innerHTML=html;
-}
-
-function filter(k){
- let data=produkList.filter(p=>p.kategori==k);
- let html="";
- data.forEach(p=>{
-  let qty=cart[p.id]||0;
-  let harga=Math.round(hitungHarga(p,qty));
-
-  html+=`
-  <div class="card">
-    <h4>${p.nama}</h4>
-    <div class="harga">Rp ${harga.toLocaleString()}</div>
-    <div class="qty">
-      <button onclick="ubah(${p.id},-1)">-</button>
-      <input value="${qty}" onchange="manual(${p.id},this.value)">
-      <button onclick="ubah(${p.id},1)">+</button>
-    </div>
-  </div>`;
- });
-
- document.getElementById("produk").innerHTML=html;
-}
-
+// Cart
 function ubah(id,val){
  cart[id]=(cart[id]||0)+val;
  if(cart[id]<0) cart[id]=0;
  simpan();
 }
-
 function manual(id,val){
  cart[id]=parseInt(val)||0;
  simpan();
 }
-
 function simpan(){
  localStorage.setItem("cart",JSON.stringify(cart));
- tampil();
+ tampil(produkList);
 }
 
+// Total
 function hitungTotal(){
  let total=0,count=0;
  produkList.forEach(p=>{
   let q=cart[p.id]||0;
-  total+=q*hitungHarga(p,q);
+  total+=q*p.harga;
   count+=q;
  });
- document.getElementById("floatingTotal").innerText=
- `${count} Barang | Rp ${Math.round(total).toLocaleString()}`;
+ document.getElementById("floatingTotal").innerText =
+ `${count} Barang | Rp ${total.toLocaleString()}`;
 }
 
+// Reset
 function resetCart(){
  cart={};
  simpan();
 }
 
+// Checkout
 function checkout(){
- let text="Halo, saya mau order:\n\n";
+ let text="Order:\n";
  produkList.forEach(p=>{
   let q=cart[p.id];
   if(q>0) text+=`${p.nama} x${q}\n`;
@@ -258,12 +228,6 @@ function checkout(){
  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
 }
 
-function loginAdmin(){
- let pass=prompt("Password:");
- if(pass==="12345"){
-  document.getElementById("adminPanel").style.display="block";
- }
-}
 </script>
 
 </body>
