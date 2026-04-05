@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 <style>
+  <style>
+.rekomendasi{
+background:#fff3cd;
+color:#856404;
+padding:5px;
+border-radius:6px;
+font-size:11px;
+margin-top:5px;
+}
+</style>
   .termurah{
 background:#d4edda;
 color:#155724;
@@ -197,11 +207,11 @@ function getWatt(nama){
  return match ? parseInt(match[1]) : 0;
 }
 // Tampilkan produk
+<script>
 function tampil(){
 
  let html="";
 
- // kelompokkan per watt
  let grup = {};
  produkList.forEach(p=>{
    let watt = getWatt(p.nama);
@@ -209,9 +219,10 @@ function tampil(){
    grup[watt].push(p);
  });
 
- // render per watt
  Object.keys(grup).sort((a,b)=>a-b).forEach(watt=>{
    let data = grup[watt];
+
+   if(!data || data.length==0) return;
 
    let hargaMin = Math.min(...data.map(p=>p.harga));
    let hargaMax = Math.max(...data.map(p=>p.harga));
@@ -220,7 +231,7 @@ function tampil(){
 
    data.sort((a,b)=>a.harga-b.harga);
 
-   data.forEach(p=>{
+   data.forEach((p,i)=>{
      let qty = cart[p.id]||0;
      let hargaFinal = hitungHarga(p, qty);
 
@@ -230,6 +241,21 @@ function tampil(){
 
      let selisih = p.harga - hargaMin;
 
+     // 🔥 AUTO REKOMENDASI (UPSELL)
+     let rekomendasi = "";
+     let next = data[i+1]; // produk lebih mahal berikutnya
+
+     if(next){
+       let beda = next.harga - p.harga;
+
+       if(beda <= 1000){ // batas selisih
+         rekomendasi = `
+         <div class="rekomendasi">
+           🔥 Selisih cuma Rp ${beda.toLocaleString()}, upgrade ke ${next.nama}
+         </div>`;
+       }
+     }
+
      let diskonText="";
      if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
      if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
@@ -238,10 +264,23 @@ function tampil(){
      html+=`
      <div class="card">
        <h4>${p.nama} ${label}</h4>
-       <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
-       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
-       <div class="selisih">Selisih: Rp ${selisih.toLocaleString()}</div>
+
+       <div style="font-size:12px;color:#888">
+         Normal: Rp ${p.harga.toLocaleString()}
+       </div>
+
+       <div class="harga">
+         Rp ${hargaFinal.toLocaleString()}
+       </div>
+
+       <div class="selisih">
+         Selisih: Rp ${selisih.toLocaleString()}
+       </div>
+
+       ${rekomendasi}
+
        ${diskonText? `<small>${diskonText}</small>` : ""}
+
        <div class="qty">
          <button onclick="ubah(${p.id},-1)">-</button>
          <input value="${qty}" onchange="manual(${p.id},this.value)">
@@ -255,6 +294,7 @@ function tampil(){
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
+</script>
 
 // Tampilkan kategori
 function tampilKategori(){
