@@ -5,6 +5,28 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 <style>
+  .termurah{
+background:#d4edda;
+color:#155724;
+padding:2px 6px;
+border-radius:5px;
+font-size:10px;
+margin-left:5px;
+}
+
+.mahal{
+background:#f8d7da;
+color:#721c24;
+padding:2px 6px;
+border-radius:5px;
+font-size:10px;
+margin-left:5px;
+}
+
+.selisih{
+font-size:11px;
+color:#666;
+}
 body{font-family:sans-serif;margin:0;background:#f9f9f9;padding-bottom:80px}
 header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.2em;font-weight:bold}
 
@@ -170,30 +192,66 @@ function hitungHarga(p, qty){
  else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
-
+function getWatt(nama){
+ let match = nama.match(/(\d+)\s*w/i);
+ return match ? parseInt(match[1]) : 0;
+}
 // Tampilkan produk
 function tampil(){
+
  let html="";
+
+ // kelompokkan per watt
+ let grup = {};
  produkList.forEach(p=>{
-  let qty = cart[p.id]||0;
-  let hargaFinal = hitungHarga(p, qty);
-  let diskonText="";
-  if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
-  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
-  if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
-  html+=`
-  <div class="card">
-    <h4>${p.nama}</h4>
-    <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
-    <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
-    ${diskonText? `<small>${diskonText}</small>` : ""}
-    <div class="qty">
-      <button onclick="ubah(${p.id},-1)">-</button>
-      <input value="${qty}" onchange="manual(${p.id},this.value)">
-      <button onclick="ubah(${p.id},1)">+</button>
-    </div>
-  </div>`;
+   let watt = getWatt(p.nama);
+   if(!grup[watt]) grup[watt]=[];
+   grup[watt].push(p);
  });
+
+ // render per watt
+ Object.keys(grup).sort((a,b)=>a-b).forEach(watt=>{
+   let data = grup[watt];
+
+   let hargaMin = Math.min(...data.map(p=>p.harga));
+   let hargaMax = Math.max(...data.map(p=>p.harga));
+
+   html += `<h3 style="padding:10px">${watt} Watt</h3>`;
+
+   data.sort((a,b)=>a.harga-b.harga);
+
+   data.forEach(p=>{
+     let qty = cart[p.id]||0;
+     let hargaFinal = hitungHarga(p, qty);
+
+     let label="";
+     if(p.harga==hargaMin) label = `<span class="termurah">TERMURAH</span>`;
+     else if(p.harga==hargaMax) label = `<span class="mahal">TERMAHAL</span>`;
+
+     let selisih = p.harga - hargaMin;
+
+     let diskonText="";
+     if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
+     if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
+     if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
+
+     html+=`
+     <div class="card">
+       <h4>${p.nama} ${label}</h4>
+       <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
+       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+       <div class="selisih">Selisih: Rp ${selisih.toLocaleString()}</div>
+       ${diskonText? `<small>${diskonText}</small>` : ""}
+       <div class="qty">
+         <button onclick="ubah(${p.id},-1)">-</button>
+         <input value="${qty}" onchange="manual(${p.id},this.value)">
+         <button onclick="ubah(${p.id},1)">+</button>
+       </div>
+     </div>`;
+   });
+
+ });
+
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
