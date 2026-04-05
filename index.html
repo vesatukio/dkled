@@ -207,14 +207,31 @@ function tampilKategori(){
 }
 
 function filter(k){
- if(!k) tampil();
- else {
-   let data = produkList.filter(p=>p.kategori==k);
-   let html="";
-   data.forEach(p=>{
+ if(!k) {
+   tampil();
+ } else {
+   let data = produkList.filter(p => p.kategori == k);
+   let html = "";
+   data.forEach(p => {
      let qty = cart[p.id] || 0;
      let hargaFinal = hitungHarga(p, qty);
-     html+=`<div class="card"><h4>${p.nama}</h4><div class="harga">Rp ${hargaFinal.toLocaleString()}</div></div>`;
+     let diskonText = "";
+     if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
+     if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
+     if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
+
+     html += `
+     <div class="card">
+       <h4>${p.nama}</h4>
+       <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
+       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+       ${diskonText ? `<small>${diskonText}</small>` : ""}
+       <div class="qty">
+         <button onclick="ubah(${p.id},-1)">-</button>
+         <input value="${qty}" onchange="manual(${p.id},this.value)">
+         <button onclick="ubah(${p.id},1)">+</button>
+       </div>
+     </div>`;
    });
    document.getElementById("produk").innerHTML = html;
  }
