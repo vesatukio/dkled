@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 <style>
-body{font-family:sans-serif;margin:0;background:#f9f9f9}
+body{font-family:sans-serif;margin:0;background:#f9f9f9;padding-bottom:80px} /* ruang untuk footer */
 header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.2em;font-weight:bold}
 
 /* Kategori */
@@ -21,6 +21,23 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 .qty button{width:30px;background:#ddd;border:none;border-radius:5px}
 .qty input{width:40px;text-align:center;border-radius:5px;border:1px solid #ccc}
 
+/* Total harga & jumlah produk mengambang */
+#floatingTotal {
+  position: fixed;
+  top: 70px; /* di bawah header */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  font-weight: bold;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 /* Footer horizontal */
 .footer {
   position: fixed;
@@ -31,19 +48,18 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   box-shadow: 0 -2px 5px rgba(0,0,0,.1);
   display: flex;
   justify-content: space-around;
-  align-items: flex-end;
+  align-items: center;
   padding: 5px 0;
+  z-index: 1;
 }
 
-/* Container tiap ikon tombol */
+/* Tombol footer */
 .footer > div {
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
 }
-
-/* Tombol ikon footer */
 .footer button {
   background: #4caf50;
   color: white;
@@ -57,15 +73,14 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   align-items: center;
   position: relative;
 }
-
-/* Warna tombol reset dan admin */
 .footer .reset { background: #f44336; }
 .footer .admin { background: #555; }
 
-/* Jumlah keranjang muncul di atas ikon */
+/* Jumlah keranjang di ikon */
 #cartCount {
   position: absolute;
-  bottom: 55px;
+  top: -5px;
+  right: -5px;
   background: red;
   color: white;
   font-size: 0.8em;
@@ -77,22 +92,8 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   border-radius: 50%;
 }
 
-/* Total harga footer */
-#totalHarga {
-  font-size: 0.9em;
-  color: #000;
-  font-weight: bold;
-  text-align: center;
-}
-
 /* Admin panel */
-.admin-panel {
-  display: none;
-  padding: 10px;
-  background: #ffecb3;
-  border-radius: 10px;
-  margin: 10px;
-}
+.admin-panel { display: none; padding: 10px; background: #ffecb3; border-radius: 10px; margin: 10px; }
 .admin-panel div{margin-bottom:5px;}
 .admin-panel input { width: 50px; margin: 0 5px; }
 </style>
@@ -109,16 +110,18 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   <div id="adminContent"></div>
 </div>
 
+<!-- Total harga & jumlah keranjang mengambang -->
+<div id="floatingTotal">
+  <span id="cartCount">0</span> Barang
+  <span id="totalHarga">Rp 0</span>
+</div>
+
 <div class="footer">
   <!-- Keranjang -->
   <div style="text-align:center;position:relative;">
-    <span id="cartCount">0</span>
     <button onclick="checkout()">🛒</button>
     <div style="font-size:10px;margin-top:2px;">Keranjang</div>
   </div>
-
-  <!-- Total Harga -->
-  <div id="totalHarga">Rp 0</div>
 
   <!-- Reset -->
   <div style="text-align:center;">
@@ -152,6 +155,7 @@ fetch(apiURL)
     harga: parseInt(r.harga),
     diskon1: parseInt(r.diskon1||0),
     diskon2: parseInt(r.diskon2||0),
+    diskon3: parseInt(r.diskon3||0),
     kategori: r.kategori
   });
  });
@@ -159,10 +163,11 @@ fetch(apiURL)
  tampil();
 });
 
-// Hitung harga dengan diskon
+// Hitung harga
 function hitungHarga(p, qty){
  let harga = p.harga;
- if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ if(qty >= 100 && p.diskon3) harga = p.harga * (1 - p.diskon3/100);
+ else if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
  else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
@@ -175,7 +180,8 @@ function tampil(){
   let hargaFinal = hitungHarga(p, qty);
   let diskonText="";
   if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
-  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
+  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
+  if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
   html+=`
   <div class="card">
     <h4>${p.nama}</h4>
@@ -229,25 +235,21 @@ function hitungTotal(){
    count += qty;
  });
  document.getElementById("cartCount").innerText = count;
- document.getElementById("totalHarga").innerText = "Rp "+total.toLocaleString();
+ document.getElementById("totalHarga").innerText = `Barang: ${count} | Total: Rp ${total.toLocaleString()}`;
 }
 
 // Reset keranjang
 function resetCart(){ cart={}; simpan(); }
 
-// Checkout WA
+// Checkout WA: hanya nama + jumlah
 function checkout(){
  let text="Halo, saya mau order:\n\n";
- let total=0;
  produkList.forEach(p=>{
    let q=cart[p.id];
    if(q>0){
-     let harga = hitungHarga(p,q);
-     text += `${p.nama} x${q} = Rp ${(q*harga).toLocaleString()}\n`;
-     total += q*harga;
+     text += `${p.nama} x${q}\n`;
    }
  });
- text += `\nTotal: Rp ${total.toLocaleString()}`;
  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
 }
 
@@ -258,20 +260,19 @@ function loginAdmin(){
  else alert("Password salah!");
 }
 
-// Tampilkan admin panel
+// Admin panel
 function tampilAdmin(){
  let html="";
  produkList.forEach(p=>{
    html+=`<div>${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
    Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
-   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)"></div>`;
+   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)">
+   Diskon100: <input type="number" value="${p.diskon3}" onchange="ubahAdmin(${p.id},'diskon3',this.value)"></div>`;
  });
  document.getElementById("adminContent").innerHTML = html;
 }
 
-// Ubah data admin
 function ubahAdmin(id,field,val){ produkList[id][field] = parseInt(val)||0; tampil(); }
 </script>
-
 </body>
 </html>
