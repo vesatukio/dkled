@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
 <style>
-body{font-family:sans-serif;margin:0;background:#f9f9f9;padding-bottom:80px} /* ruang untuk footer */
+body{font-family:sans-serif;margin:0;background:#f9f9f9;padding-bottom:80px}
 header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.2em;font-weight:bold}
 
 /* Kategori */
@@ -21,16 +21,15 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 .qty button{width:30px;background:#ddd;border:none;border-radius:5px}
 .qty input{width:40px;text-align:center;border-radius:5px;border:1px solid #ccc}
 
-/* Total harga & jumlah produk mengambang */
+/* Floating total barang + harga */
 #floatingTotal {
   position: fixed;
-  top: 70px; /* di bawah header */
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 70px;
+  right: 10px;
   background: #fff;
   padding: 6px 12px;
   border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   font-weight: bold;
   z-index: 2;
   display: flex;
@@ -110,7 +109,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   <div id="adminContent"></div>
 </div>
 
-<!-- Total harga & jumlah keranjang mengambang -->
+<!-- Floating total harga & barang -->
 <div id="floatingTotal">
   <span id="cartCount">0</span> Barang
   <span id="totalHarga">Rp 0</span>
@@ -241,7 +240,7 @@ function hitungTotal(){
 // Reset keranjang
 function resetCart(){ cart={}; simpan(); }
 
-// Checkout WA: hanya nama + jumlah
+// Checkout WA: nama + jumlah
 function checkout(){
  let text="Halo, saya mau order:\n\n";
  produkList.forEach(p=>{
