@@ -22,14 +22,83 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 .qty input{width:40px;text-align:center;border-radius:5px;border:1px solid #ccc}
 
 /* Footer horizontal */
-.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 5px rgba(0,0,0,.1);display:flex;justify-content:space-around;align-items:center;padding:5px 0}
-.footer button{background:#4caf50;color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5em;display:flex;justify-content:center;align-items:center}
-.footer .reset{background:#f44336}
-.footer .admin{background:#555}
-#cartCount{position:absolute;top:-5px;right:-5px;background:red;color:white;font-size:0.8em;width:18px;height:18px;display:flex;justify-content:center;align-items:center;border-radius:50%}
-#totalHarga{font-size:0.9em;color:#000;font-weight:bold;text-align:center;width:100px}
-.admin-panel{display:none;padding:10px;background:#ffecb3;border-radius:10px;margin:10px}
-.admin-panel input{width:50px;margin:0 5px}
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 -2px 5px rgba(0,0,0,.1);
+  display: flex;
+  justify-content: space-around;  /* rata horizontal */
+  align-items: center;
+  padding: 5px 0;
+}
+
+/* Container tiap ikon tombol */
+.footer > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative; /* untuk cartCount absolute */
+}
+
+/* Tombol ikon footer */
+.footer button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Warna tombol reset dan admin */
+.footer .reset { background: #f44336; }
+.footer .admin { background: #555; }
+
+/* Jumlah keranjang muncul di pojok kanan atas ikon */
+#cartCount {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: red;
+  color: white;
+  font-size: 0.8em;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+/* Total harga di tengah sejajar horizontal */
+#totalHarga {
+  font-size: 0.9em;
+  color: #000;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 80px; /* supaya tidak terlalu kecil */
+}
+
+/* Admin panel */
+.admin-panel {
+  display: none;
+  padding: 10px;
+  background: #ffecb3;
+  border-radius: 10px;
+  margin: 10px;
+}
+.admin-panel input { width: 50px; margin: 0 5px; }
 </style>
 </head>
 <body>
@@ -40,25 +109,33 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <div id="produk"></div>
 
 <div class="footer">
+  <!-- Keranjang -->
   <div style="text-align:center;position:relative;">
-    <button onclick="checkout()">🛒</button>
-    <span id="cartCount">0</span>
-    <div style="font-size:10px;">Keranjang</div>
+    <button onclick="checkout()" style="position:relative;display:flex;justify-content:center;align-items:center;">🛒</button>
+    <!-- Jumlah produk muncul di pojok kanan atas ikon -->
+    <span id="cartCount" style="position:absolute;top:-5px;right:-5px;
+          background:red;color:white;font-size:0.8em;width:18px;height:18px;
+          display:flex;justify-content:center;align-items:center;border-radius:50%">0</span>
+    <div style="font-size:10px;margin-top:2px;">Keranjang</div>
   </div>
-  <div id="totalHarga">Rp 0</div>
+
+  <!-- Total Harga -->
+  <div id="totalHarga" style="font-size:0.9em;color:#000;font-weight:bold;
+        display:flex;align-items:center;justify-content:center;">
+    Rp 0
+  </div>
+
+  <!-- Reset -->
   <div style="text-align:center;">
     <button class="reset" onclick="resetCart()">🔄</button>
     <div style="font-size:10px;">Reset</div>
   </div>
+
+  <!-- Admin -->
   <div style="text-align:center;">
     <button class="admin" onclick="loginAdmin()">⚙️</button>
     <div style="font-size:10px;">Admin</div>
   </div>
-</div>
-
-<div class="admin-panel" id="adminPanel">
-  <h4>Admin Panel</h4>
-  <div id="adminContent"></div>
 </div>
 
 <script>
