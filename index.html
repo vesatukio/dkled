@@ -4,89 +4,143 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Duta Terang LED</title>
-
 <style>
-body{font-family:sans-serif;margin:0;background:#f5f5f5}
-header{background:#111;color:#fff;padding:10px;text-align:center}
-
+body{
+  font-family:sans-serif;
+  margin:0;
+  background:#f9f9f9;
+}
+header{
+  background:#00bcd4;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-size:1.2em;
+  font-weight:bold;
+}
+#kategori{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  padding:10px;
+}
+#kategori button{
+  background:#00e5ff;
+  border:none;
+  border-radius:20px;
+  padding:5px 10px;
+  font-size:0.9em;
+}
 #produk{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-gap:10px;
-padding:10px
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:10px;
+  padding:10px;
 }
-
 .card{
-background:#fff;
-border-radius:10px;
-padding:10px;
-box-shadow:0 2px 5px rgba(0,0,0,.1)
+  background:#fff;
+  border-radius:10px;
+  padding:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
 }
-
-.harga{color:red;font-weight:bold}
-
+.card h4{
+  margin:0 0 5px 0;
+  font-size:1em;
+}
+.harga{
+  color:#e91e63;
+  font-weight:bold;
+}
 .qty{
-display:flex;
-gap:5px;
-margin-top:5px
+  display:flex;
+  gap:5px;
+  margin-top:5px;
 }
-
 .qty button{
-width:30px;
-background:#ddd;
-border:none;
+  width:30px;
+  background:#ddd;
+  border:none;
+  border-radius:5px;
 }
-
 .qty input{
-width:40px;
-text-align:center;
+  width:40px;
+  text-align:center;
+  border-radius:5px;
+  border:1px solid #ccc;
 }
-
 .footer{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#fff;
-padding:10px;
-box-shadow:0 -2px 5px rgba(0,0,0,.1)
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  padding:10px;
+  box-shadow:0 -2px 5px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
+  gap:5px;
 }
-
-button{
-background:#25D366;
-color:white;
-border:none;
-padding:10px;
-width:100%;
-border-radius:5px;
+.footer button{
+  background:#4caf50;
+  color:white;
+  border:none;
+  padding:10px;
+  width:100%;
+  border-radius:5px;
+  font-size:1em;
+}
+.footer button.reset{
+  background:#f44336;
+}
+.footer button.admin{
+  background:#555;
+}
+#cartCount{
+  position:absolute;
+  top:-5px;
+  right:-5px;
+  background:red;
+  color:white;
+  font-size:0.8em;
+  width:18px;
+  height:18px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:50%;
+}
+.admin-panel{
+  display:none;
+  padding:10px;
+  background:#ffecb3;
+  border-radius:10px;
+  margin:10px;
+}
+.admin-panel input{
+  width:50px;
+  margin:0 5px;
 }
 </style>
 </head>
-
 <body>
 
-<header><h2>Duta Terang LED</h2></header>
-<div id="kategori" style="padding:10px"></div>
+<header>Duta Terang LED</header>
+<div id="kategori"></div>
 <div id="produk"></div>
 
 <div class="footer">
-<div id="total">Total: Rp 0</div>
-<button onclick="checkout()">Checkout WhatsApp</button>
-<button onclick="resetCart()" style="background:red;margin-top:5px">Reset Keranjang</button>
- <button onclick="loginAdmin()" style="background:#333;margin-top:5px">
-Admin
-</button>
+  <div id="total">Total: Rp 0</div>
+  <button onclick="checkout()">Checkout WhatsApp <span id="cartCount">0</span></button>
+  <button class="reset" onclick="resetCart()">Reset Keranjang</button>
+  <button class="admin" onclick="loginAdmin()">Admin</button>
+</div>
 
-<script>
-function loginAdmin(){
- let pass = prompt("Password Admin:");
- if(pass === "12345"){
-   window.open("admin.html");
- }else{
-   alert("Salah!");
- }
-}
-</script>
+<div class="admin-panel" id="adminPanel">
+  <h4>Admin Panel</h4>
+  <div id="adminContent"></div>
 </div>
 
 <script>
@@ -96,158 +150,162 @@ const noWA = "6288224166270";
 let produkList = [];
 let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
+// Ambil data Google Sheet
 fetch(apiURL)
 .then(res=>res.json())
 .then(data=>{
- let rows=data.data||data;
-
- rows.forEach(r=>{
+ let rows = data.data || data;
+ rows.forEach((r,i)=>{
   produkList.push({
-    nama:r.nama,
-    harga:parseInt(r.harga),
-    diskon1:parseInt(r.diskon1||0),
-    diskon2:parseInt(r.diskon2||0),
-    kategori:r.kategori
+    id: i,
+    nama: r.nama,
+    harga: parseInt(r.harga),
+    diskon1: parseInt(r.diskon1||0),
+    diskon2: parseInt(r.diskon2||0),
+    kategori: r.kategori
   });
  });
-
  tampilKategori();
  tampil();
 });
 
+// Hitung harga dengan diskon
 function hitungHarga(p, qty){
  let harga = p.harga;
-
- if(qty >= 50 && p.diskon2){
-   harga = p.harga - (p.harga * p.diskon2 / 100);
- } else if(qty >= 10 && p.diskon1){
-   harga = p.harga - (p.harga * p.diskon1 / 100);
- }
-
+ if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
 
+// Tampilkan semua produk
 function tampil(){
  let html="";
-
- produkList.forEach((p,i)=>{
-
- let qty = cart[i] || 0;
- let hargaFinal = hitungHarga(p, qty);
-
- html+=`
- <div class="card">
-  <h4>${p.nama}</h4>
-
-  <div style="font-size:12px;color:#888">
-    Normal: Rp ${p.harga.toLocaleString()}
+ produkList.forEach((p)=>{
+  let qty = cart[p.id] || 0;
+  let hargaFinal = hitungHarga(p, qty);
+  html+=`
+  <div class="card">
+    <h4>${p.nama}</h4>
+    <div style="font-size:12px;color:#888">Normal: Rp ${p.harga.toLocaleString()}</div>
+    <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+    <small>10 pcs diskon ${p.diskon1 || 0}%<br>50 pcs diskon ${p.diskon2 || 0}%</small>
+    <div class="qty">
+      <button onclick="ubah(${p.id},-1)">-</button>
+      <input value="${qty}" onchange="manual(${p.id},this.value)">
+      <button onclick="ubah(${p.id},1)">+</button>
+    </div>
   </div>
-
-  <div class="harga">
-    Rp ${hargaFinal.toLocaleString()}
-  </div>
-
-  <small>
-    10 pcs diskon ${p.diskon1 || 0}%<br>
-    50 pcs diskon ${p.diskon2 || 0}%
-  </small>
-
-  <div class="qty">
-    <button onclick="ubah(${i},-1)">-</button>
-    <input value="${qty}" onchange="manual(${i},this.value)">
-    <button onclick="ubah(${i},1)">+</button>
-  </div>
- </div>
- `;
+  `;
  });
-
- document.getElementById("produk").innerHTML=html;
+ document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
 
+// Tampilkan kategori
 function tampilKategori(){
  let unik = [...new Set(produkList.map(p=>p.kategori))];
-
  let html = `<button onclick="filter('')">Semua</button>`;
-
  unik.forEach(k=>{
    html += `<button onclick="filter('${k}')">${k}</button>`;
  });
-
  document.getElementById("kategori").innerHTML = html;
 }
 
 function filter(k){
  if(!k) tampil();
- else tampilFilter(k);
+ else {
+   let data = produkList.filter(p=>p.kategori==k);
+   let html="";
+   data.forEach(p=>{
+     let qty = cart[p.id] || 0;
+     let hargaFinal = hitungHarga(p, qty);
+     html+=`
+     <div class="card">
+       <h4>${p.nama}</h4>
+       <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
+     </div>`;
+   });
+   document.getElementById("produk").innerHTML = html;
+ }
 }
 
-function tampilFilter(kat){
- let data = produkList.filter(p=>p.kategori==kat);
-
- let html="";
- data.forEach((p,i)=>{
- let qty = cart[i] || 0;
- let hargaFinal = hitungHarga(p, qty);
-
- html+=`
- <div class="card">
-  <h4>${p.nama}</h4>
-  <div class="harga">Rp ${hargaFinal.toLocaleString()}</div>
- </div>
- `;
- });
-
- document.getElementById("produk").innerHTML=html;
+// Ubah jumlah produk
+function ubah(id,val){
+ cart[id]=(cart[id]||0)+val;
+ if(cart[id]<0) cart[id]=0;
+ simpan();
 }
-
-function ubah(i,val){
- cart[i]=(cart[i]||0)+val;
- if(cart[i]<0) cart[i]=0;
+function manual(id,val){
+ cart[id]=parseInt(val)||0;
  simpan();
 }
 
-function manual(i,val){
- cart[i]=parseInt(val)||0;
- simpan();
-}
-
+// Simpan ke localStorage
 function simpan(){
  localStorage.setItem("cart",JSON.stringify(cart));
  tampil();
 }
 
+// Hitung total dan tampilkan jumlah di keranjang
 function hitungTotal(){
- let total=0;
-
- produkList.forEach((p,i)=>{
-  let qty = cart[i]||0;
-  let harga = hitungHarga(p, qty);
-  total += qty * harga;
+ let total=0, count=0;
+ produkList.forEach(p=>{
+   let qty = cart[p.id]||0;
+   total += qty * hitungHarga(p,qty);
+   count += qty;
  });
-
- document.getElementById("total").innerText =
- "Total: Rp " + total.toLocaleString();
+ document.getElementById("total").innerText = "Total: Rp " + total.toLocaleString();
+ document.getElementById("cartCount").innerText = count;
 }
 
+// Reset keranjang
+function resetCart(){
+ cart={};
+ simpan();
+}
+
+// Checkout ke WA
 function checkout(){
  let text="Halo, saya mau order:\n\n";
  let total=0;
-
- produkList.forEach((p,i)=>{
-  let q=cart[i];
-  if(q>0){
-    let harga = hitungHarga(p,q);
-    text+=`${p.nama} x${q} = Rp ${(q*harga).toLocaleString()}\n`;
-    total+=q*harga;
-  }
+ produkList.forEach(p=>{
+   let q=cart[p.id];
+   if(q>0){
+     let harga = hitungHarga(p,q);
+     text += `${p.nama} x${q} = Rp ${(q*harga).toLocaleString()}\n`;
+     total += q*harga;
+   }
  });
-
- text+=`\nTotal: Rp ${total.toLocaleString()}`;
-
+ text += `\nTotal: Rp ${total.toLocaleString()}`;
  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
 }
-</script>
 
+// Login Admin
+function loginAdmin(){
+ let pass = prompt("Password Admin:");
+ if(pass === "12345"){
+   document.getElementById("adminPanel").style.display="block";
+   tampilAdmin();
+ } else alert("Password salah!");
+}
+
+// Tampilkan menu admin
+function tampilAdmin(){
+ let html="";
+ produkList.forEach(p=>{
+   html += `<div>
+     ${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
+     Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
+     Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)">
+   </div>`;
+ });
+ document.getElementById("adminContent").innerHTML = html;
+}
+
+function ubahAdmin(id,field,val){
+ produkList[id][field] = parseInt(val)||0;
+ tampil();
+}
+</script>
 </body>
 </html>
