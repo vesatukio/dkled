@@ -10,7 +10,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 
 /* Kategori */
 #kategori{display:flex;flex-wrap:wrap;gap:5px;padding:10px}
-#kategori button{background:#00e5ff;border:none;border-radius:20px;padding:5px 10px;font-size:0.9em}
+#kategori button{background:#00e5ff;border:none;border-radius:20px;padding:5px 10px;font-size:0.9em;cursor:pointer}
 
 /* Produk */
 #produk{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:10px}
@@ -18,16 +18,18 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 .card h4{margin:0 0 5px 0;font-size:1em}
 .harga{color:#e91e63;font-weight:bold}
 .qty{display:flex;gap:5px;margin-top:5px}
-.qty button{width:30px;background:#ddd;border:none;border-radius:5px}
+.qty button{width:30px;background:#ddd;border:none;border-radius:5px;cursor:pointer}
 .qty input{width:40px;text-align:center;border-radius:5px;border:1px solid #ccc}
 
 /* Footer horizontal */
 .footer{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 5px rgba(0,0,0,.1);display:flex;justify-content:space-around;align-items:center;padding:5px 0}
-.footer button{background:#4caf50;color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5em;display:flex;justify-content:center;align-items:center}
+.footer button{background:#4caf50;color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5em;display:flex;justify-content:center;align-items:center;cursor:pointer}
 .footer .reset{background:#f44336}
 .footer .admin{background:#555}
 #cartCount{position:absolute;top:-5px;right:-5px;background:red;color:white;font-size:0.8em;width:18px;height:18px;display:flex;justify-content:center;align-items:center;border-radius:50%}
 #totalHarga{font-size:0.9em;color:#000;font-weight:bold;text-align:center;width:100px}
+
+/* Admin panel */
 .admin-panel{display:none;padding:10px;background:#ffecb3;border-radius:10px;margin:10px}
 .admin-panel input{width:50px;margin:0 5px}
 </style>
@@ -57,7 +59,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 </div>
 
 <div class="admin-panel" id="adminPanel">
-  <h4>Admin Panel</h4>
+  <h4>Admin Panel - Ubah Diskon</h4>
   <div id="adminContent"></div>
 </div>
 
@@ -80,6 +82,7 @@ fetch(apiURL)
     harga: parseInt(r.harga),
     diskon1: parseInt(r.diskon1||0),
     diskon2: parseInt(r.diskon2||0),
+    diskon3: parseInt(r.diskon3||0),
     kategori: r.kategori
   });
  });
@@ -90,7 +93,8 @@ fetch(apiURL)
 // Hitung harga dengan diskon
 function hitungHarga(p, qty){
  let harga = p.harga;
- if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
+ if(qty >= 100 && p.diskon3) harga = p.harga * (1 - p.diskon3/100);
+ else if(qty >= 50 && p.diskon2) harga = p.harga * (1 - p.diskon2/100);
  else if(qty >= 10 && p.diskon1) harga = p.harga * (1 - p.diskon1/100);
  return Math.round(harga);
 }
@@ -102,10 +106,10 @@ function tampil(){
   let qty = cart[p.id]||0;
   let hargaFinal = hitungHarga(p, qty);
 
-  // Diskon hanya muncul kalau >0
   let diskonText="";
   if(p.diskon1) diskonText += `10 pcs diskon ${p.diskon1}%<br>`;
-  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%`;
+  if(p.diskon2) diskonText += `50 pcs diskon ${p.diskon2}%<br>`;
+  if(p.diskon3) diskonText += `100 pcs diskon ${p.diskon3}%`;
 
   html+=`
   <div class="card">
@@ -190,22 +194,41 @@ function checkout(){
 // Login Admin
 function loginAdmin(){
  let pass = prompt("Password Admin:");
- if(pass==="12345"){ document.getElementById("adminPanel").style.display="block"; tampilAdmin(); }
- else alert("Password salah!");
+ if(pass==="12345"){
+   if(produkList.length === 0){
+     alert("Data produk belum siap, tunggu sebentar.");
+     return;
+   }
+   document.getElementById("adminPanel").style.display="block";
+   tampilAdmin();
+ } else alert("Password salah!");
 }
 
-// Tampilkan admin panel
+// Tampilkan admin panel hanya untuk diskon
 function tampilAdmin(){
  let html="";
  produkList.forEach(p=>{
-   html+=`<div>${p.nama} | Harga: <input type="number" value="${p.harga}" onchange="ubahAdmin(${p.id},'harga',this.value)">
-   Diskon10: <input type="number" value="${p.diskon1}" onchange="ubahAdmin(${p.id},'diskon1',this.value)">
-   Diskon50: <input type="number" value="${p.diskon2}" onchange="ubahAdmin(${p.id},'diskon2',this.value)"></div>`;
+   html+=`
+   <div style="margin-bottom:8px; border-bottom:1px solid #ccc; padding-bottom:5px;">
+     <strong>${p.nama}</strong><br>
+     Diskon 10 pcs: <input type="number" value="${p.diskon1||0}" min="0" max="100"
+       onchange="ubahAdmin(${p.id}, 'diskon1', this.value)">
+     Diskon 50 pcs: <input type="number" value="${p.diskon2||0}" min="0" max="100"
+       onchange="ubahAdmin(${p.id}, 'diskon2', this.value)">
+     Diskon 100 pcs: <input type="number" value="${p.diskon3||0}" min="0" max="100"
+       onchange="ubahAdmin(${p.id}, 'diskon3', this.value)">
+   </div>`;
  });
  document.getElementById("adminContent").innerHTML = html;
 }
 
-function ubahAdmin(id,field,val){ produkList[id][field] = parseInt(val)||0; tampil(); }
+// Fungsi ubah diskon di admin
+function ubahAdmin(id, field, val){
+  produkList[id][field] = parseInt(val)||0;
+  tampil();
+  hitungTotal();
+}
 </script>
+
 </body>
 </html>
