@@ -100,9 +100,9 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
 <div class="footer">
+  <button class="keranjang" onclick="focusSearch()">🔍</button>
   <button class="keranjang" onclick="checkout()">🛒</button>
   <button class="reset" onclick="resetCart()">🔄</button>
-  <button class="admin" onclick="toggleAdmin()">⚙️</button>
 </div>
 
 <div class="admin-panel" id="adminPanel">
@@ -154,18 +154,31 @@ fetch(apiURL)
 // KATEGORI
 // =====================
 function buatKategori(){
- let kategori = ["MSL","RX","JS","FPL"];
+ let set = new Set();
+
+ produkList.forEach(p=>{
+  let nama = p.nama.toUpperCase();
+
+  // ambil kata unik dari nama
+  nama.split(" ").forEach(k=>{
+    if(k.length > 2 && isNaN(k)) { // buang angka & huruf pendek
+      set.add(k);
+    }
+  });
+ });
 
  let html="";
- kategori.forEach(m=>{
-  html+=`<button onclick="klikKategori('${m}')">${m}</button>`;
+ set.forEach(k=>{
+  html+=`<button onclick="klikKategori('${k}')">${k}</button>`;
  });
 
  document.getElementById("kategori").innerHTML = html;
 }
 
-function klikKategori(merk){
- let hasil = produkList.filter(p=>getMerk(p.nama)==merk);
+function klikKategori(kata){
+ let hasil = produkList.filter(p=>
+   p.nama.toUpperCase().includes(kata)
+ );
  tampil(hasil);
 }
 
@@ -318,11 +331,12 @@ function checkout(){
 }
 
 // =====================
-// ADMIN TOGGLE
+// TAMBAH DI SINI 👇
 // =====================
-function toggleAdmin(){
- let panel = document.getElementById("adminPanel");
- panel.style.display = panel.style.display=="block" ? "none":"block";
+function focusSearch(){
+ let s = document.getElementById("search");
+ s.focus();
+ s.select(); // langsung siap ketik ulang
 }
 </script>
 
