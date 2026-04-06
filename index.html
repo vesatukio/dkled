@@ -92,6 +92,9 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   >
 </div>
 
+<!-- KATEGORI -->
+<div id="kategori"></div>
+
 <div id="produk"></div>
 
 <div id="floatingTotal">0 Barang | Rp 0</div>
@@ -99,6 +102,12 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <div class="footer">
   <button class="keranjang" onclick="checkout()">🛒</button>
   <button class="reset" onclick="resetCart()">🔄</button>
+  <button class="admin" onclick="toggleAdmin()">⚙️</button>
+</div>
+
+<div class="admin-panel" id="adminPanel">
+  <b>Admin Panel</b><br>
+  (nanti bisa tambah edit produk disini)
 </div>
 
 <script>
@@ -108,10 +117,12 @@ const noWA = "6288224166270";
 let produkList = [];
 let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
+// LOAD DATA
 fetch(apiURL)
 .then(res=>res.json())
 .then(data=>{
  let rows = data.data || data;
+
  rows.forEach((r,i)=>{
   produkList.push({
     id:i,
@@ -119,31 +130,78 @@ fetch(apiURL)
     harga:+r.harga
   });
  });
- tampil(produkList);
+
+ buatKategori();
+ tampilKosong(); // awal kosong
 });
 
-// Cari
-function cari(text){
- text = text.toLowerCase();
- let hasil = produkList.filter(p=>p.nama.toLowerCase().includes(text));
+// =====================
+// KATEGORI
+// =====================
+function buatKategori(){
+ let kategoriSet = new Set();
+
+ produkList.forEach(p=>{
+  let w = (p.nama.match(/(\d+)/)||["lain"])[0];
+  kategoriSet.add(w);
+ });
+
+ let html="";
+ kategoriSet.forEach(k=>{
+  html+=`<button onclick="filterKategori('${k}')">${k}W</button>`;
+ });
+
+ document.getElementById("kategori").innerHTML = html;
+}
+
+function filterKategori(w){
+ let hasil = produkList.filter(p=>p.nama.includes(w));
  tampil(hasil);
 }
 
-// Tampilkan
+// =====================
+// SEARCH (FIX UTAMA)
+// =====================
+function cari(text){
+ text = text.toLowerCase().trim();
+
+ if(text===""){
+   tampilKosong();
+   return;
+ }
+
+ let hasil = produkList.filter(p=> 
+   p.nama.toLowerCase().includes(text)
+ );
+
+ tampil(hasil);
+}
+
+// =====================
+// TAMPIL
+// =====================
+function tampilKosong(){
+ document.getElementById("produk").innerHTML = 
+ "<p style='padding:10px;color:#888'>Ketik di atas untuk cari produk</p>";
+}
+
 function tampil(data){
  let html="";
 
- // grup per watt
+ if(data.length==0){
+   html="<p style='padding:10px'>Tidak ditemukan</p>";
+ }
+
+ // grup watt
  let grup={};
  data.forEach(p=>{
-  let w = (p.nama.match(/(\d+)/)||["0"])[0];
+  let w = (p.nama.match(/(\d+)/)||["lain"])[0];
   if(!grup[w]) grup[w]=[];
   grup[w].push(p);
  });
 
  Object.keys(grup).sort((a,b)=>a-b).forEach(w=>{
   let list = grup[w];
-
   let min = Math.min(...list.map(p=>p.harga));
 
   html += `<h3 style="padding:10px">${w} Watt</h3>`;
@@ -185,49 +243,70 @@ function tampil(data){
  hitungTotal();
 }
 
-// Cart
+// =====================
+// CART
+// =====================
 function ubah(id,val){
  cart[id]=(cart[id]||0)+val;
  if(cart[id]<0) cart[id]=0;
  simpan();
 }
+
 function manual(id,val){
  cart[id]=parseInt(val)||0;
  simpan();
 }
+
 function simpan(){
  localStorage.setItem("cart",JSON.stringify(cart));
  tampil(produkList);
 }
 
-// Total
+// =====================
+// TOTAL
+// =====================
 function hitungTotal(){
  let total=0,count=0;
+
  produkList.forEach(p=>{
   let q=cart[p.id]||0;
   total+=q*p.harga;
   count+=q;
  });
+
  document.getElementById("floatingTotal").innerText =
  `${count} Barang | Rp ${total.toLocaleString()}`;
 }
 
-// Reset
+// =====================
+// RESET
+// =====================
 function resetCart(){
  cart={};
  simpan();
 }
 
-// Checkout
+// =====================
+// CHECKOUT WA
+// =====================
 function checkout(){
  let text="Order:\n";
+
  produkList.forEach(p=>{
   let q=cart[p.id];
   if(q>0) text+=`${p.nama} x${q}\n`;
  });
+
  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
 }
 
+// =====================
+// ADMIN TOGGLE
+// =====================
+function toggleAdmin(){
+ let panel = document.getElementById("adminPanel");
+ panel.style.display = panel.style.display=="block" ? "none":"block";
+}
 </script>
 
 </body>
