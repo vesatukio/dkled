@@ -158,17 +158,16 @@ function buatKategori(){
  let set = new Set();
 
  produkList.forEach(p=>{
-  let nama = p.nama.toUpperCase();
+  let k = (p.kategori || "").trim();
 
-  // ambil kata unik dari nama
-  nama.split(" ").forEach(k=>{
-    if(k.length > 2 && isNaN(k)) { // buang angka & huruf pendek
-      set.add(k);
-    }
-  });
+  // hanya ambil kategori yang benar
+  if(k && !k.match(/[0-9]/)){
+    set.add(k);
+  }
  });
 
- let html="";
+ let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
+
  set.forEach(k=>{
   html+=`<button onclick="klikKategori('${k}')">${k}</button>`;
  });
@@ -176,10 +175,8 @@ function buatKategori(){
  document.getElementById("kategori").innerHTML = html;
 }
 
-function klikKategori(kata){
- let hasil = produkList.filter(p=>
-   p.nama.toUpperCase().includes(kata)
- );
+function klikKategori(kategori){
+ let hasil = produkList.filter(p=>p.kategori === kategori);
  tampil(hasil);
 }
 
