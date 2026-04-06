@@ -140,16 +140,17 @@ fetch(apiURL)
 
  rows.forEach((r,i)=>{
   produkList.push({
-    id:i,
-    nama:r.nama,
-    harga:+r.harga
+  id:i,
+  nama:r.nama,
+  harga:+r.harga,
+  kategori:(r.kategori || "").toUpperCase()
+
   });
  });
 
  buatKategori();
- tampilKosong(); // awal kosong
+ tampil(produkList);// ⬅️ ini yang bikin awal kosong
 });
-
 // =====================
 // KATEGORI
 // =====================
