@@ -113,7 +113,22 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <script>
 const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 const noWA = "6288224166270";
+// ===== WAJIB ADA =====
+function getWatt(nama){
+ let m = nama.match(/(\d+)/);
+ return m ? m[0] : "";
+}
 
+function getMerk(nama){
+ nama = nama.toUpperCase();
+
+ if(nama.includes("MSL")) return "MSL";
+ if(nama.includes("RX")) return "RX";
+ if(nama.includes("JS")) return "JS";
+ if(nama.includes("FPL")) return "FPL";
+
+ return "LAIN";
+}
 let produkList = [];
 let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
@@ -149,8 +164,8 @@ function buatKategori(){
  document.getElementById("kategori").innerHTML = html;
 }
 
-function filterKategori(w){
- let hasil = produkList.filter(p=>p.nama.includes(w));
+function klikKategori(merk){
+ let hasil = produkList.filter(p=>getMerk(p.nama)==merk);
  tampil(hasil);
 }
 
