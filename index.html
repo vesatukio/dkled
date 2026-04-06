@@ -139,16 +139,11 @@ fetch(apiURL)
 // KATEGORI
 // =====================
 function buatKategori(){
- let kategoriSet = new Set();
-
- produkList.forEach(p=>{
-  let w = (p.nama.match(/(\d+)/)||["lain"])[0];
-  kategoriSet.add(w);
- });
+ let kategori = ["MSL","RX","JS","FPL"];
 
  let html="";
- kategoriSet.forEach(k=>{
-  html+=`<button onclick="filterKategori('${k}')">${k}W</button>`;
+ kategori.forEach(m=>{
+  html+=`<button onclick="klikKategori('${m}')">${m}</button>`;
  });
 
  document.getElementById("kategori").innerHTML = html;
@@ -165,18 +160,25 @@ function filterKategori(w){
 function cari(text){
  text = text.toLowerCase().trim();
 
- if(text===""){
+ if(!text){
    tampilKosong();
    return;
  }
 
- let hasil = produkList.filter(p=> 
-   p.nama.toLowerCase().includes(text)
- );
+ let hasil = produkList.filter(p=>{
+   let nama = p.nama.toLowerCase();
+   let watt = getWatt(p.nama);
+   let merk = getMerk(p.nama).toLowerCase();
+
+   return (
+     nama.includes(text) ||
+     watt == text ||
+     merk == text
+   );
+ });
 
  tampil(hasil);
 }
-
 // =====================
 // TAMPIL
 // =====================
