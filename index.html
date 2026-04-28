@@ -276,12 +276,22 @@ function tampil(data){
  data.forEach(p=>{
    let qty = cart[p.id]||0;
 
-   let label = p.harga==min 
-     ? `<span class="termurah">TERMURAH</span>` 
-     : "";
+   let label = "";
+let perbandingan = data
+  .filter(x => x.id !== p.id)
+  .map(x => {
+    let sel = p.harga - x.harga;
+    let merk = getMerk(x.nama);
 
-   let selisih = p.harga - min;
-
+    if(sel > 0){
+      return `+Rp ${sel.toLocaleString()} (${merk})`;
+    } else {
+      return `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
+    }
+  })
+  .slice(0,3) // biar tidak kepanjangan (opsional)
+  .join(", ");
+   
    html+=`
    <div class="card">
      <h4>${p.nama} ${label}</h4>
@@ -289,11 +299,24 @@ function tampil(data){
      <div class="harga">
        Rp ${p.harga.toLocaleString()}
      </div>
+<div class="selisih">
+  Selisih: ${perbandingan}
+</div>
+     
+let perbandingan = data
+  .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
+  .map(x => {
+    let sel = p.harga - x.harga;
+    let merk = getMerk(x.nama);
 
-     <div class="selisih">
-       Selisih: Rp ${selisih.toLocaleString()}
-     </div>
-
+    if(sel > 0){
+      return `+Rp ${sel.toLocaleString()} (${merk})`;
+    } else {
+      return `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
+    }
+  })
+  .slice(0,3)
+  .join(", ");
      <div class="qty">
        <button onclick="ubah(${p.id},-1)">-</button>
        <input value="${qty}" onchange="manual(${p.id},this.value)">
