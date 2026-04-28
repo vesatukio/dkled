@@ -341,14 +341,35 @@ function resetCart(){
 // CHECKOUT WA
 // =====================
 function checkout(){
- let text="Order:\n";
+ let text = "Order:\n\n";
+ let total = 0;
+ let ada = false;
 
  produkList.forEach(p=>{
-  let q=cart[p.id];
-  if(q>0) text+=`${p.nama} x${q}\n`;
+  let q = cart[p.id];
+
+  if(q > 0){
+    ada = true;
+    let sub = q * p.harga;
+    total += sub;
+
+    text += `${p.nama} x ${q}\n`;
+  }
  });
 
- window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+ if(!ada){
+   alert("Belum ada pesanan");
+   return;
+ }
+
+ text += `\nTotal: Rp ${total.toLocaleString()}`;
+
+ // 🔥 PREVIEW DULU
+ let konfirmasi = confirm(text + "\n\nKirim ke WhatsApp?");
+
+ if(konfirmasi){
+   window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+ }
 }
 
 // =====================
