@@ -425,15 +425,7 @@ function focusSearch(){
  box.style.display = "block";
  box.innerHTML = html;
 }
-
- if(!ada){
-   html = "<span style='color:#888'>Belum ada pesanan</span>";
- }else{
-   html += `<br><b>Total: Rp ${total.toLocaleString()}</b>`;
- }
-
- document.getElementById("ringkasan").innerHTML = html;
-}
+ 
   function hitungTotal(){
  let total=0,count=0;
 
