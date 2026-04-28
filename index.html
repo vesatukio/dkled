@@ -233,10 +233,10 @@ function cari(text){
  text = text.toLowerCase().trim();
 
  if(!text){
-   currentData = [];
-   tampilKosong();
+   currentData = produkList;
+   tampil(currentData);
    return;
- }
+} }
 
  let hasil = produkList.filter(p=>{
    let nama = p.nama.toLowerCase();
@@ -268,55 +268,37 @@ function tampil(data){
    html="<p style='padding:10px'>Tidak ditemukan</p>";
  }
 
- // urutkan langsung berdasarkan harga termurah
  data.sort((a,b)=>a.harga-b.harga);
-
- let min = Math.min(...data.map(p=>p.harga));
 
  data.forEach(p=>{
    let qty = cart[p.id]||0;
 
-   let label = "";
-let perbandingan = data
-  .filter(x => x.id !== p.id)
-  .map(x => {
-    let sel = p.harga - x.harga;
-    let merk = getMerk(x.nama);
+   // ✅ PERBANDINGAN (fix)
+   let perbandingan = data
+     .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
+     .map(x => {
+       let sel = p.harga - x.harga;
+       let merk = getMerk(x.nama);
 
-    if(sel > 0){
-      return `+Rp ${sel.toLocaleString()} (${merk})`;
-    } else {
-      return `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
-    }
-  })
-  .slice(0,3) // biar tidak kepanjangan (opsional)
-  .join(", ");
-   
+       return sel > 0
+         ? `+Rp ${sel.toLocaleString()} (${merk})`
+         : `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
+     })
+     .slice(0,3)
+     .join(", ");
+
    html+=`
    <div class="card">
-     <h4>${p.nama} ${label}</h4>
+     <h4>${p.nama}</h4>
 
      <div class="harga">
        Rp ${p.harga.toLocaleString()}
      </div>
-<div class="selisih">
-  Selisih: ${perbandingan}
-</div>
-     
-let perbandingan = data
-  .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
-  .map(x => {
-    let sel = p.harga - x.harga;
-    let merk = getMerk(x.nama);
 
-    if(sel > 0){
-      return `+Rp ${sel.toLocaleString()} (${merk})`;
-    } else {
-      return `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
-    }
-  })
-  .slice(0,3)
-  .join(", ");
+     <div class="selisih">
+       Selisih: ${perbandingan || "-"}
+     </div>
+
      <div class="qty">
        <button onclick="ubah(${p.id},-1)">-</button>
        <input value="${qty}" onchange="manual(${p.id},this.value)">
