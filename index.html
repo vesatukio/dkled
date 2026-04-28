@@ -130,6 +130,7 @@ function getMerk(nama){
  return "LAIN";
 }
 let produkList = [];
+let currentData = []; // ✅ TAMBAH INI
 let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
 // LOAD DATA
@@ -149,7 +150,8 @@ fetch(apiURL)
  });
 
  buatKategori();
- tampil(produkList);// ⬅️ ini yang bikin awal kosong
+ currentData = produkList;
+tampil(currentData);// ⬅️ ini yang bikin awal kosong
 });
 // =====================
 // KATEGORI
@@ -176,8 +178,8 @@ function buatKategori(){
 }
 
 function klikKategori(kategori){
- let hasil = produkList.filter(p=>p.kategori === kategori);
- tampil(hasil);
+ currentData = produkList.filter(p=>p.kategori === kategori);
+ tampil(currentData);
 }
 
 // =====================
@@ -187,6 +189,7 @@ function cari(text){
  text = text.toLowerCase().trim();
 
  if(!text){
+   currentData = [];
    tampilKosong();
    return;
  }
@@ -203,7 +206,8 @@ function cari(text){
    );
  });
 
- tampil(hasil);
+ currentData = hasil;
+ tampil(currentData);
 }
 // =====================
 // TAMPIL
@@ -229,8 +233,14 @@ function tampil(data){
  });
 
  Object.keys(grup).sort((a,b)=>a-b).forEach(w=>{
-  let list = grup[w];
-  let min = Math.min(...list.map(p=>p.harga));
+ let list = grup[w];
+
+ // ✅ cek ada order atau tidak
+ let adaOrder = list.some(p => (cart[p.id]||0) > 0);
+
+ if(!adaOrder) return; // ⛔ sembunyikan watt kosong
+
+ let min = Math.min(...list.map(p=>p.harga));
 
   html += `<h3 style="padding:10px">${w} Watt</h3>`;
 
@@ -287,7 +297,7 @@ function manual(id,val){
 
 function simpan(){
  localStorage.setItem("cart",JSON.stringify(cart));
- tampil(produkList);
+ tampil(currentData); // ✅ tidak reset lagi
 }
 
 // =====================
