@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+  
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -267,29 +268,12 @@ function tampil(data){
    html="<p style='padding:10px'>Tidak ditemukan</p>";
  }
 
- // grup watt
- let grup={};
+ // urutkan langsung berdasarkan harga termurah
+ data.sort((a,b)=>a.harga-b.harga);
+
+ let min = Math.min(...data.map(p=>p.harga));
+
  data.forEach(p=>{
-  let w = (p.nama.match(/(\d+)/)||["lain"])[0];
-  if(!grup[w]) grup[w]=[];
-  grup[w].push(p);
- });
-
- Object.keys(grup).sort((a,b)=>a-b).forEach(w=>{
- let list = grup[w];
-
- // ✅ cek ada order atau tidak
- let adaOrder = list.some(p => (cart[p.id]||0) > 0);
-
- 
-
- let min = Math.min(...list.map(p=>p.harga));
-
-  html += `<h3 style="padding:10px">${w} Watt</h3>`;
-
-  list.sort((a,b)=>a.harga-b.harga);
-
-  list.forEach(p=>{
    let qty = cart[p.id]||0;
 
    let label = p.harga==min 
@@ -316,14 +300,11 @@ function tampil(data){
        <button onclick="ubah(${p.id},1)">+</button>
      </div>
    </div>`;
-  });
-
  });
 
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
-
 // =====================
 // CART
 // =====================
