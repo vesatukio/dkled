@@ -140,7 +140,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <div id="kategori"></div>
 
 <div id="produk"></div>
-
+<div id="ringkasan" style="padding:10px"></div>
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
 <div class="footer">
@@ -374,6 +374,45 @@ function focusSearch(){
  let s = document.getElementById("search");
  s.focus();
  s.select(); // langsung siap ketik ulang
+}
+  function tampilRingkasan(){
+ let html = "<b>🧾 Ringkasan:</b><br>";
+ let total = 0;
+ let ada = false;
+
+ produkList.forEach(p=>{
+   let q = cart[p.id] || 0;
+
+   if(q > 0){
+     let sub = q * p.harga;
+     total += sub;
+     ada = true;
+
+     html += `- ${p.nama} x${q} = Rp ${sub.toLocaleString()}<br>`;
+   }
+ });
+
+ if(!ada){
+   html = "<span style='color:#888'>Belum ada pesanan</span>";
+ }else{
+   html += `<br><b>Total: Rp ${total.toLocaleString()}</b>`;
+ }
+
+ document.getElementById("ringkasan").innerHTML = html;
+}
+  function hitungTotal(){
+ let total=0,count=0;
+
+ produkList.forEach(p=>{
+  let q=cart[p.id]||0;
+  total+=q*p.harga;
+  count+=q;
+ });
+
+ document.getElementById("floatingTotal").innerText =
+ `${count} Barang | Rp ${total.toLocaleString()}`;
+
+ tampilRingkasan(); // ✅ TAMBAH INI
 }
 </script>
 
