@@ -201,42 +201,43 @@ header{
 
 <!-- SCRIPT -->
 <script>
+/* ===================== CONFIG ===================== */
 const apiURL = "https://script.google.com/macros/s/AKfycbyfV-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 const noWA = "6288224166270";
 
+/* ===================== STATE ===================== */
 let produkList = [];
 let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 
+/* ===================== FORMAT ===================== */
+const formatRupiah = (n) =>
+  new Intl.NumberFormat("id-ID").format(n || 0);
+
 /* ===================== LOAD DATA ===================== */
 fetch(apiURL)
-.then(r => r.json())
-.then(d => {
-  let rows = d.data || d;
+.then(res => res.json())
+.then(data => {
+  const rows = data.data || data;
 
-  rows.forEach((r, i) => {
-    produkList.push({
-      id: i,
-      nama: r.nama,
-      harga: Number(r.harga),
-      kategori: (r.kategori || "").toUpperCase(),
-      gambar: r.gambar || "https://via.placeholder.com/150"
-    });
-  });
+  produkList = rows.map((r, i) => ({
+    id: i,
+    nama: r.nama || "-",
+    harga: Number(r.harga) || 0,
+    kategori: (r.kategori || "").toUpperCase(),
+    gambar: r.gambar || "https://via.placeholder.com/150"
+  }));
 
-  buatKategori();
   currentData = produkList;
-  tampil(currentData);
+
+  renderKategori();
+  renderProduk(currentData);
 })
-.catch(err => console.log("API ERROR", err));
+.catch(err => console.log("API ERROR:", err));
 
 /* ===================== KATEGORI ===================== */
-function buatKategori(){
-  let set = new Set();
-
-  produkList.forEach(p => {
-    if(p.kategori) set.add(p.kategori);
-  });
+function renderKategori(){
+  const set = new Set(produkList.map(p => p.kategori).filter(Boolean));
 
   let html = `<button onclick="filterAll()">SEMUA</button>`;
 
@@ -248,65 +249,66 @@ function buatKategori(){
 }
 
 function filterAll(){
-  currentData = produkList;
-  tampil(currentData);
+  renderProduk(produkList);
 }
 
 function filterKategori(k){
-  currentData = produkList.filter(p => p.kategori === k);
-  tampil(currentData);
+  renderProduk(produkList.filter(p => p.kategori === k));
 }
 
 /* ===================== SEARCH ===================== */
 function cari(t){
-  t = t.toLowerCase();
-  currentData = produkList.filter(p =>
-    p.nama.toLowerCase().includes(t)
+  const key = t.toLowerCase().trim();
+
+  renderProduk(
+    produkList.filter(p =>
+      p.nama.toLowerCase().includes(key)
+    )
   );
-  tampil(currentData);
 }
 
-/* ===================== TAMPIL ===================== */
-function tampil(data){
-  let html = "";
+/* ===================== RENDER PRODUK ===================== */
+function renderProduk(data){
+  currentData = data;
 
   data.sort((a,b) => a.harga - b.harga);
 
-  data.forEach(p => {
+  let html = data.map(p => {
     let q = cart[p.id] || 0;
 
-    html += `
+    return `
     <div class="card">
       <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'">
       <h4>${p.nama}</h4>
-      <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+      <div class="harga">Rp ${formatRupiah(p.harga)}</div>
       <div class="qty">
         <button onclick="ubah(${p.id},-1)">-</button>
         <input value="${q}" onchange="manual(${p.id},this.value)">
         <button onclick="ubah(${p.id},1)">+</button>
       </div>
     </div>`;
-  });
+  }).join("");
 
   document.getElementById("produk").innerHTML = html;
+
   hitungTotal();
 }
 
 /* ===================== CART ===================== */
-function ubah(id,v){
-  cart[id] = (cart[id] || 0) + v;
+function ubah(id, val){
+  cart[id] = (cart[id] || 0) + val;
   if(cart[id] < 0) cart[id] = 0;
   simpan();
 }
 
-function manual(id,v){
-  cart[id] = parseInt(v) || 0;
+function manual(id, val){
+  cart[id] = parseInt(val) || 0;
   simpan();
 }
 
 function simpan(){
   localStorage.setItem("cart", JSON.stringify(cart));
-  tampil(currentData);
+  renderProduk(currentData);
 }
 
 /* ===================== TOTAL ===================== */
@@ -320,10 +322,8 @@ function hitungTotal(){
     count += q;
   });
 
-  const format = new Intl.NumberFormat('id-ID');
-
   document.getElementById("floatingTotal").innerHTML =
-    `${count} Barang | Rp ${format.format(total)}`;
+    `${count} Barang | Rp ${formatRupiah(total)}`;
 }
 
 /* ===================== RESET ===================== */
@@ -353,7 +353,7 @@ function checkout(){
     return;
   }
 
-  text += `\nTotal: Rp ${total.toLocaleString()}`;
+  text += `\nTotal: Rp ${formatRupiah(total)}`;
 
   window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
 }
