@@ -82,11 +82,6 @@ header{
   margin:4px 0;
 }
 
-.selisih{
-  font-size:11px;
-  color:#666;
-}
-
 .qty{
   display:flex;
   justify-content:center;
@@ -100,6 +95,11 @@ header{
   border:none;
   border-radius:6px;
   background:#eee;
+}
+
+.qty input{
+  width:40px;
+  text-align:center;
 }
 
 /* FLOAT */
@@ -149,7 +149,7 @@ header{
 </div>
 
 <div id="kategori"></div>
-<div id="produk"></div>
+<div id="produk">Loading produk...</div>
 
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
@@ -160,7 +160,7 @@ header{
 </div>
 
 <script>
-const apiURL = "https://script.google.com/macros/s/AKfycbyfV-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
+const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 const noWA = "6288224166270";
 
 let produkList = [];
@@ -169,37 +169,38 @@ let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 
 /* LOAD DATA */
 fetch(apiURL)
-.then(res=>res.json())
-.then(data=>{
-  let rows = data.data || data || [];
+.then(res => res.json())
+.then(res => {
+  let rows = res.data || [];
 
-  produkList = rows.map((r,i)=>({
-    id:i,
-    nama:r.nama,
-    harga:+r.harga,
-    kategori:(r.kategori||"").toUpperCase().trim(),
-    gambar:r.gambar
+  produkList = rows.map(r => ({
+    id: r.id, // PENTING: pakai ID asli
+    nama: r.nama,
+    harga: Number(r.harga) || 0,
+    kategori: (r.kategori || "").toUpperCase().trim(),
+    gambar: r.gambar || "https://via.placeholder.com/150"
   }));
 
   buatKategori();
   currentData = produkList;
   tampil(currentData);
 })
-.catch(err=>{
+.catch(err => {
   console.error(err);
+  document.getElementById("produk").innerHTML = "Gagal load data";
 });
 
 /* KATEGORI */
 function buatKategori(){
   let set = new Set();
 
-  produkList.forEach(p=>{
+  produkList.forEach(p => {
     if(p.kategori) set.add(p.kategori);
   });
 
   let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
 
-  set.forEach(k=>{
+  set.forEach(k => {
     html += `<button onclick="klikKategori('${k}')">${k}</button>`;
   });
 
@@ -207,9 +208,7 @@ function buatKategori(){
 }
 
 function klikKategori(k){
-  currentData = produkList.filter(p =>
-    (p.kategori || "").toUpperCase().trim() === k.toUpperCase().trim()
-  );
+  currentData = produkList.filter(p => p.kategori === k);
   tampil(currentData);
 }
 
@@ -232,20 +231,19 @@ function cari(text){
 
 /* TAMPIL */
 function tampil(data){
-  if(!data || data.length === 0){
-    document.getElementById("produk").innerHTML =
-      "<p style='padding:10px'>Produk tidak ditemukan</p>";
+  if(!data.length){
+    document.getElementById("produk").innerHTML = "Produk tidak ditemukan";
     return;
   }
 
   let html = "";
 
-  data.forEach(p=>{
+  data.forEach(p => {
     let qty = cart[p.id] || 0;
 
     html += `
     <div class="card">
-      <img src="${p.gambar}" onerror="this.style.display='none'">
+      <img src="${p.gambar}">
       <h4>${p.nama}</h4>
       <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 
@@ -263,39 +261,39 @@ function tampil(data){
 
 /* CART */
 function ubah(id,val){
-  cart[id]=(cart[id]||0)+val;
-  if(cart[id]<0) cart[id]=0;
+  cart[id] = (cart[id] || 0) + val;
+  if(cart[id] < 0) cart[id] = 0;
   simpan();
 }
 
 function manual(id,val){
-  cart[id]=parseInt(val)||0;
+  cart[id] = parseInt(val) || 0;
   simpan();
 }
 
 function simpan(){
-  localStorage.setItem("cart",JSON.stringify(cart));
+  localStorage.setItem("cart", JSON.stringify(cart));
   tampil(currentData);
 }
 
 /* RESET */
 function resetCart(){
-  cart={};
+  cart = {};
   simpan();
 }
 
 /* CHECKOUT */
 function checkout(){
-  let text="Order:\n\n";
-  let total=0;
-  let ada=false;
+  let text = "Order:\n\n";
+  let total = 0;
+  let ada = false;
 
-  produkList.forEach(p=>{
-    let q=cart[p.id];
-    if(q>0){
-      ada=true;
-      total+=q*p.harga;
-      text+=`${p.nama} x ${q}\n`;
+  produkList.forEach(p => {
+    let q = cart[p.id] || 0;
+    if(q > 0){
+      ada = true;
+      total += q * p.harga;
+      text += `${p.nama} x ${q}\n`;
     }
   });
 
@@ -304,9 +302,9 @@ function checkout(){
     return;
   }
 
-  text+=`\nTotal: Rp ${total.toLocaleString()}`;
+  text += `\nTotal: Rp ${total.toLocaleString()}`;
 
-  if(confirm(text+"\n\nKirim WhatsApp?")){
+  if(confirm(text + "\n\nKirim WhatsApp?")){
     window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
   }
 }
@@ -317,12 +315,13 @@ function focusSearch(){
 }
 
 function hitungTotal(){
-  let total=0, count=0;
+  let total = 0;
+  let count = 0;
 
-  produkList.forEach(p=>{
-    let q=cart[p.id]||0;
-    total+=q*p.harga;
-    count+=q;
+  produkList.forEach(p => {
+    let q = cart[p.id] || 0;
+    total += q * p.harga;
+    count += q;
   });
 
   document.getElementById("floatingTotal").innerText =
