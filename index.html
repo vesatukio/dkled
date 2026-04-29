@@ -11,8 +11,9 @@ body{
   font-family:sans-serif;
   margin:0;
   background:#f9f9f9;
-  padding-bottom:90px;
+  padding-bottom:100px;
 }
+
 header{
   background:#00bcd4;
   color:#fff;
@@ -125,7 +126,7 @@ header{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.5);
-  z-index:9999;
+  z-index:99999;
 }
 
 .modal-box{
@@ -142,9 +143,19 @@ header{
 .item-order{
   display:flex;
   justify-content:space-between;
-  padding:5px 0;
+  padding:6px 0;
   border-bottom:1px solid #eee;
+  font-size:14px;
 }
+
+.empty{
+  text-align:center;
+  color:#888;
+  padding:10px;
+}
+
+/* HILANGKAN ADMIN PANEL */
+.admin-panel{display:none;}
 </style>
 </head>
 <body>
@@ -166,16 +177,16 @@ header{
 <button class="reset" onclick="resetCart()">🔄</button>
 </div>
 
-<!-- MODAL CHECKOUT -->
+<!-- MODAL -->
 <div id="modalCheckout">
   <div class="modal-box">
-    <h3>Ringkasan Order</h3>
-    <div id="isiOrder"></div>
+    <h3>Daftar Keranjang</h3>
+    <div id="isiOrder" class="empty">Keranjang masih kosong</div>
     <div id="totalOrder" style="margin-top:10px;font-weight:bold"></div>
 
     <div style="display:flex;gap:10px;margin-top:15px">
       <button onclick="kirimWA()" style="flex:1;padding:10px;background:#4caf50;color:#fff;border:none;border-radius:8px">Kirim WA</button>
-      <button onclick="tutupModal()" style="flex:1;padding:10px;background:#f44336;color:#fff;border:none;border-radius:8px">Batal</button>
+      <button onclick="tutupModal()" style="flex:1;padding:10px;background:#f44336;color:#fff;border:none;border-radius:8px">Tutup</button>
     </div>
   </div>
 </div>
@@ -213,12 +224,10 @@ fetch(apiURL)
 
 function buatKategori(){
   let set=new Set();
-  produkList.forEach(p=>{if(p.kategori) set.add(p.kategori)});
+  produkList.forEach(p=>set.add(p.kategori));
 
   let html=`<button onclick="filterAll()">SEMUA</button>`;
-  set.forEach(k=>{
-    html+=`<button onclick="filterKategori('${k}')">${k}</button>`;
-  });
+  set.forEach(k=>html+=`<button onclick="filterKategori('${k}')">${k}</button>`);
   document.getElementById("kategori").innerHTML=html;
 }
 
@@ -292,6 +301,7 @@ function checkout(){
 
   produkList.forEach(p=>{
     let q=cart[p.id]||0;
+
     if(q>0){
       ada=true;
       html+=`<div class='item-order'>${p.nama} x ${q}<span>Rp ${(p.harga*q).toLocaleString()}</span></div>`;
@@ -300,7 +310,12 @@ function checkout(){
     }
   });
 
-  if(!ada){alert("Keranjang kosong");return;}
+  if(!ada){
+    document.getElementById("isiOrder").innerHTML="<div class='empty'>Keranjang masih kosong</div>";
+    document.getElementById("totalOrder").innerText="";
+    document.getElementById("modalCheckout").style.display="block";
+    return;
+  }
 
   tempText=text;
   tempTotal=total;
