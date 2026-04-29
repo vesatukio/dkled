@@ -183,37 +183,25 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 const noWA = "6288224166270";
 
-function getWatt(nama){
- let m = nama.match(/(\d+)/);
- return m ? m[0] : "";
-}
-
-function getMerk(nama){
- nama = nama.toUpperCase();
- if(nama.includes("MSL")) return "MSL";
- if(nama.includes("RX")) return "RX";
- if(nama.includes("JS")) return "JS";
- if(nama.includes("FPL")) return "FPL";
- return "LAIN";
-}
-
 let produkList = [];
 let currentData = [];
-let cart = JSON.parse(localStorage.getItem("cart")||"{}");
+let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 
+// =====================
 // LOAD DATA
+// =====================
 fetch(apiURL)
-.then(res=>res.json())
-.then(data=>{
- let rows = data.data || data;
+.then(r => r.json())
+.then(d => {
+ let rows = d.data || d;
 
- rows.forEach((r,i)=>{
+ rows.forEach((r, i) => {
   produkList.push({
-   id:i,
-   nama:r.nama,
-   harga:+r.harga,
-   kategori:(r.kategori || "").toUpperCase(),
-   gambar:r.gambar || "https://i.imgur.com/rx12w.webp"
+   id: i,
+   nama: r.nama,
+   harga: Number(r.harga),
+   kategori: (r.kategori || "").toUpperCase(),
+   gambar: r.gambar || "https://i.imgur.com/rx12w.webp"
   });
  });
 
@@ -228,62 +216,52 @@ fetch(apiURL)
 function buatKategori(){
  let set = new Set();
 
- produkList.forEach(p=>{
-  let k = (p.kategori || "").trim();
-  if(k && !k.match(/[0-9]/)) set.add(k);
+ produkList.forEach(p => {
+  if(p.kategori) set.add(p.kategori);
  });
 
- let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
+ let html = `<button onclick="filterAll()">SEMUA</button>`;
 
- set.forEach(k=>{
-  html += `<button onclick="klikKategori('${k}')">${k}</button>`;
+ set.forEach(k => {
+  html += `<button onclick="filterKategori('${k}')">${k}</button>`;
  });
 
  document.getElementById("kategori").innerHTML = html;
 }
 
-function klikKategori(kategori){
- currentData = produkList.filter(p=>p.kategori === kategori);
+function filterAll(){
+ currentData = produkList;
+ tampil(currentData);
+}
+
+function filterKategori(k){
+ currentData = produkList.filter(p => p.kategori === k);
  tampil(currentData);
 }
 
 // =====================
 // SEARCH
 // =====================
-function cari(text){
- text = text.toLowerCase().trim();
+function cari(t){
+ t = t.toLowerCase().trim();
 
- if(!text){
-  currentData = produkList;
-  tampil(currentData);
-  return;
- }
-
- currentData = produkList.filter(p=>{
-  return (
-   p.nama.toLowerCase().includes(text) ||
-   getWatt(p.nama) == text ||
-   getMerk(p.nama).toLowerCase() == text
-  );
- });
+ currentData = produkList.filter(p =>
+  p.nama.toLowerCase().includes(t)
+ );
 
  tampil(currentData);
 }
 
 // =====================
-// TAMPIL
+// TAMPIL PRODUK
 // =====================
 function tampil(data){
  let html = "";
 
- if(data.length == 0){
-  html = "<p style='padding:10px'>Tidak ditemukan</p>";
- }
+ data.sort((a, b) => a.harga - b.harga);
 
- data.sort((a,b)=>a.harga-b.harga);
-
- data.forEach(p=>{
-  let qty = cart[p.id] || 0;
+ data.forEach(p => {
+  let q = cart[p.id] || 0;
 
   html += `
   <div class="card">
@@ -293,45 +271,47 @@ function tampil(data){
 
     <div class="qty">
       <button onclick="ubah(${p.id},-1)">-</button>
-      <input value="${qty}" onchange="manual(${p.id},this.value)">
+      <input value="${q}" onchange="manual(${p.id},this.value)">
       <button onclick="ubah(${p.id},1)">+</button>
     </div>
   </div>`;
  });
 
  document.getElementById("produk").innerHTML = html;
+
  hitungTotal();
 }
 
 // =====================
 // CART
 // =====================
-function ubah(id,val){
- cart[id]=(cart[id]||0)+val;
- if(cart[id]<0) cart[id]=0;
+function ubah(id, v){
+ cart[id] = (cart[id] || 0) + v;
+ if(cart[id] < 0) cart[id] = 0;
  simpan();
 }
 
-function manual(id,val){
- cart[id]=parseInt(val)||0;
+function manual(id, v){
+ cart[id] = parseInt(v) || 0;
  simpan();
 }
 
 function simpan(){
- localStorage.setItem("cart",JSON.stringify(cart));
+ localStorage.setItem("cart", JSON.stringify(cart));
  tampil(currentData);
 }
 
 // =====================
-// TOTAL
+// TOTAL (SUDAH DIRAPIKAN)
 // =====================
 function hitungTotal(){
- let total=0,count=0;
+ let total = 0;
+ let count = 0;
 
- produkList.forEach(p=>{
-  let q=cart[p.id]||0;
-  total+=q*p.harga;
-  count+=q;
+ produkList.forEach(p => {
+  let q = cart[p.id] || 0;
+  total += q * p.harga;
+  count += q;
  });
 
  document.getElementById("floatingTotal").innerText =
@@ -342,7 +322,7 @@ function hitungTotal(){
 // RESET
 // =====================
 function resetCart(){
- cart={};
+ cart = {};
  simpan();
 }
 
@@ -354,25 +334,24 @@ function checkout(){
  let total = 0;
  let ada = false;
 
- produkList.forEach(p=>{
-  let q = cart[p.id];
+ produkList.forEach(p => {
+  let q = cart[p.id] || 0;
 
   if(q > 0){
    ada = true;
-   let sub = q * p.harga;
-   total += sub;
    text += `${p.nama} x ${q}\n`;
+   total += q * p.harga;
   }
  });
 
  if(!ada){
-  alert("Belum ada pesanan");
+  alert("Kosong");
   return;
  }
 
  text += `\nTotal: Rp ${total.toLocaleString()}`;
 
- if(confirm(text + "\n\nKirim ke WhatsApp?")){
+ if(confirm(text + "\nKirim ke WhatsApp?")){
   window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
  }
 }
@@ -380,120 +359,6 @@ function checkout(){
 // =====================
 function focusSearch(){
  document.getElementById("search").focus();
-}
-</script>
-// =====================
-// CART
-// =====================
-function ubah(id,val){
- cart[id]=(cart[id]||0)+val;
- if(cart[id]<0) cart[id]=0;
- simpan();
-}
-
-function manual(id,val){
- cart[id]=parseInt(val)||0;
- simpan();
-}
-
-function simpan(){
- localStorage.setItem("cart",JSON.stringify(cart));
- tampil(currentData); // ✅ tidak reset lagi
-}
-
-// =====================
-// RESET
-// =====================
-function resetCart(){
- cart={};
- simpan();
-}
-
-// =====================
-// CHECKOUT WA
-// =====================
-function checkout(){
- let text = "Order:\n\n";
- let total = 0;
- let ada = false;
-
- produkList.forEach(p=>{
-  let q = cart[p.id];
-
-  if(q > 0){
-    ada = true;
-    let sub = q * p.harga;
-    total += sub;
-
-    text += `${p.nama} x ${q}\n`;
-  }
- });
-
- if(!ada){
-   alert("Belum ada pesanan");
-   return;
- }
-
- text += `\nTotal: Rp ${total.toLocaleString()}`;
-
- // 🔥 PREVIEW DULU
- let konfirmasi = confirm(text + "\n\nKirim ke WhatsApp?");
-
- if(konfirmasi){
-   window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
- }
-}
-
-// =====================
-// TAMBAH DI SINI 👇
-// =====================
-function focusSearch(){
- let s = document.getElementById("search");
- s.focus();
- s.select(); // langsung siap ketik ulang
-}
-  function tampilRingkasan(){
- let html = "<b>🧾 Keranjang:</b><br>";
- let total = 0;
- let ada = false;
-
- produkList.forEach(p=>{
-   let q = cart[p.id] || 0;
-
-   if(q > 0){
-     total += q * p.harga;
-     ada = true;
-
-     html += `• ${p.nama} x${q}<br>`;
-   }
- });
-
- let box = document.getElementById("ringkasan");
-
- if(!ada){
-   box.style.display = "none";
-   return;
- }
-
- html += `<hr><b>Total: Rp ${total.toLocaleString()}</b>`;
-
- box.style.display = "block";
- box.innerHTML = html;
-}
- 
-  function hitungTotal(){
- let total=0,count=0;
-
- produkList.forEach(p=>{
-  let q=cart[p.id]||0;
-  total+=q*p.harga;
-  count+=q;
- });
-
- document.getElementById("floatingTotal").innerText =
- `${count} Barang | Rp ${total.toLocaleString()}`;
-
- tampilRingkasan(); // ✅ TAMBAH INI
 }
 </script>
 
