@@ -7,149 +7,132 @@
 
 <style>
 body{
-  font-family: sans-serif;
-  margin: 0;
-  background: #f9f9f9;
-  padding-bottom: 80px;
+  font-family:sans-serif;
+  margin:0;
+  background:#f9f9f9;
+  padding-bottom:80px;
 }
 
 header{
-  background: #00bcd4;
-  color: #fff;
-  padding: 12px;
-  text-align: center;
-  font-size: 1.2em;
-  font-weight: bold;
+  background:#00bcd4;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-size:1.2em;
+  font-weight:bold;
 }
 
 /* SEARCH */
 #search{
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
 }
 
 /* KATEGORI */
 #kategori{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  padding:10px;
 }
 
 #kategori button{
-  background: #e0f7fa;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 0.85em;
-  cursor: pointer;
-}
-
-#kategori button:hover{
-  background: #00e5ff;
-  color: #000;
+  background:#e0f7fa;
+  border:none;
+  border-radius:20px;
+  padding:6px 12px;
+  font-size:0.85em;
+  cursor:pointer;
 }
 
 /* PRODUK */
 #produk{
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
-  gap: 12px;
-  padding: 10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+  padding:10px;
 }
 
 .card{
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 180px;
-  transition: .2s;
+  background:#fff;
+  border-radius:12px;
+  padding:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
 }
 
-.card:hover{
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+.card img{
+  width:100%;
+  height:90px;
+  object-fit:contain;
+  margin-bottom:5px;
 }
 
 .card h4{
-  margin: 0;
-  font-size: 0.9em;
-  height: 36px;
-  overflow: hidden;
+  margin:0;
+  font-size:0.9em;
 }
 
 .harga{
-  color: #e91e63;
-  font-weight: bold;
+  color:#e91e63;
+  font-weight:bold;
+  margin:4px 0;
 }
 
 .selisih{
-  font-size: 11px;
-  color: #666;
+  font-size:11px;
+  color:#666;
 }
 
 .qty{
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  margin-top: auto;
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  margin-top:8px;
 }
 
 .qty button{
-  width: 28px;
-  height: 28px;
-  background: #eee;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.qty input{
-  width: 40px;
-  text-align: center;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:6px;
+  background:#eee;
 }
 
 /* FLOAT */
 #floatingTotal{
-  position: fixed;
-  bottom: 70px;
-  right: 10px;
-  background: #fff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
-  font-weight: bold;
-  z-index: 2;
+  position:fixed;
+  bottom:70px;
+  right:10px;
+  background:#fff;
+  padding:6px 12px;
+  border-radius:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  font-weight:bold;
 }
 
 /* FOOTER */
 .footer{
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  display: flex;
-  justify-content: space-around;
-  padding: 5px 0;
-  box-shadow: 0 -2px 5px rgba(0,0,0,.1);
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:5px 0;
 }
 
 .footer button{
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  color: #fff;
-  font-size: 18px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  border:none;
+  color:#fff;
+  font-size:18px;
 }
 
 .keranjang{background:#4caf50}
@@ -161,18 +144,13 @@ header{
 
 <header>Duta Terang LED</header>
 
-<!-- SEARCH -->
 <div style="padding:10px">
-  <input id="search"
-         placeholder="Cari produk (contoh: 12W / RX / LED)"
-         oninput="cari(this.value)">
+  <input id="search" placeholder="Cari produk..." oninput="cari(this.value)">
 </div>
 
-<!-- KATEGORI -->
 <div id="kategori"></div>
 <div id="produk"></div>
 
-<div id="ringkasan"></div>
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
 <div class="footer">
@@ -189,48 +167,34 @@ let produkList = [];
 let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 
-/* ===== HELPERS ===== */
-function getWatt(nama){
-  let m = nama.match(/(\d+)/);
-  return m ? m[0] : "";
-}
-
-function getMerk(nama){
-  nama = nama.toUpperCase();
-  if(nama.includes("MSL")) return "MSL";
-  if(nama.includes("RX")) return "RX";
-  if(nama.includes("JS")) return "JS";
-  if(nama.includes("FPL")) return "FPL";
-  return "LAIN";
-}
-
-/* ===== LOAD DATA ===== */
+/* LOAD DATA */
 fetch(apiURL)
-.then(res => res.json())
-.then(data => {
-  let rows = data.data || data;
+.then(res=>res.json())
+.then(data=>{
+  let rows = data.data || data || [];
 
-  rows.forEach((r,i)=>{
-    produkList.push({
-      id: i,
-      nama: r.nama,
-      harga: +r.harga,
-      kategori: (r.kategori || "").toUpperCase()
-    });
-  });
+  produkList = rows.map((r,i)=>({
+    id:i,
+    nama:r.nama,
+    harga:+r.harga,
+    kategori:(r.kategori||"").toUpperCase().trim(),
+    gambar:r.gambar
+  }));
 
   buatKategori();
   currentData = produkList;
   tampil(currentData);
+})
+.catch(err=>{
+  console.error(err);
 });
 
-/* ===== KATEGORI ===== */
+/* KATEGORI */
 function buatKategori(){
   let set = new Set();
 
   produkList.forEach(p=>{
-    let k = (p.kategori || "").trim();
-    if(k && !k.match(/[0-9]/)) set.add(k);
+    if(p.kategori) set.add(p.kategori);
   });
 
   let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
@@ -242,115 +206,96 @@ function buatKategori(){
   document.getElementById("kategori").innerHTML = html;
 }
 
-function klikKategori(kategori){
-  currentData = produkList.filter(p => p.kategori === kategori);
+function klikKategori(k){
+  currentData = produkList.filter(p =>
+    (p.kategori || "").toUpperCase().trim() === k.toUpperCase().trim()
+  );
   tampil(currentData);
 }
 
-/* ===== SEARCH ===== */
+/* SEARCH */
 function cari(text){
   text = text.toLowerCase().trim();
 
   if(!text){
-    currentData = produkList;
-    tampil(currentData);
+    tampil(produkList);
     return;
   }
 
-  currentData = produkList.filter(p=>{
-    let nama = p.nama.toLowerCase();
-    let watt = getWatt(p.nama);
-    let merk = getMerk(p.nama).toLowerCase();
-
-    return nama.includes(text) || watt === text || merk === text;
-  });
+  currentData = produkList.filter(p =>
+    p.nama.toLowerCase().includes(text) ||
+    String(p.harga).includes(text)
+  );
 
   tampil(currentData);
 }
 
-/* ===== TAMPIL PRODUK ===== */
+/* TAMPIL */
 function tampil(data){
-  let html = "";
-
-  if(data.length === 0){
+  if(!data || data.length === 0){
     document.getElementById("produk").innerHTML =
       "<p style='padding:10px'>Produk tidak ditemukan</p>";
     return;
   }
 
-  data.sort((a,b)=>a.harga-b.harga);
+  let html = "";
 
   data.forEach(p=>{
     let qty = cart[p.id] || 0;
 
-    let perbandingan = data
-      .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
-      .map(x=>{
-        let sel = p.harga - x.harga;
-        let merk = getMerk(x.nama);
-
-        return sel > 0
-          ? `+Rp ${sel.toLocaleString()} (${merk})`
-          : `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
-      })
-      .slice(0,3)
-      .join(", ");
-
     html += `
-      <div class="card">
-        <h4>${p.nama}</h4>
-        <div class="harga">Rp ${p.harga.toLocaleString()}</div>
-        <div class="selisih">Selisih: ${perbandingan || "-"}</div>
+    <div class="card">
+      <img src="${p.gambar}" onerror="this.style.display='none'">
+      <h4>${p.nama}</h4>
+      <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 
-        <div class="qty">
-          <button onclick="ubah(${p.id},-1)">-</button>
-          <input value="${qty}" onchange="manual(${p.id},this.value)">
-          <button onclick="ubah(${p.id},1)">+</button>
-        </div>
+      <div class="qty">
+        <button onclick="ubah(${p.id},-1)">-</button>
+        <input value="${qty}" onchange="manual(${p.id},this.value)">
+        <button onclick="ubah(${p.id},1)">+</button>
       </div>
-    `;
+    </div>`;
   });
 
   document.getElementById("produk").innerHTML = html;
   hitungTotal();
 }
 
-/* ===== CART ===== */
+/* CART */
 function ubah(id,val){
-  cart[id] = (cart[id] || 0) + val;
-  if(cart[id] < 0) cart[id] = 0;
+  cart[id]=(cart[id]||0)+val;
+  if(cart[id]<0) cart[id]=0;
   simpan();
 }
 
 function manual(id,val){
-  cart[id] = parseInt(val) || 0;
+  cart[id]=parseInt(val)||0;
   simpan();
 }
 
 function simpan(){
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem("cart",JSON.stringify(cart));
   tampil(currentData);
 }
 
-/* ===== RESET ===== */
+/* RESET */
 function resetCart(){
-  cart = {};
+  cart={};
   simpan();
 }
 
-/* ===== CHECKOUT ===== */
+/* CHECKOUT */
 function checkout(){
-  let text = "Order:\n\n";
-  let total = 0;
-  let ada = false;
+  let text="Order:\n\n";
+  let total=0;
+  let ada=false;
 
   produkList.forEach(p=>{
-    let q = cart[p.id];
-    if(q > 0){
-      ada = true;
-      let sub = q * p.harga;
-      total += sub;
-      text += `${p.nama} x ${q}\n`;
+    let q=cart[p.id];
+    if(q>0){
+      ada=true;
+      total+=q*p.harga;
+      text+=`${p.nama} x ${q}\n`;
     }
   });
 
@@ -359,28 +304,25 @@ function checkout(){
     return;
   }
 
-  text += `\nTotal: Rp ${total.toLocaleString()}`;
+  text+=`\nTotal: Rp ${total.toLocaleString()}`;
 
-  let ok = confirm(text + "\n\nKirim ke WhatsApp?");
-  if(ok){
+  if(confirm(text+"\n\nKirim WhatsApp?")){
     window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
   }
 }
 
-/* ===== UI ===== */
+/* UI */
 function focusSearch(){
-  let s = document.getElementById("search");
-  s.focus();
+  document.getElementById("search").focus();
 }
 
 function hitungTotal(){
-  let total = 0;
-  let count = 0;
+  let total=0, count=0;
 
   produkList.forEach(p=>{
-    let q = cart[p.id] || 0;
-    total += q * p.harga;
-    count += q;
+    let q=cart[p.id]||0;
+    total+=q*p.harga;
+    count+=q;
   });
 
   document.getElementById("floatingTotal").innerText =
