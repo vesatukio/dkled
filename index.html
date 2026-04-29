@@ -136,6 +136,14 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
   max-height:250px;
   overflow:auto;
 }
+  .card img{
+  width:100%;
+  height:80px;
+  object-fit:cover;
+  border-radius:8px;
+  margin-bottom:5px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -201,13 +209,13 @@ fetch(apiURL)
  let rows = data.data || data;
 
  rows.forEach((r,i)=>{
-  produkList.push({
+  pprodukList.push({
   id:i,
   nama:r.nama,
   harga:+r.harga,
-  kategori:(r.kategori || "").toUpperCase()
-
-  });
+  kategori:(r.kategori || "").toUpperCase(),
+  gambar: r.gambar || "https://i.imgur.com/rx12w.webp"
+});
  });
 
  buatKategori();
