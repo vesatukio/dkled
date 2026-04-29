@@ -182,7 +182,7 @@ header{background:#00bcd4;color:#fff;padding:12px;text-align:center;font-size:1.
 <script>
 const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
 const noWA = "6288224166270";
-// ===== WAJIB ADA =====
+
 function getWatt(nama){
  let m = nama.match(/(\d+)/);
  return m ? m[0] : "";
@@ -190,16 +190,15 @@ function getWatt(nama){
 
 function getMerk(nama){
  nama = nama.toUpperCase();
-
  if(nama.includes("MSL")) return "MSL";
  if(nama.includes("RX")) return "RX";
  if(nama.includes("JS")) return "JS";
  if(nama.includes("FPL")) return "FPL";
-
  return "LAIN";
 }
+
 let produkList = [];
-let currentData = []; // ✅ TAMBAH INI
+let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart")||"{}");
 
 // LOAD DATA
@@ -210,18 +209,19 @@ fetch(apiURL)
 
  rows.forEach((r,i)=>{
   produkList.push({
-  id:i,
-  nama:r.nama,
-  harga:+r.harga,
-  kategori:(r.kategori || "").toUpperCase(),
-  gambar: r.gambar || "https://i.imgur.com/rx12w.webp"
-});
+   id:i,
+   nama:r.nama,
+   harga:+r.harga,
+   kategori:(r.kategori || "").toUpperCase(),
+   gambar:r.gambar || "https://i.imgur.com/rx12w.webp"
+  });
  });
 
  buatKategori();
  currentData = produkList;
-tampil(currentData);// ⬅️ ini yang bikin awal kosong
+ tampil(currentData);
 });
+
 // =====================
 // KATEGORI
 // =====================
@@ -230,17 +230,13 @@ function buatKategori(){
 
  produkList.forEach(p=>{
   let k = (p.kategori || "").trim();
-
-  // hanya ambil kategori yang benar
-  if(k && !k.match(/[0-9]/)){
-    set.add(k);
-  }
+  if(k && !k.match(/[0-9]/)) set.add(k);
  });
 
  let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
 
  set.forEach(k=>{
-  html+=`<button onclick="klikKategori('${k}')">${k}</button>`;
+  html += `<button onclick="klikKategori('${k}')">${k}</button>`;
  });
 
  document.getElementById("kategori").innerHTML = html;
@@ -252,95 +248,140 @@ function klikKategori(kategori){
 }
 
 // =====================
-// SEARCH (FIX UTAMA)
+// SEARCH
 // =====================
 function cari(text){
  text = text.toLowerCase().trim();
 
  if(!text){
-   currentData = produkList;
-   tampil(currentData);
-   return;
+  currentData = produkList;
+  tampil(currentData);
+  return;
  }
 
- let hasil = produkList.filter(p=>{
-   let nama = p.nama.toLowerCase();
-   let watt = getWatt(p.nama);
-   let merk = getMerk(p.nama).toLowerCase();
-
-   return (
-     nama.includes(text) ||
-     watt == text ||
-     merk == text
-   );
+ currentData = produkList.filter(p=>{
+  return (
+   p.nama.toLowerCase().includes(text) ||
+   getWatt(p.nama) == text ||
+   getMerk(p.nama).toLowerCase() == text
+  );
  });
 
- currentData = hasil;
  tampil(currentData);
 }
+
 // =====================
 // TAMPIL
 // =====================
-function tampilKosong(){
- document.getElementById("produk").innerHTML = 
- "<p style='padding:10px;color:#888'>Ketik di atas untuk cari produk</p>";
-}
-
-<script>
 function tampil(data){
- let html="";
+ let html = "";
 
- if(data.length==0){
-   html="<p style='padding:10px'>Tidak ditemukan</p>";
+ if(data.length == 0){
+  html = "<p style='padding:10px'>Tidak ditemukan</p>";
  }
 
  data.sort((a,b)=>a.harga-b.harga);
 
  data.forEach(p=>{
-   let qty = cart[p.id]||0;
+  let qty = cart[p.id] || 0;
 
-   let perbandingan = data
-     .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
-     .map(x => {
-       let sel = p.harga - x.harga;
-       let merk = getMerk(x.nama);
+  html += `
+  <div class="card">
+    <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'">
+    <h4>${p.nama}</h4>
+    <div class="harga">Rp ${p.harga.toLocaleString()}</div>
 
-       return sel > 0
-         ? `+Rp ${sel.toLocaleString()} (${merk})`
-         : `-Rp ${Math.abs(sel).toLocaleString()} (${merk})`;
-     })
-     .slice(0,3)
-     .join(", ");
-
-   html+=`
-   <div class="card">
-
-     <!-- ✅ GAMBAR -->
-     <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'">
-
-     <h4>${p.nama}</h4>
-
-     <div class="harga">
-       Rp ${p.harga.toLocaleString()}
-     </div>
-
-     <div class="selisih">
-       Selisih: ${perbandingan || "-"}
-     </div>
-
-     <div class="qty">
-       <button onclick="ubah(${p.id},-1)">-</button>
-       <input value="${qty}" onchange="manual(${p.id},this.value)">
-       <button onclick="ubah(${p.id},1)">+</button>
-     </div>
-   </div>`;
+    <div class="qty">
+      <button onclick="ubah(${p.id},-1)">-</button>
+      <input value="${qty}" onchange="manual(${p.id},this.value)">
+      <button onclick="ubah(${p.id},1)">+</button>
+    </div>
+  </div>`;
  });
 
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
 }
-</script>
+
+// =====================
+// CART
+// =====================
+function ubah(id,val){
+ cart[id]=(cart[id]||0)+val;
+ if(cart[id]<0) cart[id]=0;
+ simpan();
 }
+
+function manual(id,val){
+ cart[id]=parseInt(val)||0;
+ simpan();
+}
+
+function simpan(){
+ localStorage.setItem("cart",JSON.stringify(cart));
+ tampil(currentData);
+}
+
+// =====================
+// TOTAL
+// =====================
+function hitungTotal(){
+ let total=0,count=0;
+
+ produkList.forEach(p=>{
+  let q=cart[p.id]||0;
+  total+=q*p.harga;
+  count+=q;
+ });
+
+ document.getElementById("floatingTotal").innerText =
+ `${count} Barang | Rp ${total.toLocaleString()}`;
+}
+
+// =====================
+// RESET
+// =====================
+function resetCart(){
+ cart={};
+ simpan();
+}
+
+// =====================
+// CHECKOUT
+// =====================
+function checkout(){
+ let text = "Order:\n\n";
+ let total = 0;
+ let ada = false;
+
+ produkList.forEach(p=>{
+  let q = cart[p.id];
+
+  if(q > 0){
+   ada = true;
+   let sub = q * p.harga;
+   total += sub;
+   text += `${p.nama} x ${q}\n`;
+  }
+ });
+
+ if(!ada){
+  alert("Belum ada pesanan");
+  return;
+ }
+
+ text += `\nTotal: Rp ${total.toLocaleString()}`;
+
+ if(confirm(text + "\n\nKirim ke WhatsApp?")){
+  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+ }
+}
+
+// =====================
+function focusSearch(){
+ document.getElementById("search").focus();
+}
+</script>
 // =====================
 // CART
 // =====================
