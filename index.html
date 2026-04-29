@@ -1,1 +1,368 @@
-<!DOCTYPE html> <html lang="id"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width,initial-scale=1"> <title>Duta Terang LED</title> <style> *{ box-sizing:border-box; } body{ font-family:sans-serif; margin:0; background:#f9f9f9; padding-bottom:90px; } /* HEADER */ header{ background:#00bcd4; color:#fff; padding:12px; text-align:center; font-size:1.2em; font-weight:bold; } /* SEARCH */ #search{ width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; } /* KATEGORI */ #kategori{ display:flex; flex-wrap:wrap; gap:6px; padding:10px; } #kategori button{ background:#e0f7fa; border:none; border-radius:20px; padding:6px 12px; font-size:0.85em; cursor:pointer; } #kategori button:hover{ background:#00e5ff; } /* PRODUK GRID */ #produk{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:10px; } /* CARD */ .card{ background:#fff; border-radius:12px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,.1); display:flex; flex-direction:column; gap:6px; transition:0.2s; } .card:hover{ transform:translateY(-3px); box-shadow:0 4px 10px rgba(0,0,0,.15); } /* GAMBAR */ .card{ overflow:hidden; } .card img{ width:100%; height:90px; object-fit:cover; border-radius:8px; margin-bottom:5px; cursor:pointer; transition:transform 0.25s ease; } .card img:hover{ transform:scale(1.12); } /* NAMA */ .card h4{ margin:0; font-size:0.85em; line-height:1.2em; max-height:2.4em; overflow:hidden; } /* HARGA */ .harga{ color:#e91e63; font-weight:bold; font-size:0.9em; } /* QTY */ .qty{ display:flex; justify-content:center; align-items:center; gap:5px; margin-top:5px; } .qty button{ width:28px; height:28px; background:#eee; border:none; border-radius:6px; cursor:pointer; } .qty input{ width:40px; text-align:center; border-radius:6px; border:1px solid #ccc; } /* FLOATING TOTAL */ #floatingTotal{ position:fixed; bottom:70px; right:10px; background:#fff; padding:6px 12px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,.3); font-weight:bold; z-index:2; font-size:12px; } /* FOOTER */ .footer{ position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex; justify-content:space-around; padding:6px 0; box-shadow:0 -2px 5px rgba(0,0,0,.1); } .footer button{ width:45px; height:45px; border-radius:50%; border:none; color:#fff; font-size:16px; } .keranjang{background:#4caf50} .reset{background:#f44336} .admin{background:#555} </style> </head> <body> <header>Duta Terang LED</header> <!-- SEARCH --> <div style="padding:10px"> <input id="search" placeholder="Ketik watt / nama... contoh: 12" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc" oninput="cari(this.value)" > </div> <!-- KATEGORI --> <div id="kategori"></div> <div id="produk"></div> <div id="ringkasan"></div> <div id="floatingTotal">0 Barang | Rp 0</div> <div class="footer"> <button class="keranjang" onclick="focusSearch()">🔍</button> <button class="keranjang" onclick="checkout()">🛒</button> <button class="reset" onclick="resetCart()">🔄</button> </div> <div class="admin-panel" id="adminPanel"> <b>Admin Panel</b><br> (nanti bisa tambah edit produk disini) </div> <script> const apiURL = "https://script.google.com/macros/s/AKfycbyvF-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec"; const noWA = "6288224166270"; let produkList = []; let currentData = []; let cart = JSON.parse(localStorage.getItem("cart") || "{}"); // ===================== // LOAD DATA // ===================== fetch(apiURL) .then(r => r.json()) .then(d => { let rows = d.data || d; rows.forEach((r, i) => { produkList.push({ id: i, nama: r.nama, harga: Number(r.harga), kategori: (r.kategori || "").toUpperCase(), gambar: r.gambar || "https://i.imgur.com/rx12w.webp" }); }); buatKategori(); currentData = produkList; tampil(currentData); }); // ===================== // KATEGORI // ===================== function buatKategori(){ let set = new Set(); produkList.forEach(p => { if(p.kategori) set.add(p.kategori); }); let html = <button onclick="filterAll()">SEMUA</button>; set.forEach(k => { html += <button onclick="filterKategori('${k}')">${k}</button>; }); document.getElementById("kategori").innerHTML = html; } function filterAll(){ currentData = produkList; tampil(currentData); } function filterKategori(k){ currentData = produkList.filter(p => p.kategori === k); tampil(currentData); } // ===================== // SEARCH // ===================== function cari(t){ t = t.toLowerCase().trim(); currentData = produkList.filter(p => p.nama.toLowerCase().includes(t) ); tampil(currentData); } // ===================== // TAMPIL PRODUK // ===================== function tampil(data){ let html = ""; data.sort((a, b) => a.harga - b.harga); data.forEach(p => { let q = cart[p.id] || 0; html += <div class="card"> <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'"> <h4>${p.nama}</h4> <div class="harga">Rp ${p.harga.toLocaleString()}</div> <div class="qty"> <button onclick="ubah(${p.id},-1)">-</button> <input value="${q}" onchange="manual(${p.id},this.value)"> <button onclick="ubah(${p.id},1)">+</button> </div> </div>; }); document.getElementById("produk").innerHTML = html; hitungTotal(); } // ===================== // CART // ===================== function ubah(id, v){ cart[id] = (cart[id] || 0) + v; if(cart[id] < 0) cart[id] = 0; simpan(); } function manual(id, v){ cart[id] = parseInt(v) || 0; simpan(); } function simpan(){ localStorage.setItem("cart", JSON.stringify(cart)); tampil(currentData); } // ===================== // TOTAL (SUDAH DIRAPIKAN) // ===================== function hitungTotal(){ let total = 0; let count = 0; produkList.forEach(p => { let q = cart[p.id] || 0; total += q * p.harga; count += q; }); document.getElementById("floatingTotal").innerText = ${count} Barang | Rp ${total.toLocaleString()}; } // ===================== // RESET // ===================== function resetCart(){ cart = {}; simpan(); } // ===================== // CHECKOUT // ===================== function checkout(){ let tempText = ""; let tempTotal = 0; function checkout(){ let html = ""; let total = 0; let ada = false; let text = "Order:\n\n"; produkList.forEach(p => { let q = cart[p.id] || 0; if(q > 0){ ada = true; html += <div>${p.nama} x ${q}</div>; text += ${p.nama} x ${q}\n; total += q * p.harga; } }); if(!ada){ alert("Keranjang kosong"); return; } tempText = text; tempTotal = total; document.getElementById("isiOrder").innerHTML = html; document.getElementById("totalOrder").innerText = "Total: Rp " + total.toLocaleString(); document.getElementById("modalCheckout").style.display = "block"; } } function kirimWA(){ let finalText = tempText + \nTotal: Rp ${tempTotal.toLocaleString()}; window.open( https://wa.me/${noWA}?text=${encodeURIComponent(finalText)} ); tutupModal(); } function tutupModal(){ document.getElementById("modalCheckout").style.display = "none"; } // ===================== function focusSearch(){ document.getElementById("search").focus(); } </script> <div id="modalCheckout" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99999;"> <div style=" background:#fff; width:90%; max-width:400px; margin:80px auto; padding:15px; border-radius:12px; max-height:70vh; overflow:auto; "> <h3>Ringkasan Order</h3> <div id="isiOrder"></div> <div style="margin-top:10px;font-weight:bold" id="totalOrder"></div> <div style="display:flex;gap:10px;margin-top:15px"> <button onclick="kirimWA()" style="flex:1;padding:10px;background:#4caf50;color:#fff;border:none;border-radius:8px"> Kirim WA </button> <button onclick="tutupModal()" style="flex:1;padding:10px;background:#f44336;color:#fff;border:none;border-radius:8px"> Batal </button> </div> </div> </div> </body> </html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duta Terang LED</title>
+
+<style>
+/* ===================== GLOBAL ===================== */
+*{ box-sizing:border-box; }
+
+body{
+  font-family:sans-serif;
+  margin:0;
+  background:#f9f9f9;
+  padding-bottom:90px;
+}
+
+/* ===================== HEADER ===================== */
+header{
+  background:#00bcd4;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-size:1.2em;
+  font-weight:bold;
+}
+
+/* ===================== SEARCH ===================== */
+#search{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+/* ===================== KATEGORI ===================== */
+#kategori{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:10px;
+}
+
+#kategori button{
+  background:#e0f7fa;
+  border:none;
+  border-radius:20px;
+  padding:6px 12px;
+  font-size:0.85em;
+  cursor:pointer;
+}
+
+#kategori button:hover{
+  background:#00e5ff;
+}
+
+/* ===================== PRODUK ===================== */
+#produk{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:10px;
+  padding:10px;
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  overflow:hidden;
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+}
+
+.card img{
+  width:100%;
+  height:90px;
+  object-fit:cover;
+  border-radius:8px;
+  cursor:pointer;
+  transition:transform 0.25s ease;
+}
+
+.card img:hover{
+  transform:scale(1.12);
+}
+
+.card h4{
+  margin:0;
+  font-size:0.85em;
+  line-height:1.2em;
+  max-height:2.4em;
+  overflow:hidden;
+}
+
+/* HARGA */
+.harga{
+  color:#e91e63;
+  font-weight:bold;
+  font-size:0.9em;
+}
+
+/* QTY */
+.qty{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+}
+
+.qty button{
+  width:28px;
+  height:28px;
+  background:#eee;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.qty input{
+  width:40px;
+  text-align:center;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+/* ===================== FLOATING TOTAL ===================== */
+#floatingTotal{
+  position:fixed;
+  bottom:70px;
+  right:10px;
+  background:#fff;
+  padding:6px 12px;
+  border-radius:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  font-weight:bold;
+  font-size:12px;
+}
+
+/* ===================== FOOTER ===================== */
+.footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:6px 0;
+  box-shadow:0 -2px 5px rgba(0,0,0,.1);
+}
+
+.footer button{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  border:none;
+  color:#fff;
+  font-size:16px;
+}
+
+.keranjang{background:#4caf50}
+.reset{background:#f44336}
+.admin{background:#555}
+</style>
+</head>
+
+<body>
+
+<header>Duta Terang LED</header>
+
+<!-- SEARCH -->
+<div style="padding:10px">
+  <input id="search" placeholder="Cari produk..." oninput="cari(this.value)">
+</div>
+
+<!-- KATEGORI -->
+<div id="kategori"></div>
+
+<!-- PRODUK -->
+<div id="produk"></div>
+
+<!-- FLOATING TOTAL -->
+<div id="floatingTotal">0 Barang | Rp 0</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <button class="keranjang" onclick="focusSearch()">🔍</button>
+  <button class="keranjang" onclick="checkout()">🛒</button>
+  <button class="reset" onclick="resetCart()">🔄</button>
+</div>
+
+<!-- SCRIPT -->
+<script>
+const apiURL = "https://script.google.com/macros/s/AKfycbyfV-VzgZyEzaPup3-M7UCCq8fdHoyW4QIIDAUXjV8TUHgd8kOdbiU2rRonnmDY_dzM/exec";
+const noWA = "6288224166270";
+
+let produkList = [];
+let currentData = [];
+let cart = JSON.parse(localStorage.getItem("cart") || "{}");
+
+/* ===================== LOAD DATA ===================== */
+fetch(apiURL)
+.then(r => r.json())
+.then(d => {
+  let rows = d.data || d;
+
+  rows.forEach((r, i) => {
+    produkList.push({
+      id: i,
+      nama: r.nama,
+      harga: Number(r.harga),
+      kategori: (r.kategori || "").toUpperCase(),
+      gambar: r.gambar || "https://via.placeholder.com/150"
+    });
+  });
+
+  buatKategori();
+  currentData = produkList;
+  tampil(currentData);
+})
+.catch(err => console.log("API ERROR", err));
+
+/* ===================== KATEGORI ===================== */
+function buatKategori(){
+  let set = new Set();
+
+  produkList.forEach(p => {
+    if(p.kategori) set.add(p.kategori);
+  });
+
+  let html = `<button onclick="filterAll()">SEMUA</button>`;
+
+  set.forEach(k => {
+    html += `<button onclick="filterKategori('${k}')">${k}</button>`;
+  });
+
+  document.getElementById("kategori").innerHTML = html;
+}
+
+function filterAll(){
+  currentData = produkList;
+  tampil(currentData);
+}
+
+function filterKategori(k){
+  currentData = produkList.filter(p => p.kategori === k);
+  tampil(currentData);
+}
+
+/* ===================== SEARCH ===================== */
+function cari(t){
+  t = t.toLowerCase();
+  currentData = produkList.filter(p =>
+    p.nama.toLowerCase().includes(t)
+  );
+  tampil(currentData);
+}
+
+/* ===================== TAMPIL ===================== */
+function tampil(data){
+  let html = "";
+
+  data.sort((a,b) => a.harga - b.harga);
+
+  data.forEach(p => {
+    let q = cart[p.id] || 0;
+
+    html += `
+    <div class="card">
+      <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'">
+      <h4>${p.nama}</h4>
+      <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+      <div class="qty">
+        <button onclick="ubah(${p.id},-1)">-</button>
+        <input value="${q}" onchange="manual(${p.id},this.value)">
+        <button onclick="ubah(${p.id},1)">+</button>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById("produk").innerHTML = html;
+  hitungTotal();
+}
+
+/* ===================== CART ===================== */
+function ubah(id,v){
+  cart[id] = (cart[id] || 0) + v;
+  if(cart[id] < 0) cart[id] = 0;
+  simpan();
+}
+
+function manual(id,v){
+  cart[id] = parseInt(v) || 0;
+  simpan();
+}
+
+function simpan(){
+  localStorage.setItem("cart", JSON.stringify(cart));
+  tampil(currentData);
+}
+
+/* ===================== TOTAL ===================== */
+function hitungTotal(){
+  let total = 0;
+  let count = 0;
+
+  produkList.forEach(p => {
+    let q = cart[p.id] || 0;
+    total += q * p.harga;
+    count += q;
+  });
+
+  const format = new Intl.NumberFormat('id-ID');
+
+  document.getElementById("floatingTotal").innerHTML =
+    `${count} Barang | Rp ${format.format(total)}`;
+}
+
+/* ===================== RESET ===================== */
+function resetCart(){
+  cart = {};
+  simpan();
+}
+
+/* ===================== CHECKOUT ===================== */
+function checkout(){
+  let text = "Order:\n\n";
+  let total = 0;
+  let ada = false;
+
+  produkList.forEach(p => {
+    let q = cart[p.id] || 0;
+
+    if(q > 0){
+      ada = true;
+      text += `${p.nama} x ${q}\n`;
+      total += q * p.harga;
+    }
+  });
+
+  if(!ada){
+    alert("Keranjang kosong");
+    return;
+  }
+
+  text += `\nTotal: Rp ${total.toLocaleString()}`;
+
+  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
+}
+
+/* ===================== UTIL ===================== */
+function focusSearch(){
+  document.getElementById("search").focus();
+}
+</script>
+
+</body>
+</html>
