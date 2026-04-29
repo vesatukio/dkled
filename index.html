@@ -286,6 +286,7 @@ function tampilKosong(){
  "<p style='padding:10px;color:#888'>Ketik di atas untuk cari produk</p>";
 }
 
+<script>
 function tampil(data){
  let html="";
 
@@ -298,7 +299,6 @@ function tampil(data){
  data.forEach(p=>{
    let qty = cart[p.id]||0;
 
-   // ✅ PERBANDINGAN (fix)
    let perbandingan = data
      .filter(x => getWatt(x.nama) === getWatt(p.nama) && x.id !== p.id)
      .map(x => {
@@ -314,6 +314,10 @@ function tampil(data){
 
    html+=`
    <div class="card">
+
+     <!-- ✅ GAMBAR -->
+     <img src="${p.gambar}" onerror="this.src='https://via.placeholder.com/150'">
+
      <h4>${p.nama}</h4>
 
      <div class="harga">
@@ -334,6 +338,8 @@ function tampil(data){
 
  document.getElementById("produk").innerHTML = html;
  hitungTotal();
+}
+</script>
 }
 // =====================
 // CART
