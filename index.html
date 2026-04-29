@@ -85,7 +85,7 @@ header{
 }
 
 /* GAMBAR */
-..card{
+.card{
   overflow:hidden;
 }
 
@@ -370,37 +370,87 @@ function resetCart(){
 // CHECKOUT
 // =====================
 function checkout(){
- let text = "Order:\n\n";
+ let tempText = "";
+let tempTotal = 0;
+
+function checkout(){
+ let html = "";
  let total = 0;
  let ada = false;
+ let text = "Order:\n\n";
 
  produkList.forEach(p => {
   let q = cart[p.id] || 0;
 
   if(q > 0){
    ada = true;
+   html += `<div>${p.nama} x ${q}</div>`;
    text += `${p.nama} x ${q}\n`;
    total += q * p.harga;
   }
  });
 
  if(!ada){
-  alert("Kosong");
+  alert("Keranjang kosong");
   return;
  }
 
- text += `\nTotal: Rp ${total.toLocaleString()}`;
+ tempText = text;
+ tempTotal = total;
 
- if(confirm(text + "\nKirim ke WhatsApp?")){
-  window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
- }
+ document.getElementById("isiOrder").innerHTML = html;
+ document.getElementById("totalOrder").innerText = "Total: Rp " + total.toLocaleString();
+
+ document.getElementById("modalCheckout").style.display = "block";
 }
+}
+function kirimWA(){
+ let finalText = tempText + `\nTotal: Rp ${tempTotal.toLocaleString()}`;
 
+ window.open(
+  `https://wa.me/${noWA}?text=${encodeURIComponent(finalText)}`
+ );
+
+ tutupModal();
+}
+  function tutupModal(){
+ document.getElementById("modalCheckout").style.display = "none";
+}
 // =====================
 function focusSearch(){
  document.getElementById("search").focus();
 }
 </script>
+<div id="modalCheckout" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:99999;">
+  
+  <div style="
+    background:#fff;
+    width:90%;
+    max-width:400px;
+    margin:80px auto;
+    padding:15px;
+    border-radius:12px;
+    max-height:70vh;
+    overflow:auto;
+  ">
+    
+    <h3>Ringkasan Order</h3>
+    
+    <div id="isiOrder"></div>
+    
+    <div style="margin-top:10px;font-weight:bold" id="totalOrder"></div>
 
+    <div style="display:flex;gap:10px;margin-top:15px">
+      <button onclick="kirimWA()" style="flex:1;padding:10px;background:#4caf50;color:#fff;border:none;border-radius:8px">
+        Kirim WA
+      </button>
+
+      <button onclick="tutupModal()" style="flex:1;padding:10px;background:#f44336;color:#fff;border:none;border-radius:8px">
+        Batal
+      </button>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
