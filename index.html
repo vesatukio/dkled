@@ -142,7 +142,7 @@ header{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.6);
-  display:flex;
+  display:none; /* ✅ BENAR */
   align-items:center;
   justify-content:center;
   z-index:9999;
@@ -394,16 +394,22 @@ function openInstall(){
 
 /* MINIMIZE */
 function minimizeInstall(){
-  document.getElementById("installPopup").style.display="none";
-  document.getElementById("installBtn").style.display="block";
+  const popup = document.getElementById("installPopup");
+  const btn = document.getElementById("installBtn");
+
+  popup.style.display = "none";
+  btn.style.display = "block";
+
+  localStorage.setItem("installMin","yes");
 }
 
 /* CLOSE TOTAL */
 function closeInstall(){
   document.getElementById("installPopup").style.display="none";
+  document.getElementById("installBtn").style.display="none";
+
   localStorage.setItem("installClosed","yes");
 }
-
 /* INSTALL */
 function installApp(){
   if(!deferredPrompt) return;
@@ -419,8 +425,14 @@ function installApp(){
 
 /* SMART TRIGGER */
 function showInstall(){
+  if(!deferredPrompt) return;
   if(installShown) return;
   if(localStorage.getItem("installClosed")) return;
+
+  if(localStorage.getItem("installMin")){
+    document.getElementById("installBtn").style.display="block";
+    return;
+  }
 
   installShown = true;
   document.getElementById("installPopup").style.display="flex";
@@ -432,11 +444,6 @@ window.addEventListener("scroll", ()=>{
     showInstall();
   }
 });
-
-/* TRIGGER WAKTU */
-setTimeout(()=>{
-  showInstall();
-},15000);
 
 /* TRIGGER SAAT TAMBAH PRODUK */
 const oldUbah = ubah;
@@ -467,6 +474,6 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- FLOAT BUTTON -->
-<button id="installBtn" onclick="openInstall()">⬇</button>
+<button id="installBtn" onclick="openInstall()">📲</button>
 </body>
 </html>
