@@ -157,13 +157,34 @@ header{
   text-align:center;
   animation:scaleUp .3s;
 }
-
+.popupBox{
+  position:relative;
+}
 .popupHeader{
   display:flex;
   justify-content:flex-end;
-  gap:10px;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.popupHeader span{
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#f1f1f1;
+  border-radius:50%;
   font-size:16px;
+  font-weight:bold;
   cursor:pointer;
+
+  transition:0.2s;
+}
+
+.popupHeader span:hover{
+  background:#ddd;
 }
 
 /* FLOAT BUTTON */
@@ -171,14 +192,21 @@ header{
   position:fixed;
   bottom:130px;
   right:15px;
+
+  width:50px;
+  height:50px;
+
   background:#00bcd4;
   color:#fff;
   border:none;
-  padding:10px 12px;
   border-radius:50%;
-  font-size:14px;
+
+  font-size:22px;
   display:none;
   z-index:9999;
+
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  cursor:pointer;
 }
 
 /* ANIMASI */
@@ -457,8 +485,9 @@ if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js");
 }
 </script>
+  document.getElementById("installPopup").style.display="flex";
   <!-- INSTALL POPUP -->
-<div id="installPopup" style="display:none;">
+<div id="installPopup">
   <div class="popupBox">
 
     <div class="popupHeader">
