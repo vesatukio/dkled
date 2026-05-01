@@ -137,6 +137,55 @@ header{
 
 .keranjang{background:#4caf50}
 .reset{background:#f44336}
+  /* POPUP */
+#installPopup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.popupBox{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  width:80%;
+  max-width:280px;
+  text-align:center;
+  animation:scaleUp .3s;
+}
+
+.popupHeader{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+/* FLOAT BUTTON */
+#installBtn{
+  position:fixed;
+  bottom:130px;
+  right:15px;
+  background:#00bcd4;
+  color:#fff;
+  border:none;
+  padding:10px 12px;
+  border-radius:50%;
+  font-size:14px;
+  display:none;
+  z-index:9999;
+}
+
+/* ANIMASI */
+@keyframes scaleUp{
+  from{transform:scale(0.8)}
+  to{transform:scale(1)}
+}
 </style>
 </head>
 
@@ -328,6 +377,96 @@ function hitungTotal(){
     `${count} Barang | Rp ${total.toLocaleString()}`;
 }
 </script>
+<script>
+let deferredPrompt;
+let installShown = false;
 
+/* TANGKAP EVENT INSTALL */
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+/* BUKA POPUP */
+function openInstall(){
+  document.getElementById("installPopup").style.display="flex";
+}
+
+/* MINIMIZE */
+function minimizeInstall(){
+  document.getElementById("installPopup").style.display="none";
+  document.getElementById("installBtn").style.display="block";
+}
+
+/* CLOSE TOTAL */
+function closeInstall(){
+  document.getElementById("installPopup").style.display="none";
+  localStorage.setItem("installClosed","yes");
+}
+
+/* INSTALL */
+function installApp(){
+  if(!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(choice=>{
+    if(choice.outcome==="accepted"){
+      document.getElementById("installPopup").style.display="none";
+      document.getElementById("installBtn").style.display="none";
+    }
+  });
+}
+
+/* SMART TRIGGER */
+function showInstall(){
+  if(installShown) return;
+  if(localStorage.getItem("installClosed")) return;
+
+  installShown = true;
+  document.getElementById("installPopup").style.display="flex";
+}
+
+/* TRIGGER SCROLL */
+window.addEventListener("scroll", ()=>{
+  if(window.scrollY > 300){
+    showInstall();
+  }
+});
+
+/* TRIGGER WAKTU */
+setTimeout(()=>{
+  showInstall();
+},15000);
+
+/* TRIGGER SAAT TAMBAH PRODUK */
+const oldUbah = ubah;
+ubah = function(id,val){
+  oldUbah(id,val);
+  if(val > 0) showInstall();
+}
+
+/* REGISTER SW */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+  <!-- INSTALL POPUP -->
+<div id="installPopup" style="display:none;">
+  <div class="popupBox">
+
+    <div class="popupHeader">
+      <span onclick="minimizeInstall()">➖</span>
+      <span onclick="closeInstall()">✕</span>
+    </div>
+
+    <h3>Install App</h3>
+    <p>Biar belanja lebih cepat 🚀<br>Pasang Duta Terang LED</p>
+    <button onclick="installApp()">Install</button>
+
+  </div>
+</div>
+
+<!-- FLOAT BUTTON -->
+<button id="installBtn" onclick="openInstall()">⬇</button>
 </body>
 </html>
