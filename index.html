@@ -419,8 +419,15 @@ function hitungTotal(){
 }
 </script>
 <script>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
 let deferredPrompt;
 let installShown = false;
+
+window.addEventListener("beforeinstallprompt", (e)=>{
+  });
+</script>
 
 /* TANGKAP EVENT INSTALL */
 window.addEventListener("beforeinstallprompt", (e)=>{
@@ -430,7 +437,7 @@ window.addEventListener("beforeinstallprompt", (e)=>{
 
 /* BUKA POPUP */
 function openInstall(){
-  document.getElementById("installPopup").style.display="flex";
+  
 }
 
 /* MINIMIZE */
@@ -449,7 +456,7 @@ function closeInstall(){
   document.getElementById("installPopup").style.display="none";
   document.getElementById("installBtn").style.display="none";
 
-  installShown = true; // 🔥 ini kunci penting
+  installShown = true; // 🔥 penting
   localStorage.setItem("installClosed","yes");
 }
 /* INSTALL */
