@@ -214,6 +214,19 @@ header{
   from{transform:scale(0.8)}
   to{transform:scale(1)}
 }
+  <style>
+/* ANIMASI */
+@keyframes scaleUp{
+  from{transform:scale(0.8)}
+  to{transform:scale(1)}
+}
+
+/* 🔥 TAMBAHKAN DI SINI */
+.popupHeader span:last-child{
+  background:#ff5252;
+  color:#fff;
+}
+</style>
 </style>
 </head>
 
@@ -436,6 +449,7 @@ function closeInstall(){
   document.getElementById("installPopup").style.display="none";
   document.getElementById("installBtn").style.display="none";
 
+  installShown = true; // 🔥 ini kunci penting
   localStorage.setItem("installClosed","yes");
 }
 /* INSTALL */
@@ -463,12 +477,15 @@ function showInstall(){
   }
 
   installShown = true;
+
+setTimeout(()=>{
   document.getElementById("installPopup").style.display="flex";
+},1500);
 }
 
 /* TRIGGER SCROLL */
 window.addEventListener("scroll", ()=>{
-  if(window.scrollY > 300){
+  if(window.scrollY > 300 && !installShown){
     showInstall();
   }
 });
