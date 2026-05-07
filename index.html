@@ -9,49 +9,49 @@
         header { background: #00bcd4; color: #fff; padding: 12px; text-align: center; font-size: 1.2em; font-weight: bold; }
         
         /* PROMO RUNNING TEXT */
-        .promo-container { background: #fff3cd; color: #856404; padding: 5px; font-size: 0.85em; border-bottom: 1px solid #ffeeba; }
+        .promo-container { background: #fff3cd; color: #856404; padding: 5px; font-size: 0.85em; border-bottom: 1px solid #ffeeba; min-height: 20px; }
 
-        #search { width: 90%; padding: 10px; margin: 10px auto; display: block; border-radius: 10px; border: 1px solid #ccc; }
+        #search { width: 90%; padding: 12px; margin: 10px auto; display: block; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
         
         #kategori { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; justify-content: center; }
-        #kategori button { background: #e0f7fa; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; }
+        #kategori button { background: #e0f7fa; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 0.8em; font-weight: bold; transition: 0.3s; }
+        #kategori button:active { background: #00bcd4; color: #fff; }
 
         #produk { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 10px; }
         .card { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.1); display: flex; flex-direction: column; position: relative; }
-        .card img { width: 100%; height: 100px; object-fit: contain; }
-        .card h4 { margin: 8px 0 4px; font-size: 0.9em; height: 35px; overflow: hidden; }
-        .harga { color: #e91e63; font-weight: bold; }
+        .card img { width: 100%; height: 100px; object-fit: contain; background: #f1f1f1; border-radius: 8px; }
+        .card h4 { margin: 8px 0 4px; font-size: 0.9em; height: 35px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .harga { color: #e91e63; font-weight: bold; font-size: 1em; }
         
         .qty { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
-        .qty button { width: 30px; height: 30px; border: none; background: #eee; border-radius: 5px; }
-        .qty input { width: 40px; text-align: center; border: 1px solid #ddd; }
+        .qty button { width: 32px; height: 32px; border: none; background: #00bcd4; color: #fff; border-radius: 5px; font-weight: bold; }
+        .qty input { width: 45px; text-align: center; border: 1px solid #ddd; border-radius: 5px; }
 
-        #floatingTotal { position: fixed; bottom: 70px; right: 10px; background: #fff; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-weight: bold; z-index: 99; }
+        #floatingTotal { position: fixed; bottom: 75px; right: 10px; background: #fff; padding: 8px 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-weight: bold; z-index: 99; color: #00bcd4; border: 1px solid #00bcd4; }
         
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #ddd; }
-        .footer button { width: 50px; height: 50px; border-radius: 50%; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #ddd; z-index: 100; }
+        .footer button { width: 55px; height: 55px; border-radius: 50%; border: none; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .btn-wa { background: #4caf50; }
         .btn-reset { background: #f44336; }
         .btn-search { background: #00bcd4; }
 
         /* INSTALL POPUP */
         #installPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
-        .popupBox { background: #fff; padding: 20px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
+        .popupBox { background: #fff; padding: 25px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .popupHeader { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
-        .popupHeader span { padding: 5px 10px; background: #eee; border-radius: 5px; cursor: pointer; }
-        #installBtn { position: fixed; bottom: 130px; right: 15px; width: 50px; height: 50px; background: #00bcd4; color: #fff; border: none; border-radius: 50%; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
+        .popupHeader span { width: 30px; height: 30px; line-height: 30px; background: #eee; border-radius: 50%; cursor: pointer; font-weight: bold; }
+        #installBtn { position: fixed; bottom: 140px; right: 15px; width: 50px; height: 50px; background: #00bcd4; color: #fff; border: none; border-radius: 50%; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999; font-size: 24px; }
     </style>
 </head>
 <body>
 
 <header>Duta Terang LED</header>
 
-<!-- AREA PROMO DARI GOOGLE SHEETS -->
 <div class="promo-container">
-    <marquee id="jam-sekarang">Memuat promo terbaru...</marquee>
+    <marquee id="jam-sekarang" scrollamount="4">Memuat promo terbaru...</marquee>
 </div>
 
-<input id="search" placeholder="Cari produk..." oninput="cari(this.value)">
+<input id="search" type="text" placeholder="Cari sparepart atau harga..." oninput="cari(this.value)">
 
 <div id="kategori"></div>
 <div id="produk">Memuat Produk...</div>
@@ -64,22 +64,21 @@
     <button class="btn-reset" onclick="resetCart()">🔄</button>
 </div>
 
-<!-- POPUP INSTALL -->
 <div id="installPopup">
     <div class="popupBox">
         <div class="popupHeader">
             <span onclick="minimizeInstall()">➖</span>
             <span onclick="closeInstall()" style="background:#ff5252;color:#fff">✕</span>
         </div>
+        <div style="font-size: 50px; margin-bottom: 10px;">💡</div>
         <h3>Pasang Aplikasi</h3>
-        <p>Akses lebih cepat & dapat info promo LED terbaru langsung di layar HP Anda!</p>
-        <button onclick="installApp()" style="background:#00bcd4; color:#fff; border:none; padding:10px 20px; border-radius:5px; width:100%">Install Sekarang</button>
+        <p>Akses <b>Duta Terang</b> lebih cepat & dapat info promo LED terbaru langsung di layar HP!</p>
+        <button onclick="installApp()" style="background:#00bcd4; color:#fff; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">Install Sekarang</button>
     </div>
 </div>
-<button id="installBtn" onclick="document.getElementById('installPopup').style.display='flex'">📲</button>
+<button id="installBtn" onclick="openInstall()">📲</button>
 
 <script>
-// KONFIGURASI
 const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec";
 const NO_WA = "6288224166270";
 
@@ -88,33 +87,31 @@ let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let deferredPrompt;
 
-// 1. LOAD DATA DARI GOOGLE SHEETS
 async function load() {
     try {
         const res = await fetch(API_URL);
         const response = await res.json();
         
-        // Simpan data produk
         produkList = response.produk || [];
         currentData = produkList;
 
-        // Tampilkan Promo di Marquee
         if (response.promo) {
             document.getElementById("jam-sekarang").innerText = response.promo;
+        } else {
+            document.getElementById("jam-sekarang").innerText = "Selamat Datang di Duta Terang LED - Sparepart & Audio";
         }
 
         buatKategori();
         render();
     } catch (e) {
-        document.getElementById("produk").innerText = "Gagal memuat data. Periksa koneksi.";
+        document.getElementById("produk").innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:20px;'>Gagal memuat data. Periksa internet Anda.</div>";
     }
 }
 
-// 2. TAMPILKAN PRODUK
 function render() {
     const container = document.getElementById("produk");
     if (currentData.length === 0) {
-        container.innerHTML = "<p>Produk tidak ditemukan</p>";
+        container.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>Produk tidak ditemukan</div>";
         return;
     }
 
@@ -123,9 +120,9 @@ function render() {
         let qty = cart[p.id] || 0;
         html += `
             <div class="card">
-                <img src="${p.gambar || 'https://via.placeholder.com/150'}">
+                <img src="${p.gambar || 'https://via.placeholder.com/150'}" alt="${p.nama}">
                 <h4>${p.nama}</h4>
-                <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+                <div class="harga">Rp ${p.harga.toLocaleString('id-ID')}</div>
                 <div class="qty">
                     <button onclick="ubah(${p.id}, -1)">-</button>
                     <input type="number" value="${qty}" onchange="manual(${p.id}, this.value)">
@@ -138,7 +135,6 @@ function render() {
     hitungTotal();
 }
 
-// 3. LOGIKA KERANJANG
 function ubah(id, delta) {
     cart[id] = (cart[id] || 0) + delta;
     if (cart[id] < 0) cart[id] = 0;
@@ -147,8 +143,8 @@ function ubah(id, delta) {
 }
 
 function manual(id, val) {
-    cart[id] = parseInt(val) || 0;
-    if (cart[id] < 0) cart[id] = 0;
+    let num = parseInt(val);
+    cart[id] = isNaN(num) || num < 0 ? 0 : num;
     simpan();
 }
 
@@ -158,7 +154,7 @@ function simpan() {
 }
 
 function resetCart() {
-    if(confirm("Hapus semua isi keranjang?")) {
+    if(confirm("Kosongkan keranjang belanja?")) {
         cart = {};
         simpan();
     }
@@ -172,10 +168,9 @@ function hitungTotal() {
         totalHarga += q * p.harga;
         totalBarang += q;
     });
-    document.getElementById("floatingTotal").innerText = `${totalBarang} Barang | Rp ${totalHarga.toLocaleString()}`;
+    document.getElementById("floatingTotal").innerText = `${totalBarang} Item | Rp ${totalHarga.toLocaleString('id-ID')}`;
 }
 
-// 4. KATEGORI & CARI
 function buatKategori() {
     let kategoriSet = new Set();
     produkList.forEach(p => { if(p.kategori) kategoriSet.add(p.kategori.toUpperCase()) });
@@ -193,14 +188,16 @@ function setKategori(k) {
 }
 
 function cari(txt) {
-    let keyword = txt.toLowerCase();
-    currentData = produkList.filter(p => p.nama.toLowerCase().includes(keyword));
+    let keyword = txt.toLowerCase().trim();
+    currentData = produkList.filter(p => 
+        p.nama.toLowerCase().includes(keyword) || 
+        (p.kategori && p.kategori.toLowerCase().includes(keyword))
+    );
     render();
 }
 
-// 5. CHECKOUT WA
 function checkout() {
-    let pesan = "Halo Duta Terang LED, saya mau order:\n\n";
+    let pesan = "Pesanan Duta Terang LED:\n--------------------------\n";
     let total = 0;
     let ada = false;
 
@@ -208,26 +205,35 @@ function checkout() {
         let q = cart[p.id] || 0;
         if (q > 0) {
             ada = true;
-            pesan += `- ${p.nama} (${q}x)\n`;
+            pesan += `▪️ ${p.nama} (${q}x)\n`;
             total += q * p.harga;
         }
     });
 
-    if (!ada) { alert("Keranjang masih kosong!"); return; }
+    if (!ada) { alert("Pilih produk dulu sebelum checkout!"); return; }
     
-    pesan += `\nTotal: Rp ${total.toLocaleString()}`;
+    pesan += `\n--------------------------\nTotal: Rp ${total.toLocaleString('id-ID')}`;
     window.open(`https://wa.me/${NO_WA}?text=${encodeURIComponent(pesan)}`);
 }
 
-// 6. LOGIKA PWA & INSTALL TRACKING
+// LOGIKA PWA
 window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    // Tampilkan tombol kecil jika popup pernah ditutup
+    if(localStorage.getItem("installMin")) {
+        document.getElementById("installBtn").style.display = "block";
+    }
 });
 
 function showInstallLogic() {
     if (!deferredPrompt || localStorage.getItem("installClosed")) return;
     document.getElementById("installPopup").style.display = "flex";
+}
+
+function openInstall() {
+    document.getElementById("installPopup").style.display = "flex";
+    document.getElementById("installBtn").style.display = "none";
 }
 
 function installApp() {
@@ -243,6 +249,7 @@ function installApp() {
 function minimizeInstall() {
     document.getElementById("installPopup").style.display = "none";
     document.getElementById("installBtn").style.display = "block";
+    localStorage.setItem("installMin", "yes");
 }
 
 function closeInstall() {
@@ -254,11 +261,11 @@ function closeInstall() {
 window.addEventListener('appinstalled', () => {
     fetch(API_URL, {
         method: "POST",
+        mode: "no-cors", // Tambahkan mode no-cors
         body: JSON.stringify({ aksi: "tambah_install" })
     });
 });
 
-// JALANKAN LOAD SAAT START
 load();
 </script>
 
