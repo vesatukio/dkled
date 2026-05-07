@@ -427,6 +427,39 @@ let installShown = false;
 
 window.addEventListener("beforeinstallprompt", (e)=>{
   });
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec"; // Pastikan URL ini sudah diganti
+    let produk = [];
+
+    // --- PASANG DI SINI ---
+    async function load() {
+        try {
+            const res = await fetch(API_URL);
+            const response = await res.json();
+            
+            produk = response.produk; 
+            
+            // Menampilkan teks promo dari B3 Google Sheets ke elemen ID "jam-sekarang"
+            if (response.promo) {
+                document.getElementById("jam-sekarang").innerText = response.promo;
+            }
+
+            render(); 
+        } catch (e) {
+            console.error("Gagal load data");
+            document.getElementById("list").innerText = "Koneksi bermasalah...";
+        }
+    }
+    // -----------------------
+
+    // Jangan lupa panggil fungsinya agar jalan saat web dibuka
+    load();
+
+    // Fungsi render() Anda yang lama tetap di bawahnya...
+    function render() {
+        // ... kode render Anda ...
+    }
+</script>
 </script>
 
 /* TANGKAP EVENT INSTALL */
