@@ -1,572 +1,266 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Duta Terang LED</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Duta Terang LED</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f9f9f9; padding-bottom: 80px; }
+        header { background: #00bcd4; color: #fff; padding: 12px; text-align: center; font-size: 1.2em; font-weight: bold; }
+        
+        /* PROMO RUNNING TEXT */
+        .promo-container { background: #fff3cd; color: #856404; padding: 5px; font-size: 0.85em; border-bottom: 1px solid #ffeeba; }
 
-<style>
-body{
-  font-family:sans-serif;
-  margin:0;
-  background:#f9f9f9;
-  padding-bottom:80px;
-}
+        #search { width: 90%; padding: 10px; margin: 10px auto; display: block; border-radius: 10px; border: 1px solid #ccc; }
+        
+        #kategori { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; justify-content: center; }
+        #kategori button { background: #e0f7fa; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; }
 
-header{
-  background:#00bcd4;
-  color:#fff;
-  padding:12px;
-  text-align:center;
-  font-size:1.2em;
-  font-weight:bold;
-}
+        #produk { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 10px; }
+        .card { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.1); display: flex; flex-direction: column; position: relative; }
+        .card img { width: 100%; height: 100px; object-fit: contain; }
+        .card h4 { margin: 8px 0 4px; font-size: 0.9em; height: 35px; overflow: hidden; }
+        .harga { color: #e91e63; font-weight: bold; }
+        
+        .qty { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+        .qty button { width: 30px; height: 30px; border: none; background: #eee; border-radius: 5px; }
+        .qty input { width: 40px; text-align: center; border: 1px solid #ddd; }
 
-/* SEARCH */
-#search{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
+        #floatingTotal { position: fixed; bottom: 70px; right: 10px; background: #fff; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-weight: bold; z-index: 99; }
+        
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #ddd; }
+        .footer button { width: 50px; height: 50px; border-radius: 50%; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .btn-wa { background: #4caf50; }
+        .btn-reset { background: #f44336; }
+        .btn-search { background: #00bcd4; }
 
-/* KATEGORI */
-#kategori{
-  display:flex;
-  flex-wrap:wrap;
-  gap:5px;
-  padding:10px;
-}
-
-#kategori button{
-  background:#e0f7fa;
-  border:none;
-  border-radius:20px;
-  padding:6px 12px;
-  font-size:0.85em;
-  cursor:pointer;
-}
-
-/* PRODUK */
-#produk{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;
-  padding:10px;
-}
-
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-  display:flex;
-  flex-direction:column;
-}
-
-.card img{
-  width:100%;
-  height:90px;
-  object-fit:contain;
-  margin-bottom:5px;
-}
-
-.card h4{
-  margin:0;
-  font-size:0.9em;
-}
-
-.harga{
-  color:#e91e63;
-  font-weight:bold;
-  margin:4px 0;
-}
-
-.qty{
-  display:flex;
-  justify-content:center;
-  gap:5px;
-  margin-top:8px;
-}
-
-.qty button{
-  width:28px;
-  height:28px;
-  border:none;
-  border-radius:6px;
-  background:#eee;
-}
-
-.qty input{
-  width:40px;
-  text-align:center;
-}
-
-/* FLOAT */
-#floatingTotal{
-  position:fixed;
-  bottom:70px;
-  right:10px;
-  background:#fff;
-  padding:6px 12px;
-  border-radius:20px;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
-  font-weight:bold;
-}
-
-/* FOOTER */
-.footer{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  display:flex;
-  justify-content:space-around;
-  padding:5px 0;
-}
-
-.footer button{
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  border:none;
-  color:#fff;
-  font-size:18px;
-}
-
-.keranjang{background:#4caf50}
-.reset{background:#f44336}
-  /* POPUP */
-#installPopup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  display:none; /* ✅ BENAR */
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-}
-
-.popupBox{
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  width:80%;
-  max-width:280px;
-  text-align:center;
-  animation:scaleUp .3s;
-}
-.popupBox{
-  position:relative;
-}
-.popupHeader{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin-bottom:10px;
-}
-
-.popupHeader span{
-  width:32px;
-  height:32px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:#f1f1f1;
-  border-radius:50%;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-
-  transition:0.2s;
-}
-
-.popupHeader span:hover{
-  background:#ddd;
-}
-
-/* FLOAT BUTTON */
-#installBtn{
-  position:fixed;
-  bottom:130px;
-  right:15px;
-
-  width:50px;
-  height:50px;
-
-  background:#00bcd4;
-  color:#fff;
-  border:none;
-  border-radius:50%;
-
-  font-size:22px;
-  display:none;
-  z-index:9999;
-
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  cursor:pointer;
-}
-
-/* ANIMASI */
-@keyframes scaleUp{
-  from{transform:scale(0.8)}
-  to{transform:scale(1)}
-}
-  <style>
-/* ANIMASI */
-@keyframes scaleUp{
-  from{transform:scale(0.8)}
-  to{transform:scale(1)}
-}
-
-/* 🔥 TAMBAHKAN DI SINI */
-.popupHeader span:last-child{
-  background:#ff5252;
-  color:#fff;
-}
-</style>
-</style>
+        /* INSTALL POPUP */
+        #installPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .popupBox { background: #fff; padding: 20px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
+        .popupHeader { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+        .popupHeader span { padding: 5px 10px; background: #eee; border-radius: 5px; cursor: pointer; }
+        #installBtn { position: fixed; bottom: 130px; right: 15px; width: 50px; height: 50px; background: #00bcd4; color: #fff; border: none; border-radius: 50%; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
+    </style>
 </head>
-
 <body>
 
 <header>Duta Terang LED</header>
 
-<div style="padding:10px">
-  <input id="search" placeholder="Cari produk..." oninput="cari(this.value)">
+<!-- AREA PROMO DARI GOOGLE SHEETS -->
+<div class="promo-container">
+    <marquee id="jam-sekarang">Memuat promo terbaru...</marquee>
 </div>
 
+<input id="search" placeholder="Cari produk..." oninput="cari(this.value)">
+
 <div id="kategori"></div>
-<div id="produk">Loading produk...</div>
+<div id="produk">Memuat Produk...</div>
 
 <div id="floatingTotal">0 Barang | Rp 0</div>
 
 <div class="footer">
-  <button class="keranjang" onclick="focusSearch()">🔍</button>
-  <button class="keranjang" onclick="checkout()">🛒</button>
-  <button class="reset" onclick="resetCart()">🔄</button>
+    <button class="btn-search" onclick="document.getElementById('search').focus()">🔍</button>
+    <button class="btn-wa" onclick="checkout()">🛒</button>
+    <button class="btn-reset" onclick="resetCart()">🔄</button>
 </div>
 
+<!-- POPUP INSTALL -->
+<div id="installPopup">
+    <div class="popupBox">
+        <div class="popupHeader">
+            <span onclick="minimizeInstall()">➖</span>
+            <span onclick="closeInstall()" style="background:#ff5252;color:#fff">✕</span>
+        </div>
+        <h3>Pasang Aplikasi</h3>
+        <p>Akses lebih cepat & dapat info promo LED terbaru langsung di layar HP Anda!</p>
+        <button onclick="installApp()" style="background:#00bcd4; color:#fff; border:none; padding:10px 20px; border-radius:5px; width:100%">Install Sekarang</button>
+    </div>
+</div>
+<button id="installBtn" onclick="document.getElementById('installPopup').style.display='flex'">📲</button>
+
 <script>
-const apiURL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec";
-const noWA = "6288224166270";
+// KONFIGURASI
+const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec";
+const NO_WA = "6288224166270";
 
 let produkList = [];
 let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
-
-/* LOAD DATA */
-fetch(apiURL)
-.then(res => res.json())
-.then(res => {
-  let rows = res.data || [];
-
-  produkList = rows.map(r => ({
-    id: r.id, // PENTING: pakai ID asli
-    nama: r.nama,
-    harga: Number(r.harga) || 0,
-    kategori: (r.kategori || "").toUpperCase().trim(),
-    gambar: r.gambar || "https://via.placeholder.com/150"
-  }));
-
-  buatKategori();
-  currentData = produkList;
-  tampil(currentData);
-})
-.catch(err => {
-  console.error(err);
-  document.getElementById("produk").innerHTML = "Gagal load data";
-});
-
-/* KATEGORI */
-function buatKategori(){
-  let set = new Set();
-
-  produkList.forEach(p => {
-    if(p.kategori) set.add(p.kategori);
-  });
-
-  let html = `<button onclick="tampil(produkList)">SEMUA</button>`;
-
-  set.forEach(k => {
-    html += `<button onclick="klikKategori('${k}')">${k}</button>`;
-  });
-
-  document.getElementById("kategori").innerHTML = html;
-}
-
-function klikKategori(k){
-  currentData = produkList.filter(p => p.kategori === k);
-  tampil(currentData);
-}
-
-/* SEARCH */
-function cari(text){
-  text = text.toLowerCase().trim();
-
-  if(!text){
-    tampil(produkList);
-    return;
-  }
-
-  currentData = produkList.filter(p =>
-    p.nama.toLowerCase().includes(text) ||
-    String(p.harga).includes(text)
-  );
-
-  tampil(currentData);
-}
-
-/* TAMPIL */
-function tampil(data){
-  if(!data.length){
-    document.getElementById("produk").innerHTML = "Produk tidak ditemukan";
-    return;
-  }
-
-  let html = "";
-
-  data.forEach(p => {
-    let qty = cart[p.id] || 0;
-
-    html += `
-    <div class="card">
-      <img src="${p.gambar}">
-      <h4>${p.nama}</h4>
-      <div class="harga">Rp ${p.harga.toLocaleString()}</div>
-
-      <div class="qty">
-        <button onclick="ubah(${p.id},-1)">-</button>
-        <input value="${qty}" onchange="manual(${p.id},this.value)">
-        <button onclick="ubah(${p.id},1)">+</button>
-      </div>
-    </div>`;
-  });
-
-  document.getElementById("produk").innerHTML = html;
-  hitungTotal();
-}
-
-/* CART */
-function ubah(id,val){
-  cart[id] = (cart[id] || 0) + val;
-  if(cart[id] < 0) cart[id] = 0;
-  simpan();
-}
-
-function manual(id,val){
-  cart[id] = parseInt(val) || 0;
-  simpan();
-}
-
-function simpan(){
-  localStorage.setItem("cart", JSON.stringify(cart));
-  tampil(currentData);
-}
-
-/* RESET */
-function resetCart(){
-  cart = {};
-  simpan();
-}
-
-/* CHECKOUT */
-function checkout(){
-  let text = "Order:\n\n";
-  let total = 0;
-  let ada = false;
-
-  produkList.forEach(p => {
-    let q = cart[p.id] || 0;
-    if(q > 0){
-      ada = true;
-      total += q * p.harga;
-      text += `${p.nama} x ${q}\n`;
-    }
-  });
-
-  if(!ada){
-    alert("Belum ada pesanan");
-    return;
-  }
-
-  text += `\nTotal: Rp ${total.toLocaleString()}`;
-
-  if(confirm(text + "\n\nKirim WhatsApp?")){
-    window.open(`https://wa.me/${noWA}?text=${encodeURIComponent(text)}`);
-  }
-}
-
-/* UI */
-function focusSearch(){
-  document.getElementById("search").focus();
-}
-
-function hitungTotal(){
-  let total = 0;
-  let count = 0;
-
-  produkList.forEach(p => {
-    let q = cart[p.id] || 0;
-    total += q * p.harga;
-    count += q;
-  });
-
-  document.getElementById("floatingTotal").innerText =
-    `${count} Barang | Rp ${total.toLocaleString()}`;
-}
-</script>
-<script>
-<script>
-document.addEventListener("DOMContentLoaded", function(){
-
 let deferredPrompt;
-let installShown = false;
 
-window.addEventListener("beforeinstallprompt", (e)=>{
-  });
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec"; // Pastikan URL ini sudah diganti
-    let produk = [];
+// 1. LOAD DATA DARI GOOGLE SHEETS
+async function load() {
+    try {
+        const res = await fetch(API_URL);
+        const response = await res.json();
+        
+        // Simpan data produk
+        produkList = response.produk || [];
+        currentData = produkList;
 
-    // --- PASANG DI SINI ---
-    async function load() {
-        try {
-            const res = await fetch(API_URL);
-            const response = await res.json();
-            
-            produk = response.produk; 
-            
-            // Menampilkan teks promo dari B3 Google Sheets ke elemen ID "jam-sekarang"
-            if (response.promo) {
-                document.getElementById("jam-sekarang").innerText = response.promo;
-            }
-
-            render(); 
-        } catch (e) {
-            console.error("Gagal load data");
-            document.getElementById("list").innerText = "Koneksi bermasalah...";
+        // Tampilkan Promo di Marquee
+        if (response.promo) {
+            document.getElementById("jam-sekarang").innerText = response.promo;
         }
+
+        buatKategori();
+        render();
+    } catch (e) {
+        document.getElementById("produk").innerText = "Gagal memuat data. Periksa koneksi.";
     }
-    // -----------------------
+}
 
-    // Jangan lupa panggil fungsinya agar jalan saat web dibuka
-    load();
-
-    // Fungsi render() Anda yang lama tetap di bawahnya...
-    function render() {
-        // ... kode render Anda ...
+// 2. TAMPILKAN PRODUK
+function render() {
+    const container = document.getElementById("produk");
+    if (currentData.length === 0) {
+        container.innerHTML = "<p>Produk tidak ditemukan</p>";
+        return;
     }
-</script>
-</script>
 
-/* TANGKAP EVENT INSTALL */
-window.addEventListener("beforeinstallprompt", (e)=>{
-  e.preventDefault();
-  deferredPrompt = e;
+    let html = "";
+    currentData.forEach(p => {
+        let qty = cart[p.id] || 0;
+        html += `
+            <div class="card">
+                <img src="${p.gambar || 'https://via.placeholder.com/150'}">
+                <h4>${p.nama}</h4>
+                <div class="harga">Rp ${p.harga.toLocaleString()}</div>
+                <div class="qty">
+                    <button onclick="ubah(${p.id}, -1)">-</button>
+                    <input type="number" value="${qty}" onchange="manual(${p.id}, this.value)">
+                    <button onclick="ubah(${p.id}, 1)">+</button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+    hitungTotal();
+}
+
+// 3. LOGIKA KERANJANG
+function ubah(id, delta) {
+    cart[id] = (cart[id] || 0) + delta;
+    if (cart[id] < 0) cart[id] = 0;
+    simpan();
+    if (delta > 0) showInstallLogic();
+}
+
+function manual(id, val) {
+    cart[id] = parseInt(val) || 0;
+    if (cart[id] < 0) cart[id] = 0;
+    simpan();
+}
+
+function simpan() {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    render();
+}
+
+function resetCart() {
+    if(confirm("Hapus semua isi keranjang?")) {
+        cart = {};
+        simpan();
+    }
+}
+
+function hitungTotal() {
+    let totalHarga = 0;
+    let totalBarang = 0;
+    produkList.forEach(p => {
+        let q = cart[p.id] || 0;
+        totalHarga += q * p.harga;
+        totalBarang += q;
+    });
+    document.getElementById("floatingTotal").innerText = `${totalBarang} Barang | Rp ${totalHarga.toLocaleString()}`;
+}
+
+// 4. KATEGORI & CARI
+function buatKategori() {
+    let kategoriSet = new Set();
+    produkList.forEach(p => { if(p.kategori) kategoriSet.add(p.kategori.toUpperCase()) });
+    
+    let html = `<button onclick="setKategori('SEMUA')">SEMUA</button>`;
+    kategoriSet.forEach(k => {
+        html += `<button onclick="setKategori('${k}')">${k}</button>`;
+    });
+    document.getElementById("kategori").innerHTML = html;
+}
+
+function setKategori(k) {
+    currentData = (k === 'SEMUA') ? produkList : produkList.filter(p => p.kategori.toUpperCase() === k);
+    render();
+}
+
+function cari(txt) {
+    let keyword = txt.toLowerCase();
+    currentData = produkList.filter(p => p.nama.toLowerCase().includes(keyword));
+    render();
+}
+
+// 5. CHECKOUT WA
+function checkout() {
+    let pesan = "Halo Duta Terang LED, saya mau order:\n\n";
+    let total = 0;
+    let ada = false;
+
+    produkList.forEach(p => {
+        let q = cart[p.id] || 0;
+        if (q > 0) {
+            ada = true;
+            pesan += `- ${p.nama} (${q}x)\n`;
+            total += q * p.harga;
+        }
+    });
+
+    if (!ada) { alert("Keranjang masih kosong!"); return; }
+    
+    pesan += `\nTotal: Rp ${total.toLocaleString()}`;
+    window.open(`https://wa.me/${NO_WA}?text=${encodeURIComponent(pesan)}`);
+}
+
+// 6. LOGIKA PWA & INSTALL TRACKING
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
 });
 
-/* BUKA POPUP */
-function openInstall(){
-  
+function showInstallLogic() {
+    if (!deferredPrompt || localStorage.getItem("installClosed")) return;
+    document.getElementById("installPopup").style.display = "flex";
 }
 
-/* MINIMIZE */
-function minimizeInstall(){
-  const popup = document.getElementById("installPopup");
-  const btn = document.getElementById("installBtn");
-
-  popup.style.display = "none";
-  btn.style.display = "block";
-
-  localStorage.setItem("installMin","yes");
+function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+        if (choice.outcome === "accepted") {
+            closeInstall();
+        }
+    });
 }
 
-/* CLOSE TOTAL */
-function closeInstall(){
-  document.getElementById("installPopup").style.display="none";
-  document.getElementById("installBtn").style.display="none";
-
-  installShown = true; // 🔥 penting
-  localStorage.setItem("installClosed","yes");
-}
-/* INSTALL */
-function installApp(){
-  if(!deferredPrompt) return;
-
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(choice=>{
-    if(choice.outcome==="accepted"){
-      document.getElementById("installPopup").style.display="none";
-      document.getElementById("installBtn").style.display="none";
-    }
-  });
+function minimizeInstall() {
+    document.getElementById("installPopup").style.display = "none";
+    document.getElementById("installBtn").style.display = "block";
 }
 
-/* SMART TRIGGER */
-function showInstall(){
-  if(!deferredPrompt) return;
-  if(installShown) return;
-  if(localStorage.getItem("installClosed")) return;
-
-  if(localStorage.getItem("installMin")){
-    document.getElementById("installBtn").style.display="block";
-    return;
-  }
-
-  installShown = true;
-
-setTimeout(()=>{
-  document.getElementById("installPopup").style.display="flex";
-},1500);
+function closeInstall() {
+    document.getElementById("installPopup").style.display = "none";
+    document.getElementById("installBtn").style.display = "none";
+    localStorage.setItem("installClosed", "yes");
 }
 
-/* TRIGGER SCROLL */
-window.addEventListener("scroll", ()=>{
-  if(window.scrollY > 300 && !installShown){
-    showInstall();
-  }
-});
-
-/* TRIGGER SAAT TAMBAH PRODUK */
-const oldUbah = ubah;
-ubah = function(id,val){
-  oldUbah(id,val);
-  if(val > 0) showInstall();
-}
-
-/* REGISTER SW */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
-}
-  // Script untuk kirim data ke Sheets saat user klik "Install"
-window.addEventListener('appinstalled', (evt) => {
+window.addEventListener('appinstalled', () => {
     fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({ aksi: "tambah_install" })
     });
 });
+
+// JALANKAN LOAD SAAT START
+load();
 </script>
-  
-  <!-- INSTALL POPUP -->
-<div id="installPopup">
-  <div class="popupBox">
 
-    <div class="popupHeader">
-      <span onclick="minimizeInstall()">➖</span>
-      <span onclick="closeInstall()">✕</span>
-    </div>
-
-    <h3>Install App</h3>
-<p>Dapat promo & akses cepat 🚀<br>Tanpa buka browser lagi</p>
-    <button onclick="installApp()">Install</button>
-
-  </div>
-</div>
-
-<!-- FLOAT BUTTON -->
-<button id="installBtn" onclick="openInstall()">📲</button>
 </body>
 </html>
