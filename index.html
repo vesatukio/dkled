@@ -508,6 +508,13 @@ ubah = function(id,val){
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js");
 }
+  // Script untuk kirim data ke Sheets saat user klik "Install"
+window.addEventListener('appinstalled', (evt) => {
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ aksi: "tambah_install" })
+    });
+});
 </script>
   
   <!-- INSTALL POPUP -->
