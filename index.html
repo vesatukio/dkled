@@ -35,46 +35,17 @@
         .btn-reset { background: #f44336; }
         .btn-search { background: #00bcd4; }
 
-        /* INSTALL POPUP */
-        #installPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        /* POPUP & MENU STYLES */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
         .popupBox { background: #fff; padding: 25px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .popupHeader { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
         .popupHeader span { width: 30px; height: 30px; line-height: 30px; background: #eee; border-radius: 50%; cursor: pointer; font-weight: bold; }
+        
+        .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; text-align: left; background: #f8f9fa; }
+        .pay-btn:hover { background: #e0f7fa; border-color: #00bcd4; }
+        .pay-btn span { font-size: 18px; margin-right: 10px; }
+
         #installBtn { position: fixed; bottom: 140px; right: 15px; width: 50px; height: 50px; background: #00bcd4; color: #fff; border: none; border-radius: 50%; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999; font-size: 24px; }
-    /* TAMBAHKAN INI DI DALAM TAG STYLE */
-#payMenu { 
-    position: fixed; 
-    inset: 0; 
-    background: rgba(0,0,0,0.7); 
-    display: none; 
-    align-items: center; 
-    justify-content: center; 
-    z-index: 10001; 
-}
-.payBox { 
-    background: #fff; 
-    padding: 20px; 
-    border-radius: 15px; 
-    width: 85%; 
-    max-width: 320px; 
-    text-align: center; 
-}
-.payBox h3 { margin-top: 0; color: #333; }
-.pay-btn { 
-    display: block; 
-    width: 100%; 
-    padding: 12px; 
-    margin: 10px 0; 
-    border: 1px solid #ddd; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    font-weight: bold; 
-    font-size: 14px; 
-    text-align: left; 
-    background: #f8f9fa; 
-}
-.pay-btn:hover { background: #e0f7fa; border-color: #00bcd4; }
-.pay-btn span { font-size: 18px; margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -90,15 +61,16 @@
 <div id="kategori"></div>
 <div id="produk">Memuat Produk...</div>
 
-<div id="floatingTotal">0 Barang | Rp 0</div>
+<div id="floatingTotal">0 Item | Rp 0</div>
 
 <div class="footer">
-    <button class="btn-search" onclick="document.getElementById('search').focus()">🔍</button>
-    <button class="btn-wa" onclick="checkout()">🛒</button>
-    <button class="btn-reset" onclick="resetCart()">🔄</button>
+    <button class="btn-search" title="Cari" onclick="document.getElementById('search').focus()">🔍</button>
+    <button class="btn-wa" title="Checkout" onclick="checkout()">🛒</button>
+    <button class="btn-reset" title="Reset" onclick="resetCart()">🔄</button>
 </div>
 
-<div id="installPopup">
+<!-- POPUP INSTALL -->
+<div id="installPopup" class="modal">
     <div class="popupBox">
         <div class="popupHeader">
             <span onclick="minimizeInstall()">➖</span>
@@ -110,16 +82,19 @@
         <button onclick="installApp()" style="background:#00bcd4; color:#fff; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">Install Sekarang</button>
     </div>
 </div>
-<button id="installBtn" onclick="openInstall()">📲</button>
-<!-- TAMBAHKAN INI DI BAWAH POPUP INSTALL -->
-<div id="payMenu">
-    <div class="payBox">
+
+<!-- POPUP METODE BAYAR -->
+<div id="payMenu" class="modal">
+    <div class="popupBox">
         <h3>Pilih Pembayaran</h3>
         <button class="pay-btn" onclick="prosesCheckout('COD (Bayar di Tempat)')"><span>🚚</span> COD (Bayar di Tempat)</button>
         <button class="pay-btn" onclick="prosesCheckout('Transfer Bank / E-Wallet')"><span>🏦</span> Transfer Bank / E-Wallet</button>
-        <button onclick="document.getElementById('payMenu').style.display='none'" style="margin-top:10px; border:none; background:none; color:#f44336; cursor:pointer;">Batal</button>
+        <button onclick="document.getElementById('payMenu').style.display='none'" style="margin-top:10px; border:none; background:none; color:#f44336; cursor:pointer; font-weight:bold;">Batal</button>
     </div>
 </div>
+
+<button id="installBtn" onclick="openInstall()">📲</button>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec";
 const NO_WA = "6288224166270";
@@ -129,6 +104,7 @@ let currentData = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let deferredPrompt;
 
+// 1. LOAD DATA
 async function load() {
     try {
         const res = await fetch(API_URL);
@@ -137,10 +113,12 @@ async function load() {
         produkList = response.produk || [];
         currentData = produkList;
 
-        if (response.promo) {
-            document.getElementById("jam-sekarang").innerText = response.promo;
+        // Tampilkan Promo dari Sheet
+        const promoEl = document.getElementById("jam-sekarang");
+        if (response.promo && response.promo.trim() !== "") {
+            promoEl.innerText = response.promo;
         } else {
-            document.getElementById("jam-sekarang").innerText = "Selamat Datang di Duta Terang LED - Sparepart & Audio";
+            promoEl.innerText = "Selamat Datang di Duta Terang LED - Solusi Sparepart LED & Audio";
         }
 
         buatKategori();
@@ -150,6 +128,7 @@ async function load() {
     }
 }
 
+// 2. RENDER PRODUK
 function render() {
     const container = document.getElementById("produk");
     if (currentData.length === 0) {
@@ -177,6 +156,7 @@ function render() {
     hitungTotal();
 }
 
+// 3. FUNGSI KERANJANG
 function ubah(id, delta) {
     cart[id] = (cart[id] || 0) + delta;
     if (cart[id] < 0) cart[id] = 0;
@@ -213,6 +193,7 @@ function hitungTotal() {
     document.getElementById("floatingTotal").innerText = `${totalBarang} Item | Rp ${totalHarga.toLocaleString('id-ID')}`;
 }
 
+// 4. KATEGORI & CARI
 function buatKategori() {
     let kategoriSet = new Set();
     produkList.forEach(p => { if(p.kategori) kategoriSet.add(p.kategori.toUpperCase()) });
@@ -238,7 +219,7 @@ function cari(txt) {
     render();
 }
 
-// GANTI FUNGSI LAMA DENGAN INI
+// 5. CHECKOUT LOGIC
 function checkout() {
     let ada = false;
     produkList.forEach(p => { if ((cart[p.id] || 0) > 0) ada = true; });
@@ -247,14 +228,11 @@ function checkout() {
         alert("Pilih produk dulu sebelum checkout!"); 
         return; 
     }
-    
-    // Sekarang ini tidak langsung ke WA, tapi munculkan menu pilihan dulu
     document.getElementById('payMenu').style.display = 'flex';
 }
 
-// TAMBAHKAN FUNGSI BARU INI DI BAWAHNYA
 function prosesCheckout(metode) {
-    let pesan = `*Pesanan Duta Terang LED*\n`;
+    let pesan = `*PESANAN DUTA TERANG LED*\n`;
     pesan += `--------------------------\n`;
     let total = 0;
 
@@ -272,17 +250,14 @@ function prosesCheckout(metode) {
     pesan += `--------------------------\n`;
     pesan += `Nama Penerima:\nAlamat Lengkap:`;
 
-    // Sembunyikan menu kembali
     document.getElementById('payMenu').style.display = 'none';
-    
-    // Kirim ke WhatsApp
     window.open(`https://wa.me/${NO_WA}?text=${encodeURIComponent(pesan)}`);
 }
-// LOGIKA PWA
+
+// 6. LOGIKA PWA & INSTALL
 window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    // Tampilkan tombol kecil jika popup pernah ditutup
     if(localStorage.getItem("installMin")) {
         document.getElementById("installBtn").style.display = "block";
     }
@@ -302,9 +277,7 @@ function installApp() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(choice => {
-        if (choice.outcome === "accepted") {
-            closeInstall();
-        }
+        if (choice.outcome === "accepted") closeInstall();
     });
 }
 
@@ -323,11 +296,12 @@ function closeInstall() {
 window.addEventListener('appinstalled', () => {
     fetch(API_URL, {
         method: "POST",
-        mode: "no-cors", // Tambahkan mode no-cors
+        mode: "no-cors",
         body: JSON.stringify({ aksi: "tambah_install" })
     });
 });
 
+// START
 load();
 </script>
 
