@@ -2,308 +2,46 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Duta Terang LED</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duta Terang - Katalog</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f9f9f9; padding-bottom: 80px; }
-        header { background: #00bcd4; color: #fff; padding: 12px; text-align: center; font-size: 1.2em; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
         
-        /* PROMO RUNNING TEXT */
-        .promo-container { background: #fff3cd; color: #856404; padding: 5px; font-size: 0.85em; border-bottom: 1px solid #ffeeba; min-height: 20px; }
-
-        #search { width: 90%; padding: 12px; margin: 10px auto; display: block; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        /* Slider Container */
+        .slider { width: 100%; height: 200px; background: #ddd; display: flex; align-items: center; justify-content: center; position: relative; }
         
-        #kategori { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; justify-content: center; }
-        #kategori button { background: #e0f7fa; border: none; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 0.8em; font-weight: bold; transition: 0.3s; }
-        #kategori button:active { background: #00bcd4; color: #fff; }
-
-        #produk { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 10px; }
-        .card { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.1); display: flex; flex-direction: column; position: relative; }
-        .card img { width: 100%; height: 100px; object-fit: contain; background: #f1f1f1; border-radius: 8px; }
-        .card h4 { margin: 8px 0 4px; font-size: 0.9em; height: 35px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .harga { color: #e91e63; font-weight: bold; font-size: 1em; }
+        /* Kotak Pencarian di Tengah Slider */
+        .search-box { position: absolute; width: 85%; padding: 15px; border-radius: 25px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        .qty { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
-        .qty button { width: 32px; height: 32px; border: none; background: #00bcd4; color: #fff; border-radius: 5px; font-weight: bold; }
-        .qty input { width: 45px; text-align: center; border: 1px solid #ddd; border-radius: 5px; }
-
-        #floatingTotal { position: fixed; bottom: 75px; right: 10px; background: #fff; padding: 8px 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-weight: bold; z-index: 99; color: #00bcd4; border: 1px solid #00bcd4; }
+        /* Grid Produk */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
         
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #ddd; z-index: 100; }
-        .footer button { width: 55px; height: 55px; border-radius: 50%; border: none; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .btn-wa { background: #4caf50; }
-        .btn-reset { background: #f44336; }
-        .btn-search { background: #00bcd4; }
-
-        /* POPUP & MENU STYLES */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
-        .popupBox { background: #fff; padding: 25px; border-radius: 15px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .popupHeader { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
-        .popupHeader span { width: 30px; height: 30px; line-height: 30px; background: #eee; border-radius: 50%; cursor: pointer; font-weight: bold; }
-        
-        .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; text-align: left; background: #f8f9fa; }
-        .pay-btn:hover { background: #e0f7fa; border-color: #00bcd4; }
-        .pay-btn span { font-size: 18px; margin-right: 10px; }
-
-        #installBtn { position: fixed; bottom: 140px; right: 15px; width: 50px; height: 50px; background: #00bcd4; color: #fff; border: none; border-radius: 50%; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999; font-size: 24px; }
+        .btn-buy { background: #ff6600; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<header>Duta Terang LED</header>
+    <div class="slider">
+        <input type="text" class="search-box" placeholder="Cari komponen LED / Audio...">
+    </div>
 
-<div class="promo-container">
-    <marquee id="jam-sekarang" scrollamount="4">Memuat promo terbaru...</marquee>
-</div>
-
-<input id="search" type="text" placeholder="Cari sparepart atau harga..." oninput="cari(this.value)">
-
-<div id="kategori"></div>
-<div id="produk">Memuat Produk...</div>
-
-<div id="floatingTotal">0 Item | Rp 0</div>
-
-<div class="footer">
-    <button class="btn-search" title="Cari" onclick="document.getElementById('search').focus()">🔍</button>
-    <button class="btn-wa" title="Checkout" onclick="checkout()">🛒</button>
-    <button class="btn-reset" title="Reset" onclick="resetCart()">🔄</button>
-</div>
-
-<!-- POPUP INSTALL -->
-<div id="installPopup" class="modal">
-    <div class="popupBox">
-        <div class="popupHeader">
-            <span onclick="minimizeInstall()">➖</span>
-            <span onclick="closeInstall()" style="background:#ff5252;color:#fff">✕</span>
+    <div class="grid" id="product-list">
+        <div class="card">
+            <img src="https://via.placeholder.com/150" alt="Produk">
+            <p style="margin: 5px 0; font-size: 0.9rem;">LED Driver 30W</p>
+            <p style="font-weight: bold; color: #333;">Rp 25.000</p>
+            <button class="btn-buy" onclick="addToCart()">Beli Sekarang</button>
         </div>
-        <div style="font-size: 50px; margin-bottom: 10px;">💡</div>
-        <h3>Pasang Aplikasi</h3>
-        <p>Akses <b>Duta Terang</b> lebih cepat & dapat info promo LED terbaru langsung di layar HP!</p>
-        <button onclick="installApp()" style="background:#00bcd4; color:#fff; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer;">Install Sekarang</button>
     </div>
-</div>
 
-<!-- POPUP METODE BAYAR -->
-<div id="payMenu" class="modal">
-    <div class="popupBox">
-        <h3>Pilih Pembayaran</h3>
-        <button class="pay-btn" onclick="prosesCheckout('COD (Bayar di Tempat)')"><span>🚚</span> COD (Bayar di Tempat)</button>
-        <button class="pay-btn" onclick="prosesCheckout('Transfer Bank / E-Wallet')"><span>🏦</span> Transfer Bank / E-Wallet</button>
-        <button onclick="document.getElementById('payMenu').style.display='none'" style="margin-top:10px; border:none; background:none; color:#f44336; cursor:pointer; font-weight:bold;">Batal</button>
-    </div>
-</div>
-
-<button id="installBtn" onclick="openInstall()">📲</button>
-
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbz3qBKkVLsdGqnQG5BTeVfMc_tAvYg9fO6IVFpaOBpd3KK7p2epS0M-F7wDuEfdk5yH/exec";
-const NO_WA = "6288224166270";
-
-let produkList = [];
-let currentData = [];
-let cart = JSON.parse(localStorage.getItem("cart") || "{}");
-let deferredPrompt;
-
-// 1. LOAD DATA
-async function load() {
-    try {
-        const res = await fetch(API_URL);
-        const response = await res.json();
-        
-        produkList = response.produk || [];
-        currentData = produkList;
-
-        // Tampilkan Promo dari Sheet
-        const promoEl = document.getElementById("jam-sekarang");
-        if (response.promo && response.promo.trim() !== "") {
-            promoEl.innerText = response.promo;
-        } else {
-            promoEl.innerText = "Selamat Datang di Duta Terang LED - Solusi Sparepart LED & Audio";
-        }
-
-        buatKategori();
-        render();
-    } catch (e) {
-        document.getElementById("produk").innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:20px;'>Gagal memuat data. Periksa internet Anda.</div>";
-    }
-}
-
-// 2. RENDER PRODUK
-function render() {
-    const container = document.getElementById("produk");
-    if (currentData.length === 0) {
-        container.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>Produk tidak ditemukan</div>";
-        return;
-    }
-
-    let html = "";
-    currentData.forEach(p => {
-        let qty = cart[p.id] || 0;
-        html += `
-            <div class="card">
-                <img src="${p.gambar || 'https://via.placeholder.com/150'}" alt="${p.nama}">
-                <h4>${p.nama}</h4>
-                <div class="harga">Rp ${p.harga.toLocaleString('id-ID')}</div>
-                <div class="qty">
-                    <button onclick="ubah(${p.id}, -1)">-</button>
-                    <input type="number" value="${qty}" onchange="manual(${p.id}, this.value)">
-                    <button onclick="ubah(${p.id}, 1)">+</button>
-                </div>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-    hitungTotal();
-}
-
-// 3. FUNGSI KERANJANG
-function ubah(id, delta) {
-    cart[id] = (cart[id] || 0) + delta;
-    if (cart[id] < 0) cart[id] = 0;
-    simpan();
-    if (delta > 0) showInstallLogic();
-}
-
-function manual(id, val) {
-    let num = parseInt(val);
-    cart[id] = isNaN(num) || num < 0 ? 0 : num;
-    simpan();
-}
-
-function simpan() {
-    localStorage.setItem("cart", JSON.stringify(cart));
-    render();
-}
-
-function resetCart() {
-    if(confirm("Kosongkan keranjang belanja?")) {
-        cart = {};
-        simpan();
-    }
-}
-
-function hitungTotal() {
-    let totalHarga = 0;
-    let totalBarang = 0;
-    produkList.forEach(p => {
-        let q = cart[p.id] || 0;
-        totalHarga += q * p.harga;
-        totalBarang += q;
-    });
-    document.getElementById("floatingTotal").innerText = `${totalBarang} Item | Rp ${totalHarga.toLocaleString('id-ID')}`;
-}
-
-// 4. KATEGORI & CARI
-function buatKategori() {
-    let kategoriSet = new Set();
-    produkList.forEach(p => { if(p.kategori) kategoriSet.add(p.kategori.toUpperCase()) });
-    
-    let html = `<button onclick="setKategori('SEMUA')">SEMUA</button>`;
-    kategoriSet.forEach(k => {
-        html += `<button onclick="setKategori('${k}')">${k}</button>`;
-    });
-    document.getElementById("kategori").innerHTML = html;
-}
-
-function setKategori(k) {
-    currentData = (k === 'SEMUA') ? produkList : produkList.filter(p => p.kategori.toUpperCase() === k);
-    render();
-}
-
-function cari(txt) {
-    let keyword = txt.toLowerCase().trim();
-    currentData = produkList.filter(p => 
-        p.nama.toLowerCase().includes(keyword) || 
-        (p.kategori && p.kategori.toLowerCase().includes(keyword))
-    );
-    render();
-}
-
-// 5. CHECKOUT LOGIC
-function checkout() {
-    let ada = false;
-    produkList.forEach(p => { if ((cart[p.id] || 0) > 0) ada = true; });
-
-    if (!ada) { 
-        alert("Pilih produk dulu sebelum checkout!"); 
-        return; 
-    }
-    document.getElementById('payMenu').style.display = 'flex';
-}
-
-function prosesCheckout(metode) {
-    let pesan = `*PESANAN DUTA TERANG LED*\n`;
-    pesan += `--------------------------\n`;
-    let total = 0;
-
-    produkList.forEach(p => {
-        let q = cart[p.id] || 0;
-        if (q > 0) {
-            pesan += `▪️ ${p.nama} (${q}x)\n`;
-            total += q * p.harga;
-        }
-    });
-
-    pesan += `--------------------------\n`;
-    pesan += `💰 *Total: Rp ${total.toLocaleString('id-ID')}*\n`;
-    pesan += `💳 *Metode: ${metode}*\n`;
-    pesan += `--------------------------\n`;
-    pesan += `Nama Penerima:\nAlamat Lengkap:`;
-
-    document.getElementById('payMenu').style.display = 'none';
-    window.open(`https://wa.me/${NO_WA}?text=${encodeURIComponent(pesan)}`);
-}
-
-// 6. LOGIKA PWA & INSTALL
-window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if(localStorage.getItem("installMin")) {
-        document.getElementById("installBtn").style.display = "block";
-    }
-});
-
-function showInstallLogic() {
-    if (!deferredPrompt || localStorage.getItem("installClosed")) return;
-    document.getElementById("installPopup").style.display = "flex";
-}
-
-function openInstall() {
-    document.getElementById("installPopup").style.display = "flex";
-    document.getElementById("installBtn").style.display = "none";
-}
-
-function installApp() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choice => {
-        if (choice.outcome === "accepted") closeInstall();
-    });
-}
-
-function minimizeInstall() {
-    document.getElementById("installPopup").style.display = "none";
-    document.getElementById("installBtn").style.display = "block";
-    localStorage.setItem("installMin", "yes");
-}
-
-function closeInstall() {
-    document.getElementById("installPopup").style.display = "none";
-    document.getElementById("installBtn").style.display = "none";
-    localStorage.setItem("installClosed", "yes");
-}
-
-window.addEventListener('appinstalled', () => {
-    fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({ aksi: "tambah_install" })
-    });
-});
-
-// START
-load();
-</script>
-
+    <script>
+        // Logika sederhana untuk pencarian nanti akan disambungkan ke Firebase
+        document.querySelector('.search-box').addEventListener('input', (e) => {
+            console.log("Mencari: " + e.target.value);
+            // Kode filter produk di sini
+        });
+    </script>
 </body>
 </html>
