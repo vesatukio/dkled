@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storage Test</title>
+</head>
+
+<body>
+
+<h2>CATATKU STORAGE TEST</h2>
+
+<div id="hasil">Mengetes...</div>
+
+<script>
+
+"use strict";
+
+const hasil =
+  document.getElementById("hasil");
+
+let localResult = "";
+
+
+/* =========================
+   LOCAL STORAGE
+   ========================= */
+
+try {
+
+  localStorage.setItem(
+    "CATATKU_TEST",
+    "OK"
+  );
+
+  const value =
+    localStorage.getItem(
+      "CATATKU_TEST"
+    );
+
+  localResult =
+    value === "OK"
+      ? "✅ LOCALSTORAGE BERHASIL"
+      : "❌ LOCALSTORAGE GAGAL";
+
+}
+catch (error) {
+
+  localResult =
+    "❌ LOCALSTORAGE GAGAL<br><br>" +
+    "Nama: " +
+    error.name +
+    "<br><br>" +
+    "Pesan: " +
+    error.message;
+
+}
+
+
+/* =========================
+   INDEXEDDB
+   ========================= */
+
+try {
+
+  const request =
+    indexedDB.open(
+      "CatatKuTest",
+      1
+    );
+
+  request.onupgradeneeded =
+    function(event) {
+
+      const db =
+        event.target.result;
+
+      if (
+        !db.objectStoreNames.contains(
+          "test"
+        )
+      ) {
+
+        db.createObjectStore(
+          "test",
+          {
+            keyPath: "id"
+          }
+        );
+
+      }
+
+    };
+
+
+  request.onsuccess =
+    function(event) {
+
+      const db =
+        event.target.result;
+
+      hasil.innerHTML =
+
+        "<h3>HASIL TES</h3>" +
+
+        "<p>" +
+        localResult +
+        "</p>" +
+
+        "<hr>" +
+
+        "✅ INDEXEDDB BERHASIL";
+
+      db.close();
+
+    };
+
+
+  request.onerror =
+    function(event) {
+
+      const error =
+        event.target.error;
+
+      hasil.innerHTML =
+
+        "<h3>HASIL TES</h3>" +
+
+        "<p>" +
+        localResult +
+        "</p>" +
+
+        "<hr>" +
+
+        "❌ INDEXEDDB GAGAL" +
+
+        "<br><br>" +
+
+        "Nama: " +
+        (
+          error?.name ||
+          "Unknown"
+        ) +
+
+        "<br><br>" +
+
+        "Pesan: " +
+        (
+          error?.message ||
+          "Tidak ada pesan"
+        );
+
+    };
+
+}
+catch(error) {
+
+  hasil.innerHTML =
+
+    "<h3>HASIL TES</h3>" +
+
+    "<p>" +
+    localResult +
+    "</p>" +
+
+    "<hr>" +
+
+    "❌ INDEXEDDB ERROR" +
+
+    "<br><br>" +
+
+    error.name +
+
+    "<br><br>" +
+
+    error.message;
+
+}
+
+</script>
+
+</body>
+</html>
