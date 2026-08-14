@@ -2,66 +2,117 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Storage Test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CatatKu Storage Test</title>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  padding:20px;
+  font-size:18px;
+  line-height:1.6;
+}
+.ok{
+  color:green;
+  font-weight:bold;
+}
+.fail{
+  color:red;
+  font-weight:bold;
+}
+.box{
+  padding:15px;
+  margin:15px 0;
+  border:1px solid #ccc;
+  border-radius:10px;
+}
+</style>
 </head>
 
 <body>
 
 <h2>CATATKU STORAGE TEST</h2>
 
-<div id="hasil">Mengetes...</div>
+<div id="hasil">Sedang mengetes...</div>
 
 <script>
 
-"use strict";
-
 const hasil =
-  document.getElementById("hasil");
+document.getElementById("hasil");
 
-let localResult = "";
+let html = "";
 
 
-/* =========================
-   LOCAL STORAGE
-   ========================= */
+// =====================================================
+// LOCAL STORAGE
+// =====================================================
 
 try {
 
   localStorage.setItem(
-    "CATATKU_TEST",
+    "catatku_test",
     "OK"
   );
 
-  const value =
+  const nilai =
     localStorage.getItem(
-      "CATATKU_TEST"
+      "catatku_test"
     );
 
-  localResult =
-    value === "OK"
-      ? "✅ LOCALSTORAGE BERHASIL"
-      : "❌ LOCALSTORAGE GAGAL";
+  if (nilai === "OK") {
+
+    html += `
+      <div class="box ok">
+        ✅ LOCALSTORAGE BERHASIL
+      </div>
+    `;
+
+  }
+  else {
+
+    html += `
+      <div class="box fail">
+        ❌ LOCALSTORAGE GAGAL
+      </div>
+    `;
+
+  }
 
 }
-catch (error) {
+catch(error) {
 
-  localResult =
-    "❌ LOCALSTORAGE GAGAL<br><br>" +
-    "Nama: " +
-    error.name +
-    "<br><br>" +
-    "Pesan: " +
-    error.message;
+  html += `
+    <div class="box fail">
+      ❌ LOCALSTORAGE GAGAL
+
+      <br>
+
+      Nama:
+      ${error.name}
+
+      <br>
+
+      Pesan:
+      ${error.message}
+    </div>
+  `;
 
 }
 
 
-/* =========================
-   INDEXEDDB
-   ========================= */
+// =====================================================
+// INDEXED DB
+// =====================================================
 
 try {
+
+  if (!window.indexedDB) {
+
+    throw new Error(
+      "IndexedDB tidak tersedia"
+    );
+
+  }
 
   const request =
     indexedDB.open(
@@ -69,19 +120,19 @@ try {
       1
     );
 
+
   request.onupgradeneeded =
     function(event) {
 
-      const db =
+      const database =
         event.target.result;
 
       if (
-        !db.objectStoreNames.contains(
-          "test"
-        )
+        !database.objectStoreNames
+          .contains("test")
       ) {
 
-        db.createObjectStore(
+        database.createObjectStore(
           "test",
           {
             keyPath: "id"
@@ -96,22 +147,29 @@ try {
   request.onsuccess =
     function(event) {
 
-      const db =
+      const database =
         event.target.result;
 
+      html += `
+        <div class="box ok">
+          ✅ INDEXEDDB BERHASIL
+
+          <br>
+
+          Nama:
+          ${database.name}
+
+          <br>
+
+          Version:
+          ${database.version}
+        </div>
+      `;
+
+      database.close();
+
       hasil.innerHTML =
-
-        "<h3>HASIL TES</h3>" +
-
-        "<p>" +
-        localResult +
-        "</p>" +
-
-        "<hr>" +
-
-        "✅ INDEXEDDB BERHASIL";
-
-      db.close();
+        html;
 
     };
 
@@ -122,58 +180,54 @@ try {
       const error =
         event.target.error;
 
+      html += `
+        <div class="box fail">
+          ❌ INDEXEDDB GAGAL
+
+          <br>
+
+          Nama:
+          ${error?.name || "Unknown"}
+
+          <br>
+
+          Pesan:
+          ${error?.message || "Tidak ada pesan"}
+
+          <br>
+
+          Code:
+          ${error?.code ?? "0"}
+        </div>
+      `;
+
       hasil.innerHTML =
-
-        "<h3>HASIL TES</h3>" +
-
-        "<p>" +
-        localResult +
-        "</p>" +
-
-        "<hr>" +
-
-        "❌ INDEXEDDB GAGAL" +
-
-        "<br><br>" +
-
-        "Nama: " +
-        (
-          error?.name ||
-          "Unknown"
-        ) +
-
-        "<br><br>" +
-
-        "Pesan: " +
-        (
-          error?.message ||
-          "Tidak ada pesan"
-        );
+        html;
 
     };
+
 
 }
 catch(error) {
 
+  html += `
+    <div class="box fail">
+      ❌ INDEXEDDB GAGAL
+
+      <br>
+
+      Nama:
+      ${error.name}
+
+      <br>
+
+      Pesan:
+      ${error.message}
+    </div>
+  `;
+
   hasil.innerHTML =
-
-    "<h3>HASIL TES</h3>" +
-
-    "<p>" +
-    localResult +
-    "</p>" +
-
-    "<hr>" +
-
-    "❌ INDEXEDDB ERROR" +
-
-    "<br><br>" +
-
-    error.name +
-
-    "<br><br>" +
-
-    error.message;
+    html;
 
 }
 
